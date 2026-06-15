@@ -432,26 +432,25 @@
     font-family: 'Monoton', 'Bungee', sans-serif !important;
     color: #fff !important;
     text-shadow:
-      0 0 4px #fff,
-      0 0 14px #ff2e88,
-      0 0 32px #ff006e,
-      0 0 60px #ff006e !important;
+      0 0 1px #fff,
+      0 0 4px #ff2e88,
+      0 0 10px #ff006e !important;
     letter-spacing: 0.03em !important;
   }
   .hero-title .accent {
     color: #00f0ff !important;
     text-shadow:
-      0 0 4px #fff,
-      0 0 14px #00f0ff,
-      0 0 32px #00f0ff !important;
+      0 0 1px #fff,
+      0 0 4px #00f0ff,
+      0 0 10px #00f0ff !important;
     transform: none !important;
   }
   .hero-sub { color: #ffd9ec !important; font-style: italic; }
-  .stamp { border-color: #00f0ff !important; color: #00f0ff !important; text-shadow: 0 0 6px #00f0ff; }
+  .stamp { border-color: #00f0ff !important; color: #00f0ff !important; text-shadow: 0 0 3px #00f0ff; }
   .stamp-row { color: #ffd9ec !important; }
   .meta-grid { border-top-color: rgba(255,255,255,0.4) !important; }
   .meta-cell { color: #ffd9ec !important; }
-  .meta-cell strong { color: #00f0ff !important; text-shadow: 0 0 8px #00f0ff; }
+  .meta-cell strong { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
   .crew-list { color: #fff !important; }
 
   /* STATES BANNER — diagonal sunset */
@@ -461,7 +460,7 @@
     border-bottom: 2px solid #00f0ff;
   }
   .state-pill { border-color: rgba(255,255,255,0.6) !important; color: #fff !important; }
-  .state-num { color: #00f0ff !important; text-shadow: 0 0 8px #00f0ff; }
+  .state-num { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
   .state-pill::after { color: #00f0ff !important; }
 
   /* COLLAPSE BAR */
@@ -475,33 +474,33 @@
 
   /* BUDGET BANNER */
   .budget-banner { background: var(--paper-dark) !important; border-color: var(--rust) !important; }
-  .budget-banner h2 { color: #00f0ff !important; text-shadow: 0 0 8px #00f0ff; }
-  .budget-total { color: #ff2e88 !important; text-shadow: 0 0 16px #ff2e88, 0 0 32px #ff006e; }
+  .budget-banner h2 { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
+  .budget-total { color: #ff2e88 !important; text-shadow: 0 0 1px #fff, 0 0 6px #ff2e88; }
   .sub { color: rgba(245,232,255,0.8) !important; }
   .budget-mini { background: rgba(255,46,136,0.1) !important; border-color: rgba(255,255,255,0.15) !important; color: var(--ink) !important; }
-  .budget-mini strong { color: #00f0ff !important; text-shadow: 0 0 6px #00f0ff; }
+  .budget-mini strong { color: #00f0ff !important; text-shadow: 0 0 3px #00f0ff; }
 
-  /* MAJOR SECTION H2 */
-  section h2 { color: #ff2e88 !important; text-shadow: 0 0 10px #ff2e88, 0 0 20px #ff006e; }
+  /* MAJOR SECTION H2 — readable, not blurred */
+  section h2 { color: #ff2e88 !important; text-shadow: 0 0 1px rgba(255,255,255,0.4), 0 0 4px rgba(255,46,136,0.5); }
   .ampersand { color: #00f0ff !important; }
-  .section-toggle::after { color: #00f0ff !important; text-shadow: 0 0 6px #00f0ff; }
+  .section-toggle::after { color: #00f0ff !important; text-shadow: 0 0 3px #00f0ff; }
 
   /* INTRO */
   .intro { background: transparent !important; }
   .intro p, .intro .lead { color: var(--ink) !important; }
 
   /* ROUTE TABLE */
-  .route-table-wrap { border-color: #ff2e88 !important; box-shadow: 0 0 24px rgba(255,46,136,0.4); }
+  .route-table-wrap { border-color: #ff2e88 !important; box-shadow: 0 0 16px rgba(255,46,136,0.3); }
   .route-table { background: var(--paper-dark) !important; }
   .route-table th { background: #ff2e88 !important; color: #fff !important; }
   .route-table td { color: var(--ink) !important; border-bottom-color: rgba(255,255,255,0.12) !important; }
-  .route-table .day-cell { color: #00f0ff !important; text-shadow: 0 0 5px #00f0ff; }
-  .route-table .cost { color: #39ff14 !important; text-shadow: 0 0 4px #39ff14; }
+  .route-table .day-cell { color: #00f0ff !important; text-shadow: 0 0 3px #00f0ff; }
+  .route-table .cost { color: #39ff14 !important; text-shadow: 0 0 2px #39ff14; }
   .route-table .miles { color: #ff6ec7 !important; }
   .route-table .conf { color: #00f0ff !important; }
   .route-table .conf.dash { color: rgba(255,255,255,0.3) !important; }
   .totals-row td { background: rgba(255,46,136,0.15) !important; color: #fff !important; }
-  .status-pill.booked { background: #39ff14 !important; color: #0a0e27 !important; box-shadow: 0 0 8px #39ff14; }
+  .status-pill.booked { background: #39ff14 !important; color: #0a0e27 !important; box-shadow: 0 0 6px #39ff14; }
   .status-pill.pending { background: #00f0ff !important; color: #0a0e27 !important; }
   .status-pill.home { background: #ff2e88 !important; color: #fff !important; }
 
@@ -509,29 +508,29 @@
   .day-card {
     background: var(--paper-dark) !important;
     border: 1px solid #ff2e88 !important;
-    box-shadow: 0 0 16px rgba(255,46,136,0.25);
+    box-shadow: 0 0 12px rgba(255,46,136,0.2);
     margin-bottom: 26px;
     border-radius: 4px;
     overflow: hidden;
   }
-  .day-card.feature { border-color: #00f0ff !important; box-shadow: 0 0 24px rgba(0,240,255,0.4); }
+  .day-card.feature { border-color: #00f0ff !important; box-shadow: 0 0 16px rgba(0,240,255,0.3); }
   .day-header {
     background: linear-gradient(90deg, rgba(255,46,136,0.15) 0%, rgba(0,240,255,0.1) 100%) !important;
     border-bottom: 1px solid #ff2e88 !important;
   }
-  .day-num { color: #00f0ff !important; text-shadow: 0 0 8px #00f0ff; }
+  .day-num { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
   .day-num small { color: #ff6ec7 !important; }
   .day-title { color: #fff !important; }
-  .day-title .date { color: #ff2e88 !important; text-shadow: 0 0 4px #ff2e88; }
+  .day-title .date { color: #ff2e88 !important; text-shadow: 0 0 2px #ff2e88; }
   .day-route .from-to { color: #ff6ec7 !important; }
-  .miles-big { color: #00f0ff !important; text-shadow: 0 0 8px #00f0ff; }
+  .miles-big { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
   .day-body { color: var(--ink) !important; }
   .day-body p { color: var(--ink) !important; }
-  .day-body strong { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
+  .day-body strong { color: #00f0ff !important; text-shadow: 0 0 2px #00f0ff; }
 
   .stops li { color: var(--ink) !important; border-bottom-color: rgba(255,255,255,0.1) !important; }
   .stops .label { color: #ff2e88 !important; }
-  .stops li.quirky .label { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
+  .stops li.quirky .label { color: #00f0ff !important; text-shadow: 0 0 2px #00f0ff; }
   .stops .desc { color: rgba(245,232,255,0.8) !important; }
   .stops strong { color: #fff !important; }
 
@@ -540,22 +539,22 @@
   .logi-label { color: #ff2e88 !important; }
   .logi-name { color: #fff !important; }
   .logi-detail { color: rgba(245,232,255,0.78) !important; }
-  .logi-cost { color: #39ff14 !important; text-shadow: 0 0 4px #39ff14; }
+  .logi-cost { color: #39ff14 !important; text-shadow: 0 0 2px #39ff14; }
 
   .day-cost-strip {
     background: linear-gradient(90deg, #ff006e 0%, #6a0dad 100%) !important;
     color: #fff !important;
   }
-  .day-cost-strip .total { color: #00f0ff !important; text-shadow: 0 0 8px #00f0ff; }
+  .day-cost-strip .total { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
 
   /* YELLOWSTONE BLOCK */
   .yellowstone-block {
     background: linear-gradient(135deg, #2a0859 0%, #4a0a6e 100%) !important;
     border: 1px solid #00f0ff !important;
-    box-shadow: 0 0 24px rgba(0,240,255,0.25);
+    box-shadow: 0 0 16px rgba(0,240,255,0.2);
     color: var(--ink) !important;
   }
-  .yellowstone-block h3 { color: #00f0ff !important; text-shadow: 0 0 8px #00f0ff; }
+  .yellowstone-block h3 { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
   .yb-sub { color: rgba(245,232,255,0.8) !important; }
   .yb-cell { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.15) !important; }
   .yb-cell h4 { color: #ff2e88 !important; }
@@ -564,13 +563,13 @@
 
   /* RANGER */
   .ranger-section { background: transparent !important; }
-  .ranger-section h2 { color: #39ff14 !important; text-shadow: 0 0 8px #39ff14; }
+  .ranger-section h2 { color: #39ff14 !important; text-shadow: 0 0 4px #39ff14; }
   .ranger-grid { color: var(--ink) !important; }
-  .ranger-badge { background: var(--paper-dark) !important; border-color: #39ff14 !important; box-shadow: 0 0 10px rgba(57,255,20,0.25); }
+  .ranger-badge { background: var(--paper-dark) !important; border-color: #39ff14 !important; box-shadow: 0 0 8px rgba(57,255,20,0.2); }
 
   /* STARS */
   .stars-section { background: linear-gradient(180deg, #0a0e27 0%, #1a0344 60%, #2a0859 100%) !important; }
-  .stars-section h2 { color: #00f0ff !important; text-shadow: 0 0 12px #00f0ff; }
+  .stars-section h2 { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
   .star-card { background: rgba(255,255,255,0.05) !important; border-color: #00f0ff !important; }
 
   /* CHEAT SHEET */
@@ -585,19 +584,19 @@
     border-top: 2px solid #ff2e88;
     border-bottom: 2px solid #ff2e88;
   }
-  #running-tally h2 { color: #00f0ff !important; text-shadow: 0 0 12px #00f0ff; }
+  #running-tally h2 { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
 
   /* MISSION COUNTER */
   .counter-section { background: transparent !important; }
   .counter-num {
     color: #00f0ff !important;
-    text-shadow: 0 0 12px #00f0ff, 0 0 28px #00f0ff;
+    text-shadow: 0 0 1px #fff, 0 0 6px #00f0ff;
   }
   .counter-label { color: var(--ink) !important; }
 
   /* Hyperlinks */
   a { color: #00f0ff !important; }
-  a:hover { color: #ff2e88 !important; text-shadow: 0 0 4px #ff2e88; }
+  a:hover { color: #ff2e88 !important; text-shadow: 0 0 2px #ff2e88; }
 
   /* Tweak: stale color refs in inline styles */
   /* Day 1 alert box (gold border) — keep gold = now cyan */
