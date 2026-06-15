@@ -194,9 +194,9 @@
   #trip-map { width: 100%; border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); background: var(--paper); padding: 20px 0; }
   #trip-map svg { display: block; width: 100%; height: auto; }
   .state-shape { fill: var(--paper-dark); stroke: var(--ink); stroke-width: 0.5; }
-  .state-shape.visited { fill: #e8d4b8; }
+  .state-shape.visited { fill: rgba(255,46,136,0.22); }
   .state-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: var(--ink); opacity: 0.6; text-anchor: middle; pointer-events: none; }
-  .route-line { fill: none; stroke: var(--rust-deep); stroke-width: 2.5; stroke-dasharray: 8,6; opacity: 0.8; }
+  .route-line { fill: none; stroke: #00f0ff; stroke-width: 2.5; stroke-dasharray: 8,6; opacity: 0.85; }
   .route-pin { stroke: var(--ink); stroke-width: 2; cursor: pointer; }
   .route-pin:hover { stroke-width: 3; }
   .route-pin-label { font-family: 'Bungee', sans-serif; font-size: 11px; fill: var(--ink); text-anchor: middle; pointer-events: none; dominant-baseline: central; }
@@ -593,6 +593,13 @@
     text-shadow: 0 0 1px #fff, 0 0 6px #00f0ff;
   }
   .counter-label { color: var(--ink) !important; }
+
+  /* MAP — neon container + glow */
+  #trip-map { border: 2px solid #ff2e88 !important; box-shadow: 0 0 20px rgba(255,46,136,0.35) !important; background: #16113d !important; }
+  .map-tooltip { background: var(--paper-dark) !important; border-color: #ff2e88 !important; box-shadow: 0 0 12px rgba(255,46,136,0.4) !important; color: var(--ink) !important; }
+  .map-tooltip-day { color: #00f0ff !important; }
+  .map-tooltip-spend { color: #39ff14 !important; border-top-color: rgba(255,46,136,0.4) !important; }
+  .route-pin-label { fill: #fff !important; }
 
   /* Hyperlinks */
   a { color: #00f0ff !important; }
@@ -1090,7 +1097,7 @@
       <div class="day-route"><div class="from-to">Toledo → Pottstown</div><div class="miles-big">490 mi</div></div>
     </div>
     <div class="day-body">
-      <p>The home stretch. Sleep in, easy breakfast, and roll into the driveway by evening with eight new pins on the map.</p>
+      <p>The home stretch. Sleep in, easy breakfast, and roll into the driveway by evening with nine new pins on the map.</p>
     </div>
     <div class="logistics-grid">
       <div class="logi-block"><div class="logi-label">SLEEP</div><div class="logi-name">Home sweet home</div><div class="logi-detail">Own bed. Glorious.</div><div class="logi-cost">$0</div></div>
@@ -1202,11 +1209,11 @@
 
 <section class="budget-detail" id="running-tally" style="background: var(--ink); color: var(--paper);">
   <h2 style="color: var(--paper);">On the Road · Running Tally</h2>
-  <p class="lede" style="color: var(--paper);">Live expense tracking. Updated as receipts come in. <em style="color: var(--gold);">Last update: Sun 6/14 night · Madison, WI</em></p>
+  <p class="lede" style="color: var(--paper);">Live expense tracking. Updated as receipts come in. <em style="color: var(--gold);">Last update: Mon 6/15 mid-day · en route to Mitchell, SD</em></p>
 
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin:32px 0;">
     <div style="background:var(--paper);color:var(--ink);padding:24px 16px;text-align:center;border:2px solid var(--rust);">
-      <div style="font-family:'Bungee',sans-serif;font-size:32px;color:var(--rust);">$894</div>
+      <div style="font-family:'Bungee',sans-serif;font-size:32px;color:var(--rust);">$886</div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;margin-top:8px;color:var(--rust-deep);">Trip-to-Date</div>
     </div>
     <div style="background:var(--paper);color:var(--ink);padding:24px 16px;text-align:center;border:2px solid var(--rust);">
@@ -1214,12 +1221,12 @@
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;margin-top:8px;color:var(--rust-deep);">Days Complete</div>
     </div>
     <div style="background:var(--paper);color:var(--ink);padding:24px 16px;text-align:center;border:2px solid var(--rust);">
-      <div style="font-family:'Bungee',sans-serif;font-size:32px;color:var(--rust);">$447</div>
+      <div style="font-family:'Bungee',sans-serif;font-size:32px;color:var(--rust);">$410</div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;margin-top:8px;color:var(--rust-deep);">Daily Avg (so far)</div>
     </div>
     <div style="background:var(--paper);color:var(--ink);padding:24px 16px;text-align:center;border:2px solid #a83232;">
-      <div style="font-family:'Bungee',sans-serif;font-size:32px;color:#ff2e88;text-shadow:0 0 8px #ff2e88;">+$20</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;margin-top:8px;color:#ff2e88;">vs Budget Day 2</div>
+      <div style="font-family:'Bungee',sans-serif;font-size:32px;color:var(--green);text-shadow:0 0 6px #39ff14;">-$53</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;margin-top:8px;color:var(--green);">vs Budget Day 2</div>
     </div>
   </div>
 
@@ -1243,13 +1250,14 @@
   <rect x="66.0" y="170.5" width="28" height="40.8" fill="#00f0ff"/>
   <text x="80.0" y="318" font-family="JetBrains Mono, monospace" font-size="11" fill="#00f0ff" text-anchor="middle" font-weight="700">1</text>
   <line x1="104.0" y1="105.0" x2="136.0" y2="105.0" stroke="#ff2e88" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.7"/>
-  <rect x="106.0" y="236.9" width="28" height="63.1" fill="#8338ec"/>
-  <rect x="106.0" y="207.7" width="28" height="29.1" fill="#ff2e88"/>
-  <rect x="106.0" y="149.0" width="28" height="58.7" fill="#00f0ff"/>
-  <rect x="106.0" y="130.4" width="28" height="18.6" fill="#39ff14"/>
-  <rect x="106.0" y="97.6" width="28" height="32.8" fill="#c77dff"/>
+  <rect x="106.0" y="263.9" width="28" height="36.1" fill="#8338ec"/>
+  <rect x="106.0" y="234.8" width="28" height="29.1" fill="#ff2e88"/>
+  <rect x="106.0" y="176.0" width="28" height="58.7" fill="#00f0ff"/>
+  <rect x="106.0" y="157.5" width="28" height="18.6" fill="#39ff14"/>
+  <rect x="106.0" y="124.6" width="28" height="32.8" fill="#c77dff"/>
   <text x="120.0" y="318" font-family="JetBrains Mono, monospace" font-size="11" fill="#00f0ff" text-anchor="middle" font-weight="700">2</text>
   <line x1="144.0" y1="114.3" x2="176.0" y2="114.3" stroke="#ff2e88" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.7"/>
+  <rect x="146.0" y="275.7" width="28" height="24.3" fill="#ff2e88"/>
   <text x="160.0" y="318" font-family="JetBrains Mono, monospace" font-size="11" fill="#00f0ff" text-anchor="middle" font-weight="700">3</text>
   <line x1="184.0" y1="85.3" x2="216.0" y2="85.3" stroke="#ff2e88" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.7"/>
   <text x="200.0" y="318" font-family="JetBrains Mono, monospace" font-size="11" fill="#00f0ff" text-anchor="middle" font-weight="700">4</text>
@@ -1300,7 +1308,7 @@
   </div>
 
   <h3 style="color:var(--gold);font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:0.08em;text-transform:uppercase;margin-top:32px;">Cumulative Spending</h3>
-  <p style="color:var(--paper);opacity:0.75;font-size:13px;margin-bottom:16px;font-style:italic;">Trip-to-date stack vs the budget pace line. If we stay below the diagonal, we're on budget.</p>
+  <p style="color:var(--paper);opacity:0.75;font-size:13px;margin-bottom:16px;font-style:italic;">Trip-to-date stack vs the budget pace line. If we stay below the diagonal, we&rsquo;re on budget.</p>
   <div style="background:var(--paper);padding:14px 8px 14px 8px;border-radius:2px;">
 <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" style="background:#16113d; width:100%; height:auto; display:block;">
   <line x1="60" y1="260.0" x2="700" y2="260.0" stroke="rgba(0,240,255,0.18)" stroke-width="0.5" stroke-dasharray="2,3"/>
@@ -1317,13 +1325,13 @@
   <text x="52" y="34.0" font-family="JetBrains Mono, monospace" font-size="10" fill="#ff6ec7" text-anchor="end">$9K</text>
   <line x1="60" y1="260.0" x2="700" y2="32.4" stroke="#ff2e88" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.65"/>
   <text x="696" y="26.4" font-family="JetBrains Mono, monospace" font-size="9" fill="#ff6ec7" text-anchor="end">Budget pace</text>
-  <polygon points="60.0,257.2 102.7,252.8 102.7,260.0 60.0,260.0" fill="#8338ec" opacity="0.85"/>
-  <polygon points="60.0,253.9 102.7,247.5 102.7,252.8 60.0,257.2" fill="#ff2e88" opacity="0.85"/>
-  <polygon points="60.0,251.1 102.7,240.7 102.7,247.5 60.0,253.9" fill="#00f0ff" opacity="0.85"/>
-  <polygon points="60.0,251.1 102.7,239.4 102.7,240.7 60.0,251.1" fill="#39ff14" opacity="0.85"/>
-  <polygon points="60.0,251.1 102.7,237.2 102.7,239.4 60.0,251.1" fill="#c77dff" opacity="0.85"/>
-  <circle data-marker cx="102.7" cy="237.2" r="5" fill="#00f0ff" stroke="#fff" stroke-width="1"/>
-  <text x="110.7" y="231.2" font-family="JetBrains Mono, monospace" font-size="11" fill="#00f0ff" font-weight="700">$894</text>
+  <polygon points="60.0,257.2 102.7,254.7 145.3,254.7 145.3,260.0 102.7,260.0 60.0,260.0" fill="#8338ec" opacity="0.85"/>
+  <polygon points="60.0,253.9 102.7,249.4 145.3,247.7 145.3,254.7 102.7,254.7 60.0,257.2" fill="#ff2e88" opacity="0.85"/>
+  <polygon points="60.0,251.1 102.7,242.6 145.3,240.9 145.3,247.7 102.7,249.4 60.0,253.9" fill="#00f0ff" opacity="0.85"/>
+  <polygon points="60.0,251.1 102.7,241.3 145.3,239.6 145.3,240.9 102.7,242.6 60.0,251.1" fill="#39ff14" opacity="0.85"/>
+  <polygon points="60.0,251.1 102.7,239.0 145.3,237.4 145.3,239.6 102.7,241.3 60.0,251.1" fill="#c77dff" opacity="0.85"/>
+  <circle cx="145.3" cy="237.4" r="5" fill="#00f0ff" stroke="#fff" stroke-width="1"/>
+  <text x="153.3" y="231.4" font-family="JetBrains Mono, monospace" font-size="11" fill="#00f0ff" font-weight="700">$886</text>
   <text x="60.0" y="278" font-family="JetBrains Mono, monospace" font-size="11" fill="#00f0ff" text-anchor="middle" font-weight="700">1</text>
   <text x="102.7" y="278" font-family="JetBrains Mono, monospace" font-size="11" fill="#00f0ff" text-anchor="middle" font-weight="700">2</text>
   <text x="145.3" y="278" font-family="JetBrains Mono, monospace" font-size="11" fill="#00f0ff" text-anchor="middle" font-weight="700">3</text>
@@ -1346,6 +1354,57 @@
 </svg>
   </div>
 
+  <h3 style="color:var(--gold);font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:0.08em;text-transform:uppercase;margin-top:36px;">Day 1 Receipts &middot; Sat 6/13 &middot; Pottstown &rarr; Cleveland</h3>
+  <div class="route-table-wrap" style="background:var(--paper);">
+    <table class="route-table">
+      <thead>
+        <tr><th>Time</th><th>Vendor</th><th>Location</th><th>Cat.</th><th>Note</th><th style="text-align:right;">Total</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>8:52 AM</td><td>Wawa #295</td><td>Pottstown, PA</td><td>Food</td><td>Breakfast + road snacks</td><td class="cost">$28.61</td></tr>
+        <tr><td>3:54 PM</td><td>Eat&rsquo;n Park Somerset #47</td><td>Somerset, PA</td><td>Food</td><td>Lunch &middot; incl $14 tip</td><td class="cost">$81.12</td></tr>
+        <tr><td>8:10 PM</td><td>Sheetz #347</td><td>N. Ridgeville, OH</td><td>Fuel</td><td>30.039 gal @ $4.289 &mdash; full tank</td><td class="cost">$128.84</td></tr>
+        <tr><td>Check-in</td><td>South Ridge Inn</td><td>N. Ridgeville, OH</td><td>Other</td><td>Night 1 &mdash; relocated by Booking.com*</td><td class="cost">$110.00</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="background:var(--paper);color:var(--ink);border-left:6px solid #00f0ff;padding:18px 22px;margin-top:24px;font-size:14px;line-height:1.55;">
+    <strong style="font-family:'Bungee',sans-serif;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#ff2e88;">*Night 1 hotel relocation</strong><br>
+    Sonesta Simply Suites was unavailable. Booking.com moved the family to <strong>South Ridge Inn</strong> (32801 Lorain Rd, N. Ridgeville). Hotel charged <strong>$147.01</strong> to card ending 7726 at the desk. Booking.com to credit the <strong>$37 difference</strong> &mdash; <em>still pending verification</em>. Tracking $110 as effective Night 1 lodging cost.
+  </div>
+
+  <h3 style="color:var(--gold);font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:0.08em;text-transform:uppercase;margin-top:36px;">Day 2 Receipts &middot; Sun 6/14 &middot; Cleveland &rarr; Madison</h3>
+  <div class="route-table-wrap" style="background:var(--paper);">
+    <table class="route-table">
+      <thead>
+        <tr><th>Time</th><th>Vendor</th><th>Location</th><th>Cat.</th><th>Note</th><th style="text-align:right;">Total</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>8:27 AM</td><td>Dunkin&rsquo; #355978</td><td>N. Ridgeville, OH</td><td>Food</td><td>4 donuts, 2 coffees, green tea</td><td class="cost">$15.80</td></tr>
+        <tr><td>~1:00 PM</td><td>RV/MH Hall of Fame</td><td>Elkhart, IN</td><td>Attr.</td><td>Admission for family</td><td class="cost">$50.00</td></tr>
+        <tr><td>1:27 PM</td><td>RV/MH Hall of Fame</td><td>Elkhart, IN</td><td>Souv.</td><td>Gift shop &mdash; squishies, parachute guy, frisbees</td><td class="cost">$88.40</td></tr>
+        <tr><td>2:12 PM</td><td>Prime Table</td><td>Niles, MI &nbsp;<span style="color:#00f0ff;">&#9733; state #38</span></td><td>Food</td><td>Lunch &mdash; the Michigan discovery, incl $15.42 tip</td><td class="cost">$92.50</td></tr>
+        <tr><td>5:24 PM</td><td>Thorntons #331</td><td>Roscoe, IL</td><td>Fuel</td><td>19.861 gal @ $3.949 &mdash; partial fill</td><td class="cost">$78.43</td></tr>
+        <tr><td>7:59 PM</td><td>Ice Cream Social</td><td>Madison, WI</td><td>Food</td><td>Scoops + waffle cones</td><td class="cost">$36.11</td></tr>
+        <tr><td>8:32 PM</td><td>KFC</td><td>Madison, WI</td><td>Food</td><td>3pc combo carryout</td><td class="cost">$13.70</td></tr>
+        <tr><td>Check-out</td><td>Tru by Hilton Madison West</td><td>Madison, WI</td><td>Other</td><td>Night 2 &mdash; Hilton Honors rate via Booking</td><td class="cost">$97.20</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:var(--paper);opacity:0.7;margin-top:8px;font-style:italic;">Tru Madison came in $73 under estimate &mdash; Hilton Honors member rate via Booking.</p>
+
+  <h3 style="color:var(--gold);font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:0.08em;text-transform:uppercase;margin-top:36px;">Day 3 Receipts &middot; Mon 6/15 &middot; Madison &rarr; Mitchell <span style="color:#ff6ec7;font-size:11px;">(in progress)</span></h3>
+  <div class="route-table-wrap" style="background:var(--paper);">
+    <table class="route-table">
+      <thead>
+        <tr><th>Time</th><th>Vendor</th><th>Location</th><th>Cat.</th><th>Note</th><th style="text-align:right;">Total</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>11:07 AM</td><td>Love&rsquo;s #844</td><td>WI/MN corridor</td><td>Fuel</td><td>17.691 gal @ $3.699 &mdash; gas under budget</td><td class="cost">$65.44</td></tr>
+      </tbody>
+    </table>
+  </div>
+
   <h3 style="color:var(--gold);font-family:'Bungee',sans-serif;font-size:14px;letter-spacing:0.08em;text-transform:uppercase;margin-top:36px;">Spending by Category</h3>
   <div class="route-table-wrap" style="background:var(--paper);">
     <table class="route-table">
@@ -1353,13 +1412,13 @@
         <tr><th>Category</th><th style="text-align:right;">Budget</th><th style="text-align:right;">Spent</th><th style="text-align:right;">% Used</th><th style="text-align:right;">Remaining</th></tr>
       </thead>
       <tbody>
-        <tr><td><span style="display:inline-block;width:10px;height:10px;background:#ff2e88;margin-right:8px;vertical-align:middle;"></span>Fuel</td><td class="cost">$1,377</td><td class="cost">$207.27</td><td class="cost">15.1%</td><td class="cost">$1,170</td></tr>
+        <tr><td><span style="display:inline-block;width:10px;height:10px;background:#ff2e88;margin-right:8px;vertical-align:middle;"></span>Fuel</td><td class="cost">$1,377</td><td class="cost">$272.71</td><td class="cost">19.8%</td><td class="cost">$1,104</td></tr>
         <tr><td><span style="display:inline-block;width:10px;height:10px;background:#00f0ff;margin-right:8px;vertical-align:middle;"></span>Food</td><td class="cost">$2,570</td><td class="cost">$267.84</td><td class="cost">10.4%</td><td class="cost">$2,302</td></tr>
         <tr><td><span style="display:inline-block;width:10px;height:10px;background:#39ff14;margin-right:8px;vertical-align:middle;"></span>Attractions</td><td class="cost">$640</td><td class="cost">$50.00</td><td class="cost">7.8%</td><td class="cost">$590</td></tr>
         <tr><td><span style="display:inline-block;width:10px;height:10px;background:#c77dff;margin-right:8px;vertical-align:middle;"></span>Souvenirs</td><td class="cost">$250</td><td class="cost">$88.40</td><td class="cost">35.4%</td><td class="cost">$162</td></tr>
-        <tr><td><span style="display:inline-block;width:10px;height:10px;background:#8338ec;margin-right:8px;vertical-align:middle;"></span>Other (Lodging + Tolls + Buffer)</td><td class="cost">$4,071</td><td class="cost">$280.00</td><td class="cost">6.9%</td><td class="cost">$3,791</td></tr>
+        <tr><td><span style="display:inline-block;width:10px;height:10px;background:#8338ec;margin-right:8px;vertical-align:middle;"></span>Other (Lodging + Tolls + Buffer)</td><td class="cost">$4,071</td><td class="cost">$207.20</td><td class="cost">5.1%</td><td class="cost">$3,864</td></tr>
         <tr style="background:var(--paper-dark);font-weight:700;">
-          <td>TOTAL</td><td class="cost">$8,908</td><td class="cost">$893.51</td><td class="cost">10.0%</td><td class="cost">$8,014</td>
+          <td>TOTAL</td><td class="cost">$8,908</td><td class="cost">$886.15</td><td class="cost">9.9%</td><td class="cost">$8,022</td>
         </tr>
       </tbody>
     </table>
@@ -1390,7 +1449,7 @@
 </section>
 
 <footer>
-  Eight states. Two boys. One big loop.<br>
+  Nine states. Two boys. One big loop.<br>
   Let&rsquo;s go.
   <div class="small">An itinerary subject to spontaneous detours, bison-related delays, and ice cream stops.</div>
   <div class="attribution">Photos via Google Places · Map data © OpenStreetMap contributors · This page made for our family, not for you</div>
@@ -1408,40 +1467,41 @@
 
   var stops = [
     { lat: 40.2454, lng: -75.6496, day: 'DAY 1 START · Sat Jun 13', title: 'Pottstown, PA', note: '420 mi to Cleveland. On the road by 7am.', kind: 'start', label: 'S', spend: '~$310' },
-    { lat: 41.4710, lng: -81.9548, day: 'NIGHT 1', title: 'Sonesta Simply Suites Cleveland Westlake', note: '✓ Booked. Suite-style room. Dinner at West Side Market.', kind: 'hotel', label: '1', spend: 'Day 1: ~$310' },
+    { lat: 41.3933, lng: -82.0179, day: 'NIGHT 1 · Sat Jun 13', title: 'South Ridge Inn, N. Ridgeville', note: '✓ Stayed. Relocated by Booking.com from Sonesta. Dinner at Eat’n Park (Somerset, PA) on the way.', kind: 'hotel', label: '1', spend: 'Day 1: $349 actual / $442 budget' },
+    { lat: 41.8276, lng: -86.2536, day: 'DAY 2 LUNCH · Sun Jun 14', title: 'Prime Table, Niles, MI', note: '★ Surprise state #38! Boys had never been to Michigan. Family diner just over the IN/MI border — state earned over omelettes.', kind: 'attraction', label: '★' },
     { lat: 43.0625, lng: -89.4321, day: 'DAY 2 EVE · Sun Jun 14', title: 'Forest Hill Cemetery, Madison', note: 'Historic 19th-century garden cemetery. Walkable post-dinner. Civil War markers, beautiful old trees.', kind: 'cemetery', label: '☩' },
-    { lat: 43.0554, lng: -89.5212, day: 'NIGHT 2', title: 'Tru by Hilton Madison West', note: '✓ Booked. Modern Hilton property. RV Hall of Fame stop en route. Babcock Hall ice cream. State #39 — WI!', kind: 'hotel', label: '2', spend: 'Day 2: ~$320' },
+    { lat: 43.0554, lng: -89.5212, day: 'NIGHT 2 · Sun Jun 14', title: 'Tru by Hilton Madison West', note: '✓ Stayed. RV Hall of Fame + Niles MI lunch en route. Ice Cream Social + KFC dinner. State #39 — WI!', kind: 'hotel', label: '2', spend: 'Day 2: $472 actual / $525 budget' },
     { lat: 43.6486, lng: -93.3628, day: 'DAY 3 LUNCH · Mon Jun 15', title: 'Albert Lea, MN', note: 'Lunch at Main Street Family Restaurant. State #40 earned over a real plate of food.', kind: 'attraction', label: '★' },
     { lat: 43.7149, lng: -98.0252, day: 'DAY 3 STOP', title: 'Corn Palace, Mitchell', note: 'Free. Insane. Walls of corn cobs, redecorated yearly.', kind: 'attraction', label: '★' },
-    { lat: 43.6896, lng: -98.0116, day: 'NIGHT 3', title: 'Kelly Inn & Suites Mitchell', note: '✓ Booked. Cattleman\u2019s Club steakhouse for dinner. State #41 — SD.', kind: 'hotel', label: '3', spend: 'Day 3: ~$310' },
+    { lat: 43.6896, lng: -98.0116, day: 'NIGHT 3', title: 'Kelly Inn & Suites Mitchell', note: '✓ Booked. Cattleman\u2019s Club steakhouse for dinner. State #41 — SD.', kind: 'hotel', label: '3', spend: 'Day 3 budget: $500' },
     { lat: 43.9929, lng: -102.2415, day: 'DAY 4 STOP · Tue Jun 16', title: 'Wall Drug Store', note: '5\u00a2 coffee, giant T-Rex, jackalope photos. Roadside legend since 1931.', kind: 'attraction', label: '★' },
     { lat: 43.7491, lng: -101.9417, day: 'DAY 4 PARK', title: 'Badlands National Park', note: 'First Junior Ranger badges! Drive the 31-mi loop.', kind: 'attraction', label: '★' },
-    { lat: 43.9895, lng: -102.2386, day: 'NIGHT 4', title: 'Best Western Plains, Wall', note: '✓ Booked. Walking distance to Wall Drug. Pool.', kind: 'hotel', label: '4', spend: 'Day 4: ~$340' },
+    { lat: 43.9895, lng: -102.2386, day: 'NIGHT 4', title: 'Best Western Plains, Wall', note: '✓ Booked. Walking distance to Wall Drug. Pool.', kind: 'hotel', label: '4', spend: 'Day 4 budget: $578' },
     { lat: 43.8803, lng: -103.4538, day: 'DAY 5 ICON · Wed Jun 17', title: 'Mount Rushmore', note: 'Free entry, $10 parking. Carver\u2019s Caf\u00e9 Jefferson ice cream.', kind: 'attraction', label: '★' },
     { lat: 44.3752, lng: -103.7239, day: 'DAY 5 DETOUR', title: 'Mt. Moriah Cemetery, Deadwood', note: 'Wild Bill Hickok & Calamity Jane. $2 cash entry. Self-guided walking tour with map. ~50 min from Keystone.', kind: 'cemetery', label: '☩' },
-    { lat: 43.8876, lng: -103.4253, day: 'NIGHT 5', title: 'Roosevelt Inn, Keystone', note: 'Kids stay free. Indoor pool, full breakfast.', kind: 'hotel', label: '5', spend: 'Day 5: ~$370' },
+    { lat: 43.8876, lng: -103.4253, day: 'NIGHT 5', title: 'Roosevelt Inn, Keystone', note: 'Kids stay free. Indoor pool, full breakfast.', kind: 'hotel', label: '5', spend: 'Day 5 budget: $493' },
     { lat: 44.5902, lng: -104.7146, day: 'DAY 6 STOP · Thu Jun 18', title: 'Devils Tower (WY)', note: 'America\u2019s first national monument. 1.3-mi loop trail at the base.', kind: 'attraction', label: '★' },
-    { lat: 46.9088, lng: -103.5270, day: 'NIGHTS 6 & 7', title: 'ElkHorn Quarters, Medora', note: 'Walk to everything in this 155-person town. Theodore Roosevelt NP & Pitchfork Fondue. ✓ Booked.', kind: 'hotel', label: '6', spend: 'Days 6+7: ~$934' },
+    { lat: 46.9088, lng: -103.5270, day: 'NIGHTS 6 & 7', title: 'ElkHorn Quarters, Medora', note: 'Walk to everything in this 155-person town. Theodore Roosevelt NP & Pitchfork Fondue. ✓ Booked.', kind: 'hotel', label: '6', spend: 'Days 6+7 budget: $1,073' },
     { lat: 45.5658, lng: -107.4274, day: 'DAY 8 STOP · Sat Jun 20', title: 'Little Bighorn Battlefield', note: '1876 battle site + Custer National Cemetery. Drive the 4.5-mi loop.', kind: 'cemetery', label: '☩' },
-    { lat: 45.6937, lng: -111.0457, day: 'NIGHT 8', title: 'Comfort Inn Bozeman near University', note: '✓ Booked. Pompeys Pillar (Lewis & Clark) en route. State #43 — Montana.', kind: 'hotel', label: '8', spend: 'Day 8: ~$383' },
+    { lat: 45.6937, lng: -111.0457, day: 'NIGHT 8', title: 'Comfort Inn Bozeman near University', note: '✓ Booked. Pompeys Pillar (Lewis & Clark) en route. State #43 — Montana.', kind: 'hotel', label: '8', spend: 'Day 8 budget: $558' },
     { lat: 45.6607, lng: -111.0482, day: 'DAY 9 STOP · Sun Jun 21', title: 'Museum of the Rockies', note: 'World\u2019s largest T. rex skull. The boys won\u2019t want to leave.', kind: 'attraction', label: '★' },
-    { lat: 44.6628, lng: -111.1022, day: 'NIGHTS 9 & 10', title: 'One Horse Motel', note: '✓ Booked. Self check-in lockbox. 5-min walk to West Entrance. Park across the street.', kind: 'hotel', label: '9', spend: 'Days 9+10: ~$845' },
+    { lat: 44.6628, lng: -111.1022, day: 'NIGHTS 9 & 10', title: 'One Horse Motel', note: '✓ Booked. Self check-in lockbox. 5-min walk to West Entrance. Park across the street.', kind: 'hotel', label: '9', spend: 'Days 9+10 budget: $1,033' },
     { lat: 44.4605, lng: -110.8281, day: 'DAY 10 ICON · Mon Jun 22', title: 'Old Faithful', note: 'Out the door by 7am to beat crowds. Time the eruption.', kind: 'attraction', label: '★' },
-    { lat: 43.4799, lng: -112.0167, day: 'NIGHTS 11 & 12', title: 'Beautiful Home Near Idaho Falls Airport', note: '✓ Booked VRBO. Full kitchen + laundry. Big Jud\u2019s burger night. State #44 — Idaho.', kind: 'hotel', label: '11', spend: 'Days 11+12: ~$670' },
+    { lat: 43.4799, lng: -112.0167, day: 'NIGHTS 11 & 12', title: 'Beautiful Home Near Idaho Falls Airport', note: '✓ Booked VRBO. Full kitchen + laundry. Big Jud\u2019s burger night. State #44 — Idaho.', kind: 'hotel', label: '11', spend: 'Days 11+12 budget: $828' },
     { lat: 43.1718, lng: -113.4821, day: 'DAY 12 PARK · Wed Jun 24', title: 'Craters of the Moon', note: 'Apollo astronauts trained here. Lava tubes, Inferno Cone.', kind: 'attraction', label: '★' },
     { lat: 44.9700, lng: -109.4700, day: 'DAY 13 DRIVE · Thu Jun 25', title: 'Beartooth Pass (10,947 ft)', note: 'Charles Kuralt\u2019s "most beautiful drive in America." 68 mi of switchbacks, alpine tundra, glacial lakes between Cooke City and Red Lodge.', kind: 'attraction', label: '★' },
     { lat: 44.5189, lng: -109.0850, day: 'DAY 13 EVE', title: 'Riverside Cemetery, Cody', note: 'Small, beautifully kept old Cody graveyard. Walk from your hotel.', kind: 'cemetery', label: '☩' },
-    { lat: 44.5148, lng: -109.1015, day: 'NIGHT 13 · Thu Jun 25', title: 'Cody Cowboy Village', note: '✓ Booked. Via Beartooth Highway today \u2014 Charles Kuralt\u2019s "most beautiful drive in America." State #45 \u2014 WY proper.', kind: 'hotel', label: '13', spend: 'Day 13: ~$489' },
+    { lat: 44.5148, lng: -109.1015, day: 'NIGHT 13 · Thu Jun 25', title: 'Cody Cowboy Village', note: '✓ Booked. Via Beartooth Highway today \u2014 Charles Kuralt\u2019s "most beautiful drive in America." State #45 \u2014 WY proper.', kind: 'hotel', label: '13', spend: 'Day 13 budget: $594' },
     { lat: 42.8748, lng: -100.5504, day: 'DAY 14 LUNCH · Fri Jun 26', title: 'Valentine, Nebraska', note: 'Coachlight Cafe burgers + Niobrara NSR Junior Ranger badge across the street. State #46 earned with peanut-bacon-badger burgers.', kind: 'attraction', label: '★' },
-    { lat: 43.4966, lng: -96.7720, day: 'NIGHT 14 · Fri Jun 26', title: 'Hilton Garden Inn Sioux Falls South', note: '✓ Booked. Restaurant on-site, indoor pool. Falls Park downtown. 760-mile day from Cody.', kind: 'hotel', label: '14', spend: 'Day 14: ~$400' },
-    { lat: 41.7246, lng: -83.5095, day: 'NIGHT 15 · Sat Jun 27', title: 'Holiday Inn Express Toledo North', note: '✓ Booked. 670 mi from Sioux Falls. Tony Packo\u2019s for Hungarian hot dogs.', kind: 'hotel', label: '15', spend: 'Day 15: ~$340' },
+    { lat: 43.4966, lng: -96.7720, day: 'NIGHT 14 · Fri Jun 26', title: 'Hilton Garden Inn Sioux Falls South', note: '✓ Booked. Restaurant on-site, indoor pool. Falls Park downtown. 760-mile day from Cody.', kind: 'hotel', label: '14', spend: 'Day 14 budget: $627' },
+    { lat: 41.7246, lng: -83.5095, day: 'NIGHT 15 · Sat Jun 27', title: 'Holiday Inn Express Toledo North', note: '✓ Booked. 670 mi from Sioux Falls. Tony Packo\u2019s for Hungarian hot dogs.', kind: 'hotel', label: '15', spend: 'Day 15 budget: $554' },
     { lat: 40.2454, lng: -75.6496, day: 'DAY 16 HOME · Sun Jun 28', title: 'Pottstown, PA', note: 'Mission complete. State count: 46. To go: 4.', kind: 'start', label: 'F' }
   ];
 
   var visitedStates = ['Pennsylvania','Ohio','Indiana','Illinois','Wisconsin','Minnesota','South Dakota','North Dakota','Montana','Wyoming','Idaho','Nebraska'];
   var routeStates = ['Pennsylvania','Ohio','Indiana','Illinois','Wisconsin','Minnesota','Iowa','South Dakota','North Dakota','Montana','Wyoming','Idaho','Nebraska','Michigan','New York','New Jersey','Maryland','West Virginia','Kentucky','Missouri'];
 
-  var colorMap = { hotel: '#b54820', attraction: '#c8932a', start: '#3d6b3d', cemetery: '#5b3a52' };
+  var colorMap = { hotel: '#ff2e88', attraction: '#00f0ff', start: '#39ff14', cemetery: '#c77dff' };
 
   var container = document.getElementById('trip-map');
   if (!container) return;
