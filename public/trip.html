@@ -313,6 +313,72 @@
 
   /* Fix CSS inheritance: tables inside dark sections should still have dark text */
   #running-tally .route-table td { color: var(--ink); }
+  /* ====== Collapsible sections ====== */
+  .section-toggle, .day-toggle {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    transition: opacity 0.15s;
+  }
+  .section-toggle:hover, .day-toggle:hover { opacity: 0.78; }
+  .section-toggle::after {
+    content: '−';
+    display: inline-block;
+    margin-left: 14px;
+    font-family: 'Bungee', sans-serif;
+    color: var(--rust);
+    font-size: 0.85em;
+    vertical-align: middle;
+  }
+  .section-toggle[aria-expanded="false"]::after { content: '+'; }
+  .day-toggle::after {
+    content: '−';
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Bungee', sans-serif;
+    color: var(--gold);
+    font-size: 24px;
+  }
+  .day-toggle[aria-expanded="false"]::after { content: '+'; }
+  .day-toggle { padding-right: 50px; }
+
+  /* Expand/Collapse all bar */
+  .collapse-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 2px solid var(--gold);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .collapse-bar button {
+    background: transparent;
+    color: var(--paper);
+    border: 1px solid var(--gold);
+    padding: 6px 14px;
+    font-family: inherit;
+    font-size: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .collapse-bar button:hover {
+    background: var(--gold);
+    color: var(--ink);
+  }
+  .collapse-bar .label { opacity: 0.7; }
 </style>
 </head>
 <body>
@@ -333,6 +399,13 @@
     <div class="meta-cell">Mission<strong>States 39 → 46</strong></div>
   </div>
 </section>
+
+<div class="collapse-bar">
+  <span class="label">Sections</span>
+  <button id="expand-all" type="button">Expand All</button>
+  <button id="collapse-all" type="button">Collapse All</button>
+  <button id="collapse-days" type="button">Collapse Days Only</button>
+</div>
 
 <section class="states-banner">
   <div class="states-track">
@@ -1389,5 +1462,135 @@
 })();
 </script>
 
+<script>
+// ====== Collapsible sections ======
+(function() {
+  // Sections to make collapsible (by selector)
+  const SECTION_SELECTORS = [
+    'section.budget-banner',
+    'section.intro',
+    'section.route-overview',
+    'section.map-section',
+    'section.days-section',
+    'section.ranger-section',
+    'section.stars-section',
+    'section.cheatsheet-section',
+    'section#running-tally',
+    'section.counter-section',
+  ];
+
+  const STORAGE_KEY = 'trip-collapsed-v1';
+  let savedState = {};
+  try {
+    savedState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+  } catch (e) {}
+
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedState));
+    } catch (e) {}
+  }
+
+  // Wrap content of an element after a given header into a content div
+  function makeCollapsible(container, heading, key, toggleClass) {
+    if (!heading || heading.dataset.collapsibleReady) return null;
+    heading.dataset.collapsibleReady = '1';
+
+    // Build content wrapper containing all siblings after heading
+    const wrapper = document.createElement('div');
+    wrapper.className = 'collapsible-content';
+
+    // The heading's parent could be the container, OR an inner div.
+    // Find heading.parentNode and move siblings from there.
+    const parent = heading.parentNode;
+    let next = heading.nextSibling;
+    while (next) {
+      const moving = next;
+      next = next.nextSibling;
+      wrapper.appendChild(moving);
+    }
+    parent.appendChild(wrapper);
+
+    heading.classList.add(toggleClass);
+    heading.setAttribute('role', 'button');
+    heading.setAttribute('tabindex', '0');
+
+    const isCollapsed = !!savedState[key];
+    heading.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+    wrapper.style.display = isCollapsed ? 'none' : '';
+
+    function toggle() {
+      const open = heading.getAttribute('aria-expanded') === 'true';
+      heading.setAttribute('aria-expanded', open ? 'false' : 'true');
+      wrapper.style.display = open ? 'none' : '';
+      savedState[key] = open; // open===true means it was open, now collapsing → save true (collapsed)
+      saveState();
+    }
+
+    heading.addEventListener('click', function(e) {
+      // Avoid toggling if click was on a button/link inside the header
+      if (e.target.closest('button, a')) return;
+      toggle();
+    });
+    heading.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle();
+      }
+    });
+
+    return { heading: heading, wrapper: wrapper, key: key, toggle: toggle };
+  }
+
+  const allToggles = [];
+
+  // Major sections
+  SECTION_SELECTORS.forEach(function(sel) {
+    document.querySelectorAll(sel).forEach(function(section) {
+      // Find first h2 inside
+      const h2 = section.querySelector('h2');
+      if (!h2) return;
+      const key = 'section:' + (section.id || sel + ':' + h2.textContent.trim().substring(0, 30));
+      const t = makeCollapsible(section, h2, key, 'section-toggle');
+      if (t) allToggles.push({ type: 'section', toggle: t });
+    });
+  });
+
+  // Day cards (16 individually collapsible)
+  document.querySelectorAll('.day-card').forEach(function(card, i) {
+    const header = card.querySelector('.day-header');
+    if (!header) return;
+    const key = 'day:' + i;
+    const t = makeCollapsible(card, header, key, 'day-toggle');
+    if (t) allToggles.push({ type: 'day', toggle: t });
+  });
+
+  // Yellowstone Survival Guide (h3 inside .yellowstone-block)
+  document.querySelectorAll('.yellowstone-block').forEach(function(block) {
+    const h3 = block.querySelector('h3');
+    if (!h3) return;
+    const key = 'yellowstone';
+    const t = makeCollapsible(block, h3, key, 'section-toggle');
+    if (t) allToggles.push({ type: 'extra', toggle: t });
+  });
+
+  // Buttons
+  function setAll(collapse, filter) {
+    allToggles.forEach(function(item) {
+      if (filter && item.type !== filter) return;
+      const open = item.toggle.heading.getAttribute('aria-expanded') === 'true';
+      if (collapse && open) item.toggle.toggle();
+      if (!collapse && !open) item.toggle.toggle();
+    });
+  }
+
+  const expandBtn = document.getElementById('expand-all');
+  const collapseBtn = document.getElementById('collapse-all');
+  const collapseDaysBtn = document.getElementById('collapse-days');
+  if (expandBtn) expandBtn.addEventListener('click', function() { setAll(false); });
+  if (collapseBtn) collapseBtn.addEventListener('click', function() { setAll(true); });
+  if (collapseDaysBtn) collapseDaysBtn.addEventListener('click', function() { setAll(true, 'day'); });
+})();
+</script>
 </body>
 </html>
