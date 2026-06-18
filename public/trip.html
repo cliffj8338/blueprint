@@ -379,242 +379,410 @@
     color: var(--ink);
   }
   .collapse-bar .label { opacity: 0.7; }
-  /* ====================================================
-     ★ 80s SYNTHWAVE THEME OVERRIDE — Surprise for Gina ★
-     ==================================================== */
-  @import url('https://fonts.googleapis.com/css2?family=Monoton&display=swap');
+  /* ============================================================
+     👽  CLOSE ENCOUNTERS THEME — Devils Tower / "We Are Not Alone"
+     Day-6 reskin. Self-contained override — swap me out next time.
+     ============================================================ */
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Space+Grotesk:wght@400;500;700&family=Share+Tech+Mono&display=swap');
 
   :root {
-    --paper: #0a0e27;
-    --paper-dark: #16113d;
-    --ink: #f5e8ff;
-    --rust: #ff2e88;
-    --rust-deep: #ff6ec7;
-    --gold: #00f0ff;
-    --green: #39ff14;
+    --paper:      #05080f;   /* deep space            */
+    --paper-dark: #0b1226;   /* panel / nebula glass  */
+    --ink:        #e6ecff;   /* starlight text        */
+    --rust:       #5dffb0;   /* CONTACT GREEN — primary accent */
+    --rust-deep:  #b89cff;   /* nebula violet — eyebrows/subs   */
+    --gold:       #ffc24d;   /* the welcome light — amber       */
+    --green:      #5fd6ff;   /* signal cyan — money/route/data  */
+    --sky:        #5fd6ff;
   }
 
   body {
-    background: #0a0e27;
+    font-family: 'Space Grotesk', system-ui, sans-serif !important;
+    background: #05080f;
     background-image:
-      repeating-linear-gradient(90deg, transparent 0, transparent 60px, rgba(0,240,255,0.04) 60px, rgba(0,240,255,0.04) 61px),
-      repeating-linear-gradient(0deg, transparent 0, transparent 60px, rgba(0,240,255,0.04) 60px, rgba(0,240,255,0.04) 61px);
+      radial-gradient(1.4px 1.4px at 9% 14%,  rgba(230,236,255,.9), transparent),
+      radial-gradient(1px 1px   at 23% 61%,  rgba(230,236,255,.6), transparent),
+      radial-gradient(1.6px 1.6px at 41% 27%, rgba(230,236,255,.85),transparent),
+      radial-gradient(1px 1px   at 58% 74%,  rgba(230,236,255,.55),transparent),
+      radial-gradient(1.3px 1.3px at 72% 19%, rgba(230,236,255,.8), transparent),
+      radial-gradient(1.6px 1.6px at 86% 55%, rgba(230,236,255,.7), transparent),
+      radial-gradient(1px 1px   at 6% 82%,   rgba(230,236,255,.5), transparent),
+      radial-gradient(1px 1px   at 50% 45%,  rgba(230,236,255,.45),transparent),
+      radial-gradient(ellipse 60% 40% at 50% -8%, rgba(93,255,176,.07), transparent 70%);
     background-attachment: fixed;
     color: var(--ink);
   }
 
-  /* HERO — sunset + retro grid floor */
-  .hero {
-    background: linear-gradient(180deg, #1a0344 0%, #4a0a6e 35%, #8a1854 60%, #d72a73 80%, #ff7e3d 100%) !important;
-    position: relative;
-    overflow: hidden;
+  /* ---- type: instrument-panel display + console mono ---- */
+  .hero-title, .hero-title .accent, section h2, .days-section > h2, .state-pill,
+  .budget-total, .budget-banner h2, .budget-mini strong, .budget-detail h2,
+  .budget-cat h3, .budget-cat-total, .day-num, .day-title, .miles-big,
+  .day-cost-strip .total, .counter-num, .notes h2, .note-card h3, footer,
+  .map-section h2, .route-overview h2, .cheatsheet-section h2, .pretrip-section h2,
+  .ranger-section h2, .stars-section h2, .star-night .where, .ranger-badge .park,
+  .yellowstone-block h3, .cs-night, .ampersand, .section-toggle::after, .day-toggle::after {
+    font-family: 'Orbitron', sans-serif !important;
   }
-  .hero::after {
-    content: '';
-    position: absolute;
-    bottom: -10%;
-    left: -20%;
-    right: -20%;
-    height: 50%;
-    background:
-      linear-gradient(to top, rgba(10,14,39,0.6), transparent 60%),
-      repeating-linear-gradient(90deg, transparent 0, transparent 56px, rgba(0,240,255,0.7) 56px, rgba(0,240,255,0.7) 58px),
-      repeating-linear-gradient(0deg, transparent 0, transparent 48px, rgba(255,46,136,0.4) 48px, rgba(255,46,136,0.4) 50px);
-    transform: perspective(360px) rotateX(62deg);
-    transform-origin: bottom center;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.85;
+  .stamp-row, .stamp, .meta-cell, .day-route, .stops .label, .logi-label, .logi-cost,
+  .route-table, .day-cost-strip, .map-legend, .map-tooltip-day, .map-tooltip-spend,
+  .budget-mini, .counter-label, .collapse-bar, .collapse-bar button, .star-night .when,
+  .star-night .moon-line, .pretrip-col h3 .when, .yb-cell h4, .ranger-badge .day,
+  .breakdown-callout li strong, .footer .attribution, .cs-phone {
+    font-family: 'Share Tech Mono', monospace !important;
   }
-  .hero > * { position: relative; z-index: 1; }
 
-  .hero-title {
-    font-family: 'Monoton', 'Bungee', sans-serif !important;
-    color: #fff !important;
-    text-shadow:
-      0 0 1px #fff,
-      0 0 4px #ff2e88,
-      0 0 10px #ff006e !important;
-    letter-spacing: 0.03em !important;
+  /* ---- HERO: night sky over the Tower ---- */
+  .hero {
+    background: linear-gradient(180deg, #03050d 0%, #060c1d 42%, #0a1430 70%, #15203f 88%, #2a2a3a 100%) !important;
+    position: relative; overflow: hidden;
+    border-bottom: 1px solid rgba(93,255,176,.3) !important;
   }
-  .hero-title .accent {
-    color: #00f0ff !important;
-    text-shadow:
-      0 0 1px #fff,
-      0 0 4px #00f0ff,
-      0 0 10px #00f0ff !important;
-    transform: none !important;
-  }
-  .hero-sub { color: #ffd9ec !important; font-style: italic; }
-  .stamp { border-color: #00f0ff !important; color: #00f0ff !important; text-shadow: 0 0 3px #00f0ff; }
-  .stamp-row { color: #ffd9ec !important; }
-  .meta-grid { border-top-color: rgba(255,255,255,0.4) !important; }
-  .meta-cell { color: #ffd9ec !important; }
-  .meta-cell strong { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
+  .hero-backdrop { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+  .hero-backdrop svg { width: 100%; height: 100%; display: block; }
+  .hero > *:not(.hero-backdrop) { position: relative; z-index: 1; }
+
+  .hero-title { color: #fff !important; letter-spacing: -.01em !important;
+    text-shadow: 0 0 18px rgba(93,255,176,.35), 0 0 2px rgba(255,255,255,.6) !important; }
+  .hero-title .accent { color: var(--gold) !important; transform: none !important;
+    text-shadow: 0 0 22px rgba(255,194,77,.55), 0 0 2px rgba(255,255,255,.5) !important; }
+  .hero-sub  { color: #cfe0ff !important; }
+  .stamp     { border-color: var(--rust) !important; color: var(--rust) !important;
+               background: rgba(93,255,176,.05); text-shadow: 0 0 6px rgba(93,255,176,.5); }
+  .stamp-row { color: #cfe0ff !important; }
+  .meta-grid { border-top-color: rgba(184,156,255,.4) !important; }
+  .meta-cell { color: #b9c6ee !important; }
+  .meta-cell strong { color: var(--rust) !important; text-shadow: 0 0 8px rgba(93,255,176,.45); }
   .crew-list { color: #fff !important; }
 
-  /* STATES BANNER — diagonal sunset */
-  .states-banner {
-    background: linear-gradient(90deg, #2a0859 0%, #6a0dad 25%, #ff006e 70%, #ff7e3d 100%) !important;
-    border-top: 2px solid #00f0ff;
-    border-bottom: 2px solid #00f0ff;
-  }
-  .state-pill { border-color: rgba(255,255,255,0.6) !important; color: #fff !important; }
-  .state-num { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
-  .state-pill::after { color: #00f0ff !important; }
+  /* ---- sticky control bar ---- */
+  .collapse-bar { background: rgba(6,12,28,.86) !important; backdrop-filter: blur(6px);
+    border-bottom-color: var(--rust) !important; color: #cfe0ff !important; }
+  .collapse-bar button { border-color: var(--rust) !important; color: var(--rust) !important; background: transparent; }
+  .collapse-bar button:hover { background: var(--rust) !important; color: #05080f !important; box-shadow: 0 0 12px rgba(93,255,176,.6); }
+  .collapse-bar .label { color: var(--rust-deep) !important; }
 
-  /* COLLAPSE BAR */
-  .collapse-bar {
-    background: linear-gradient(90deg, #2a0859 0%, #ff006e 100%) !important;
-    border-bottom-color: #00f0ff !important;
-    color: #fff !important;
-  }
-  .collapse-bar button { border-color: #00f0ff !important; color: #fff !important; }
-  .collapse-bar button:hover { background: #00f0ff !important; color: #0a0e27 !important; text-shadow: none !important; }
+  /* ---- states banner ---- */
+  .states-banner { background: linear-gradient(90deg, #0a1430 0%, #142a4a 50%, #0a1430 100%) !important;
+    border-top: 1px solid var(--rust); border-bottom: 1px solid var(--rust); }
+  .state-pill { color: #eaf1ff !important; border-color: rgba(184,156,255,.5) !important; }
+  .state-num  { color: var(--gold) !important; text-shadow: 0 0 8px rgba(255,194,77,.5); }
+  .state-pill::after { color: var(--rust) !important; }
 
-  /* BUDGET BANNER */
-  .budget-banner { background: var(--paper-dark) !important; border-color: var(--rust) !important; }
-  .budget-banner h2 { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
-  .budget-total { color: #ff2e88 !important; text-shadow: 0 0 1px #fff, 0 0 6px #ff2e88; }
-  .sub { color: rgba(245,232,255,0.8) !important; }
-  .budget-mini { background: rgba(255,46,136,0.1) !important; border-color: rgba(255,255,255,0.15) !important; color: var(--ink) !important; }
-  .budget-mini strong { color: #00f0ff !important; text-shadow: 0 0 3px #00f0ff; }
-
-  /* MAJOR SECTION H2 — readable, not blurred */
-  section h2 { color: #ff2e88 !important; text-shadow: 0 0 1px rgba(255,255,255,0.4), 0 0 4px rgba(255,46,136,0.5); }
-  .ampersand { color: #00f0ff !important; }
-  .section-toggle::after { color: #00f0ff !important; text-shadow: 0 0 3px #00f0ff; }
-
-  /* INTRO */
-  .intro { background: transparent !important; }
+  /* ---- generic section headers + dividers ---- */
+  section h2 { color: var(--gold) !important; text-shadow: 0 0 16px rgba(255,194,77,.4); }
+  .ampersand { color: var(--rust) !important; text-shadow: 0 0 12px rgba(93,255,176,.5); }
+  .sub { color: var(--rust-deep) !important; }
+  .section-toggle::after, .day-toggle::after { color: var(--rust) !important; text-shadow: 0 0 8px rgba(93,255,176,.5); }
+  .intro, .route-overview, .map-section, .cheatsheet-section, .pretrip-section,
+  .ranger-section, .counter-section { background: transparent !important; border-color: rgba(184,156,255,.18) !important; }
   .intro p, .intro .lead { color: var(--ink) !important; }
+  .intro .lead { color: #cdd9ff !important; }
 
-  /* ROUTE TABLE */
-  .route-table-wrap { border-color: #ff2e88 !important; box-shadow: 0 0 16px rgba(255,46,136,0.3); }
+  /* ---- budget banner ---- */
+  .budget-banner { background: linear-gradient(180deg, rgba(11,18,38,.6), rgba(5,8,15,.6)) !important;
+    border-top: 1px solid rgba(93,255,176,.25); border-bottom: 1px solid rgba(93,255,176,.25); }
+  .budget-banner h2 { color: var(--rust) !important; text-shadow: 0 0 12px rgba(93,255,176,.4); }
+  .budget-total { color: var(--gold) !important; text-shadow: 0 0 28px rgba(255,194,77,.5), 0 0 3px rgba(255,255,255,.4); }
+  .budget-mini { color: #b9c6ee !important; }
+  .budget-mini strong { color: var(--rust) !important; text-shadow: 0 0 8px rgba(93,255,176,.4); }
+
+  /* ---- route table ---- */
+  .route-table-wrap { border-color: rgba(93,255,176,.35) !important; box-shadow: 0 0 26px rgba(93,255,176,.12); }
   .route-table { background: var(--paper-dark) !important; }
-  .route-table th { background: #ff2e88 !important; color: #fff !important; }
-  .route-table td { color: var(--ink) !important; border-bottom-color: rgba(255,255,255,0.12) !important; }
-  .route-table .day-cell { color: #00f0ff !important; text-shadow: 0 0 3px #00f0ff; }
-  .route-table .cost { color: #39ff14 !important; text-shadow: 0 0 2px #39ff14; }
-  .route-table .miles { color: #ff6ec7 !important; }
-  .route-table .conf { color: #00f0ff !important; }
-  .route-table .conf.dash { color: rgba(255,255,255,0.3) !important; }
-  .totals-row td { background: rgba(255,46,136,0.15) !important; color: #fff !important; }
-  .status-pill.booked { background: #39ff14 !important; color: #0a0e27 !important; box-shadow: 0 0 6px #39ff14; }
-  .status-pill.pending { background: #00f0ff !important; color: #0a0e27 !important; }
-  .status-pill.home { background: #ff2e88 !important; color: #fff !important; }
+  .route-table th { background: #0e1c3a !important; color: var(--rust) !important; border-bottom: 1px solid rgba(93,255,176,.3); }
+  .route-table td { color: var(--ink) !important; border-bottom-color: rgba(184,156,255,.16) !important; }
+  .route-table .day-cell { color: var(--gold) !important; text-shadow: 0 0 8px rgba(255,194,77,.4); }
+  .route-table .cost { color: var(--green) !important; }
+  .route-table .miles { color: var(--rust-deep) !important; }
+  .route-table .conf { color: var(--ink) !important; }
+  .route-table .conf.dash { color: rgba(230,236,255,.3) !important; }
+  .totals-row td { background: rgba(93,255,176,.07) !important; border-top-color: var(--rust) !important; }
+  .status-pill.booked   { background: var(--rust) !important; color: #04130c !important; box-shadow: 0 0 10px rgba(93,255,176,.5); }
+  .status-pill.pending  { background: var(--gold) !important; color: #2a1c00 !important; }
+  .status-pill.activity { background: var(--rust-deep) !important; color: #140a2a !important; }
+  .status-pill.home     { background: var(--green) !important; color: #042033 !important; }
 
-  /* DAY CARDS */
-  .day-card {
-    background: var(--paper-dark) !important;
-    border: 1px solid #ff2e88 !important;
-    box-shadow: 0 0 12px rgba(255,46,136,0.2);
-    margin-bottom: 26px;
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  .day-card.feature { border-color: #00f0ff !important; box-shadow: 0 0 16px rgba(0,240,255,0.3); }
-  .day-header {
-    background: linear-gradient(90deg, rgba(255,46,136,0.15) 0%, rgba(0,240,255,0.1) 100%) !important;
-    border-bottom: 1px solid #ff2e88 !important;
-  }
-  .day-num { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
-  .day-num small { color: #ff6ec7 !important; }
+  /* ---- day cards (glow, not hard ink shadow) ---- */
+  .day-card { background: var(--paper-dark) !important; border: 1px solid rgba(93,255,176,.28) !important;
+    box-shadow: 0 0 24px rgba(93,255,176,.10) !important; border-radius: 6px; overflow: hidden; }
+  .day-card:hover { box-shadow: 0 0 36px rgba(93,255,176,.22) !important; }
+  .day-card.feature { border-color: rgba(255,194,77,.5) !important; box-shadow: 0 0 30px rgba(255,194,77,.16) !important;
+    background: linear-gradient(135deg, var(--paper-dark) 0%, #11193a 100%) !important; }
+  .day-header { background: linear-gradient(90deg, rgba(93,255,176,.10) 0%, rgba(184,156,255,.08) 100%) !important;
+    border-bottom: 1px solid rgba(93,255,176,.28) !important; }
+  .day-num   { color: var(--gold) !important; text-shadow: 0 0 12px rgba(255,194,77,.5); }
+  .day-num small { color: #cfe0ff !important; }
   .day-title { color: #fff !important; }
-  .day-title .date { color: #ff2e88 !important; text-shadow: 0 0 2px #ff2e88; }
-  .day-route .from-to { color: #ff6ec7 !important; }
-  .miles-big { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
-  .day-body { color: var(--ink) !important; }
-  .day-body p { color: var(--ink) !important; }
-  .day-body strong { color: #00f0ff !important; text-shadow: 0 0 2px #00f0ff; }
+  .day-title .date { color: var(--rust) !important; text-shadow: 0 0 8px rgba(93,255,176,.4); }
+  .day-route .from-to { color: var(--rust-deep) !important; opacity: 1 !important; }
+  .miles-big { color: var(--rust) !important; text-shadow: 0 0 12px rgba(93,255,176,.5); }
+  .day-body strong { color: var(--rust) !important; }
 
-  .stops li { color: var(--ink) !important; border-bottom-color: rgba(255,255,255,0.1) !important; }
-  .stops .label { color: #ff2e88 !important; }
-  .stops li.quirky .label { color: #00f0ff !important; text-shadow: 0 0 2px #00f0ff; }
-  .stops .desc { color: rgba(245,232,255,0.8) !important; }
+  .stops li { border-top-color: rgba(184,156,255,.16) !important; }
+  .stops li:last-child { border-bottom-color: rgba(184,156,255,.16) !important; }
+  .stops li::before { color: var(--rust) !important; content: '◈'; }
+  .stops li.quirky::before { color: var(--gold) !important; content: '✦'; }
+  .stops .label { color: var(--rust) !important; background: rgba(93,255,176,.07) !important; border-color: rgba(93,255,176,.4) !important; }
+  .stops li.quirky .label { color: var(--gold) !important; border-color: rgba(255,194,77,.5) !important; background: rgba(255,194,77,.07) !important; }
   .stops strong { color: #fff !important; }
+  .stops .desc { color: #b9c6ee !important; }
 
-  .logistics-grid { background: rgba(255,255,255,0.03) !important; }
-  .logi-block { border-color: rgba(255,255,255,0.15) !important; background: transparent !important; }
-  .logi-label { color: #ff2e88 !important; }
+  .logistics-grid { border-top-color: rgba(93,255,176,.28) !important; background: rgba(255,255,255,.015) !important; }
+  .logi-block { border-right-color: rgba(184,156,255,.16) !important; border-bottom-color: rgba(184,156,255,.16) !important; }
+  .logi-label { color: var(--rust-deep) !important; }
+  .logi-label::before { background: var(--rust-deep) !important; }
   .logi-name { color: #fff !important; }
-  .logi-detail { color: rgba(245,232,255,0.78) !important; }
-  .logi-cost { color: #39ff14 !important; text-shadow: 0 0 2px #39ff14; }
+  .logi-detail { color: #aab8e2 !important; }
+  .logi-cost { color: var(--green) !important; }
 
-  .day-cost-strip {
-    background: linear-gradient(90deg, #ff006e 0%, #6a0dad 100%) !important;
-    color: #fff !important;
-  }
-  .day-cost-strip .total { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
+  .kid-tip { background: rgba(184,156,255,.08) !important; border-left-color: var(--gold) !important; color: #d6def7 !important; }
+  .kid-tip::before { content: 'TRANSMISSION · PHOENIX & SAGAN ' !important; color: var(--rust) !important; }
 
-  /* YELLOWSTONE BLOCK */
-  .yellowstone-block {
-    background: linear-gradient(135deg, #2a0859 0%, #4a0a6e 100%) !important;
-    border: 1px solid #00f0ff !important;
-    box-shadow: 0 0 16px rgba(0,240,255,0.2);
-    color: var(--ink) !important;
-  }
-  .yellowstone-block h3 { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
-  .yb-sub { color: rgba(245,232,255,0.8) !important; }
-  .yb-cell { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.15) !important; }
-  .yb-cell h4 { color: #ff2e88 !important; }
-  .yb-cell p { color: rgba(245,232,255,0.85) !important; }
-  .yb-cell strong { color: #00f0ff !important; }
+  .day-cost-strip { background: linear-gradient(90deg, #0a1430 0%, #142a4a 100%) !important; color: #cfe0ff !important;
+    border-top: 1px solid rgba(93,255,176,.2); }
+  .day-cost-strip .total { color: var(--gold) !important; text-shadow: 0 0 12px rgba(255,194,77,.5); }
 
-  /* RANGER */
-  .ranger-section { background: transparent !important; }
-  .ranger-section h2 { color: #39ff14 !important; text-shadow: 0 0 4px #39ff14; }
-  .ranger-grid { color: var(--ink) !important; }
-  .ranger-badge { background: var(--paper-dark) !important; border-color: #39ff14 !important; box-shadow: 0 0 8px rgba(57,255,20,0.2); }
+  /* ---- yellowstone block ---- */
+  .yellowstone-block { background: linear-gradient(135deg, #0a1430 0%, #15103a 100%) !important;
+    border: 1px solid rgba(255,194,77,.4) !important; box-shadow: 0 0 28px rgba(255,194,77,.12) !important; }
+  .yellowstone-block h3 { color: var(--gold) !important; text-shadow: 0 0 12px rgba(255,194,77,.5); }
+  .yb-sub { color: #b9c6ee !important; }
+  .yb-cell { border-left-color: var(--gold) !important; }
+  .yb-cell h4 { color: var(--rust) !important; }
+  .yb-cell p { color: #c5d0f0 !important; }
+  .yb-cell strong { color: var(--gold) !important; }
 
-  /* STARS */
-  .stars-section { background: linear-gradient(180deg, #0a0e27 0%, #1a0344 60%, #2a0859 100%) !important; }
-  .stars-section h2 { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
-  .star-card { background: rgba(255,255,255,0.05) !important; border-color: #00f0ff !important; }
+  /* ---- junior ranger ---- */
+  .ranger-section h2 { color: var(--rust) !important; text-shadow: 0 0 14px rgba(93,255,176,.45); }
+  .ranger-badge { background: var(--paper-dark) !important; border: 1px solid rgba(93,255,176,.3) !important;
+    box-shadow: 0 0 16px rgba(93,255,176,.10) !important; }
+  .ranger-badge.special { background: linear-gradient(135deg, var(--paper-dark), #11193a) !important; border-color: rgba(255,194,77,.5) !important; }
+  .ranger-badge .day { color: var(--rust-deep) !important; }
+  .ranger-badge .park { color: #fff !important; }
+  .ranger-badge .pgm { color: #aab8e2 !important; }
+  .ranger-badge .checkbox { border-color: var(--rust) !important; }
+  .ranger-tally { color: #b9c6ee !important; }
+  .ranger-tally strong { color: var(--gold) !important; }
 
-  /* CHEAT SHEET */
-  .cheatsheet-section { background: transparent !important; }
-  .cs-night { color: #00f0ff !important; }
+  /* ---- stargazing (already night; retune to nebula) ---- */
+  .stars-section { background: linear-gradient(180deg, #05080f 0%, #0a1430 55%, #15103a 100%) !important;
+    border-bottom: 1px solid rgba(184,156,255,.2) !important; }
+  .stars-section h2 { color: var(--rust) !important; text-shadow: 0 0 14px rgba(93,255,176,.45); }
+  .stars-section .sub { color: #b9c6ee !important; }
+  .star-night { background: rgba(184,156,255,.06) !important; border-color: rgba(184,156,255,.25) !important; }
+  .star-night .when { color: var(--rust) !important; }
+  .star-night .where { color: #fff !important; }
+  .star-night .moon-line { color: #aab8e2 !important; border-bottom-color: rgba(184,156,255,.2) !important; }
+  .star-night .targets { color: #d6def7 !important; }
+  .star-night .targets strong { color: var(--gold) !important; }
+  .star-night.marquee { background: rgba(255,194,77,.10) !important; border-color: var(--gold) !important; }
+  .stars-tip { color: #b9c6ee !important; }
+
+  /* ---- cheat sheet ---- */
+  .cheatsheet-table { background: var(--paper-dark) !important; border-color: rgba(93,255,176,.3) !important;
+    box-shadow: 0 0 24px rgba(93,255,176,.10) !important; }
+  .cheatsheet-table th { background: #0e1c3a !important; color: var(--rust) !important; border-right-color: rgba(184,156,255,.18) !important; }
+  .cheatsheet-table td { border-bottom-color: rgba(184,156,255,.14) !important; color: var(--ink) !important; }
+  .cs-night { color: var(--gold) !important; }
   .cs-name { color: #fff !important; }
-  .cs-addr, .cs-phone { color: rgba(245,232,255,0.7) !important; }
+  .cs-addr { color: #aab8e2 !important; }
+  .cs-phone { color: var(--rust) !important; }
 
-  /* RUNNING TALLY (already dark) */
-  #running-tally {
-    background: linear-gradient(180deg, var(--paper) 0%, var(--paper-dark) 100%) !important;
-    border-top: 2px solid #ff2e88;
-    border-bottom: 2px solid #ff2e88;
-  }
-  #running-tally h2 { color: #00f0ff !important; text-shadow: 0 0 4px #00f0ff; }
+  /* ---- pre-trip checklist ---- */
+  .pretrip-section { background: transparent !important; }
+  .pretrip-col { background: var(--paper-dark) !important; border: 1px solid rgba(93,255,176,.28) !important;
+    box-shadow: 0 0 20px rgba(93,255,176,.10) !important; }
+  .pretrip-col h3 { color: var(--rust) !important; }
+  .pretrip-col h3 .when { color: var(--rust-deep) !important; }
+  .pretrip-col li { border-bottom-color: rgba(184,156,255,.16) !important; color: #d6def7 !important; }
+  .pretrip-col li::before { content: '⌖' !important; color: var(--rust) !important; }
 
-  /* MISSION COUNTER */
-  .counter-section { background: transparent !important; }
-  .counter-num {
-    color: #00f0ff !important;
-    text-shadow: 0 0 1px #fff, 0 0 6px #00f0ff;
-  }
-  .counter-label { color: var(--ink) !important; }
+  /* ---- running tally / budget detail (already dark) ---- */
+  .budget-detail, #running-tally { background: linear-gradient(180deg, #070b18 0%, #0b1226 100%) !important;
+    border-top: 1px solid rgba(93,255,176,.25); border-bottom: 1px solid rgba(93,255,176,.25); }
+  .budget-detail h2, #running-tally h2 { color: var(--gold) !important; }
+  .budget-detail .lede { color: #b9c6ee !important; }
+  .budget-cat { background: rgba(184,156,255,.05) !important; border-color: rgba(184,156,255,.2) !important; }
+  .budget-cat h3 { color: var(--rust) !important; }
+  .budget-cat-total { color: #fff !important; }
+  .budget-cat li { border-bottom-color: rgba(184,156,255,.14) !important; }
+  .budget-cat li span:last-child { color: var(--gold) !important; }
+  .budget-notes { color: #b9c6ee !important; border-top-color: rgba(184,156,255,.25) !important; }
+  #running-tally .route-table td { color: var(--ink) !important; }
 
-  /* MAP — neon container + glow */
-  #trip-map { border: 2px solid #ff2e88 !important; box-shadow: 0 0 20px rgba(255,46,136,0.35) !important; background: #16113d !important; }
-  .map-tooltip { background: var(--paper-dark) !important; border-color: #ff2e88 !important; box-shadow: 0 0 12px rgba(255,46,136,0.4) !important; color: var(--ink) !important; }
-  .map-tooltip-day { color: #00f0ff !important; }
-  .map-tooltip-spend { color: #39ff14 !important; border-top-color: rgba(255,46,136,0.4) !important; }
+  /* ---- mission counter ---- */
+  .counter-section h2 { color: var(--rust) !important; text-shadow: 0 0 14px rgba(93,255,176,.45); }
+  .counter-cell { border-color: rgba(184,156,255,.4) !important; background: rgba(184,156,255,.04); }
+  .counter-num { color: var(--gold) !important; text-shadow: 0 0 18px rgba(255,194,77,.5); }
+  .counter-label { color: #b9c6ee !important; }
+
+  /* ---- notes ---- */
+  .note-card { background: var(--paper-dark) !important; border: 1px solid rgba(93,255,176,.28) !important;
+    box-shadow: 0 0 22px rgba(93,255,176,.10) !important; }
+  .note-card h3 { color: var(--gold) !important; }
+  .note-card li::before { color: var(--rust) !important; content: '→'; }
+
+  /* ---- breakdown callout ---- */
+  .breakdown-callout { background: linear-gradient(135deg, #0a1430, #15103a) !important;
+    border: 1px solid rgba(255,194,77,.4) !important; box-shadow: 0 0 22px rgba(255,194,77,.12) !important; }
+  .breakdown-callout h3 { color: var(--gold) !important; }
+  .breakdown-callout li { border-bottom-color: rgba(184,156,255,.2) !important; }
+  .breakdown-callout li strong { color: var(--rust) !important; }
+
+  /* ---- footer ---- */
+  footer { background: linear-gradient(180deg, #070b18 0%, #03050d 100%) !important; color: var(--rust) !important;
+    border-top: 1px solid rgba(93,255,176,.25); text-shadow: 0 0 14px rgba(93,255,176,.4); }
+  footer .small { color: #b9c6ee !important; text-shadow: none; }
+  footer .attribution { color: #6f7aa0 !important; text-shadow: none; }
+
+  /* ---- map ---- */
+  .map-section { background: transparent !important; }
+  .map-legend-dot { border-color: rgba(230,236,255,.5) !important; }
+  .legend-hotel { background: var(--rust) !important; }
+  .legend-attraction { background: var(--gold) !important; }
+  .legend-start { background: var(--green) !important; }
+  .legend-cemetery { background: var(--rust-deep) !important; }
+  #trip-map { border: 1px solid rgba(93,255,176,.35) !important; box-shadow: 0 0 30px rgba(93,255,176,.15) !important;
+    background: #070d1f !important; }
+  .state-shape { fill: #0e1730 !important; stroke: rgba(184,156,255,.25) !important; }
+  .state-shape.visited { fill: rgba(93,255,176,.16) !important; }
+  .state-label { fill: rgba(230,236,255,.45) !important; }
+  .route-line { stroke: var(--green) !important; }
+  .route-pin { stroke: #05080f !important; }
   .route-pin-label { fill: #fff !important; }
+  .map-tooltip { background: var(--paper-dark) !important; border-color: var(--rust) !important;
+    box-shadow: 0 0 16px rgba(93,255,176,.4) !important; color: var(--ink) !important; }
+  .map-tooltip-day { color: var(--rust) !important; }
+  .map-tooltip-spend { color: var(--green) !important; border-top-color: rgba(93,255,176,.3) !important; }
 
-  /* Hyperlinks */
-  a { color: #00f0ff !important; }
-  a:hover { color: #ff2e88 !important; text-shadow: 0 0 2px #ff2e88; }
+  /* ---- links ---- */
+  a { color: var(--rust) !important; }
+  a:hover { color: var(--gold) !important; text-shadow: 0 0 8px rgba(255,194,77,.5); }
 
-  /* Tweak: stale color refs in inline styles */
-  /* Day 1 alert box (gold border) — keep gold = now cyan */
+  /* ---- signature: hero animation ---- */
+  @keyframes tw   { 0%,100% { opacity:.25 } 50% { opacity:1 } }
+  @keyframes bob  { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-12px) } }
+  @keyframes beam { 0%,100% { opacity:.16 } 50% { opacity:.36 } }
+  @keyframes tone { 0%,100% { opacity:.22 } 50% { opacity:1 } }
+  .hero-backdrop .tw   { animation: tw 4.5s ease-in-out infinite; }
+  .hero-backdrop .ufo  { animation: bob 6s ease-in-out infinite; will-change: transform; }
+  .hero-backdrop .beam { animation: beam 4.5s ease-in-out infinite; }
+  .hero-backdrop .tone { animation: tone 2.6s ease-in-out infinite; }
+  .hero-backdrop .t1 { animation-delay: 0s }   .hero-backdrop .t2 { animation-delay:.32s }
+  .hero-backdrop .t3 { animation-delay:.64s }   .hero-backdrop .t4 { animation-delay:.96s }
+  .hero-backdrop .t5 { animation-delay:1.28s }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-backdrop .tw, .hero-backdrop .ufo, .hero-backdrop .beam, .hero-backdrop .tone { animation: none !important; }
+    .hero-backdrop .tone { opacity:.9 }
+  }
 
 </style>
 </head>
 <body>
 
 <section class="hero">
+  <div class="hero-backdrop" aria-hidden="true">
+    <svg viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A flying saucer hovering over Devils Tower under a starry sky">
+      <defs>
+        <radialGradient id="horizonGlow" cx="50%" cy="100%" r="75%">
+          <stop offset="0%"  stop-color="#ffc24d" stop-opacity=".30"/>
+          <stop offset="35%" stop-color="#5dffb0" stop-opacity=".10"/>
+          <stop offset="100%" stop-color="#05080f" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="beamGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"  stop-color="#5dffb0" stop-opacity=".75"/>
+          <stop offset="100%" stop-color="#5dffb0" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="towerGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"  stop-color="#0a0f1e"/>
+          <stop offset="78%" stop-color="#10182f"/>
+          <stop offset="100%" stop-color="#5dffb0" stop-opacity=".18"/>
+        </linearGradient>
+        <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="9"/>
+        </filter>
+        <filter id="softlg" x="-120%" y="-120%" width="340%" height="340%">
+          <feGaussianBlur stdDeviation="22"/>
+        </filter>
+      </defs>
+
+      <!-- horizon glow -->
+      <rect x="0" y="0" width="1200" height="760" fill="url(#horizonGlow)"/>
+
+      <!-- stars -->
+      <g fill="#eef3ff">
+        <circle class="tw" cx="120" cy="90"  r="1.6"/>
+        <circle class="tw" cx="300" cy="60"  r="1.1" style="animation-delay:.6s"/>
+        <circle class="tw" cx="470" cy="120" r="1.8" style="animation-delay:1.1s"/>
+        <circle class="tw" cx="640" cy="70"  r="1.2" style="animation-delay:.3s"/>
+        <circle class="tw" cx="820" cy="110" r="1.5" style="animation-delay:1.4s"/>
+        <circle class="tw" cx="980" cy="60"  r="1.1" style="animation-delay:.9s"/>
+        <circle class="tw" cx="1110" cy="130" r="1.7" style="animation-delay:.2s"/>
+        <circle class="tw" cx="200" cy="220" r="1.2" style="animation-delay:1.7s"/>
+        <circle class="tw" cx="380" cy="280" r="1.0" style="animation-delay:.5s"/>
+        <circle class="tw" cx="1050" cy="250" r="1.4" style="animation-delay:1.0s"/>
+        <circle class="tw" cx="1150" cy="330" r="1.1" style="animation-delay:1.9s"/>
+        <circle class="tw" cx="70"  cy="330" r="1.3" style="animation-delay:.8s"/>
+        <circle class="tw" cx="560" cy="200" r="1.0" style="animation-delay:2.2s"/>
+        <circle class="tw" cx="900" cy="300" r="1.2" style="animation-delay:.4s"/>
+      </g>
+
+      <!-- ground -->
+      <path d="M0,690 Q300,660 620,672 Q900,682 1200,648 L1200,760 L0,760 Z" fill="#070c19"/>
+      <path d="M0,690 Q300,660 620,672 Q900,682 1200,648" fill="none" stroke="#5dffb0" stroke-opacity=".18" stroke-width="1.5"/>
+
+      <!-- Devils Tower silhouette (flat-topped, fluted) -->
+      <g>
+        <path d="M505,690 L520,470 Q524,392 560,348 L640,348 Q676,392 680,470 L695,690 Z" fill="url(#towerGrad)"/>
+        <g stroke="#05080f" stroke-opacity=".55" stroke-width="2">
+          <line x1="548" y1="360" x2="540" y2="688"/>
+          <line x1="572" y1="352" x2="568" y2="688"/>
+          <line x1="600" y1="350" x2="600" y2="688"/>
+          <line x1="628" y1="352" x2="632" y2="688"/>
+          <line x1="652" y1="360" x2="660" y2="688"/>
+        </g>
+        <line x1="640" y1="348" x2="680" y2="470" stroke="#5dffb0" stroke-opacity=".28" stroke-width="2"/>
+        <line x1="560" y1="348" x2="640" y2="348" stroke="#cfe0ff" stroke-opacity=".25" stroke-width="2"/>
+      </g>
+
+      <!-- tractor beam -->
+      <polygon class="beam" points="860,250 905,250 1010,640 740,640" fill="url(#beamGrad)" filter="url(#soft)"/>
+
+      <!-- mothership -->
+      <g class="ufo">
+        <ellipse cx="882" cy="232" rx="150" ry="34" fill="#0c1426" stroke="#5dffb0" stroke-opacity=".5" stroke-width="2"/>
+        <ellipse cx="882" cy="222" rx="150" ry="30" fill="#10193a"/>
+        <ellipse cx="882" cy="205" rx="64" ry="40" fill="#142147"/>
+        <ellipse cx="882" cy="198" rx="40" ry="22" fill="#5dffb0" fill-opacity=".22"/>
+        <ellipse cx="868" cy="190" rx="12" ry="6" fill="#eef3ff" fill-opacity=".7"/>
+        <ellipse cx="882" cy="262" rx="46" ry="12" fill="#5dffb0" fill-opacity=".35" filter="url(#soft)"/>
+        <g>
+          <circle cx="762" cy="232" r="6" fill="#ff5a5a"/>
+          <circle cx="812" cy="244" r="6" fill="#ffc24d"/>
+          <circle cx="882" cy="248" r="6" fill="#ffe14d"/>
+          <circle cx="952" cy="244" r="6" fill="#5dffb0"/>
+          <circle cx="1002" cy="232" r="6" fill="#5fb8ff"/>
+        </g>
+        <ellipse cx="882" cy="222" rx="170" ry="46" fill="#5dffb0" fill-opacity=".10" filter="url(#softlg)"/>
+      </g>
+
+      <!-- the five tones (light-organ) -->
+      <g>
+        <rect class="tone t1" x="120" y="612" width="26" height="64" rx="6" fill="#ff5a5a" filter="url(#soft)"/>
+        <rect class="tone t2" x="158" y="600" width="26" height="76" rx="6" fill="#ffc24d" filter="url(#soft)"/>
+        <rect class="tone t3" x="196" y="588" width="26" height="88" rx="6" fill="#ffe14d" filter="url(#soft)"/>
+        <rect class="tone t4" x="234" y="604" width="26" height="72" rx="6" fill="#5dffb0" filter="url(#soft)"/>
+        <rect class="tone t5" x="272" y="620" width="26" height="56" rx="6" fill="#5fb8ff" filter="url(#soft)"/>
+        <rect class="tone t1" x="120" y="612" width="26" height="64" rx="6" fill="#ff5a5a"/>
+        <rect class="tone t2" x="158" y="600" width="26" height="76" rx="6" fill="#ffc24d"/>
+        <rect class="tone t3" x="196" y="588" width="26" height="88" rx="6" fill="#ffe14d"/>
+        <rect class="tone t4" x="234" y="604" width="26" height="72" rx="6" fill="#5dffb0"/>
+        <rect class="tone t5" x="272" y="620" width="26" height="56" rx="6" fill="#5fb8ff"/>
+      </g>
+    </svg>
+  </div>
   <div class="stamp-row">
-    <span class="stamp">★ Family Expedition №38–46 ★</span>
+    <span class="stamp">◈ CONTACT LOG · STATES 38 → 46 ◈</span>
     <span class="stamp right">June 13 → June 28, 2026</span>
   </div>
   <div>
