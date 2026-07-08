@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pottstown Public Safety: A Decade of Data (2015-2025)</title>
+<style>
+/* RESET & BASE */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; background: #F9FAFB; line-height: 1.6; }
+
+/* COLORS */
+:root {
+    --navy: #1A2332;
+    --blue: #2563EB;
+    --green: #059669;
+    --amber: #D97706;
+    --red: #DC2626;
+    --white: #FFFFFF;
+    --light-gray: #F3F4F6;
+    --med-gray: #6B7280;
+    --dark-text: #1F2A37;
+    --green-tint: #ECFDF5;
+    --amber-tint: #FFFBEB;
+    --blue-tint: #EFF6FF;
+    --red-tint: #FEF2F2;
+}
+
+/* LAYOUT */
+.section { max-width: 1200px; margin: 0 auto; padding: 3rem 1.5rem; }
+.section + .section { padding-top: 0; }
+
+/* TITLE SLIDE */
+.title-slide {
+    background: linear-gradient(135deg, #0F1724 0%, var(--navy) 50%, #1E3050 100%);
+    color: var(--white);
+    text-align: center;
+    padding: 6rem 2rem;
+    position: relative;
+    overflow: hidden;
+}
+.title-slide::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 50%, rgba(37,99,235,0.08) 0%, transparent 50%);
+}
+.title-slide h1 { font-size: 3.2rem; font-weight: 700; margin-bottom: 0.5rem; position: relative; letter-spacing: -0.02em; }
+.title-slide .subtitle { font-size: 1.75rem; color: var(--blue); margin-bottom: 1.5rem; position: relative; font-weight: 300; }
+.title-slide .accent-line { width: 200px; height: 3px; background: linear-gradient(90deg, transparent, var(--blue), transparent); margin: 0 auto 1.5rem; position: relative; }
+.title-slide .attribution { color: #A0AEC0; font-size: 1rem; position: relative; }
+.title-slide .sub-attribution { color: #7A889A; font-size: 0.85rem; margin-top: 0.5rem; position: relative; }
+
+/* DIVIDER SLIDES */
+.divider {
+    background: linear-gradient(135deg, #0F1724 0%, var(--navy) 100%);
+    color: var(--white);
+    text-align: center;
+    padding: 4rem 2rem;
+}
+.divider h2 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; }
+.divider .accent-line { width: 150px; height: 3px; background: linear-gradient(90deg, transparent, var(--blue), transparent); margin: 0 auto 1rem; }
+.divider p { color: #A0AEC0; font-size: 1.05rem; max-width: 700px; margin: 0 auto; }
+
+/* NAVY HEADER */
+.slide-header {
+    background: var(--navy);
+    border-bottom: 3px solid var(--blue);
+    padding: 1.2rem 1.5rem 0.8rem;
+    margin-bottom: 0;
+    border-radius: 12px 12px 0 0;
+}
+.slide-header h2 { color: var(--white); font-size: 1.6rem; font-weight: 700; }
+.slide-header .sub { color: #A0AEC0; font-size: 0.9rem; margin-top: 0.2rem; }
+
+/* CONTENT SLIDE */
+.content-slide {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+.slide-body { padding: 1.5rem; }
+
+/* FRONT PORCH SUMMARY */
+.front-porch {
+    background: linear-gradient(135deg, #F0F4FF 0%, #E8F0FE 100%);
+    border: 1px solid #B4C6E7;
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+.front-porch strong { color: var(--navy); }
+.front-porch-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--blue);
+    margin-bottom: 0.3rem;
+}
+
+/* KPI CARDS */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem; }
+.kpi-card {
+    border-radius: 12px;
+    padding: 1.2rem;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+.kpi-card .accent-bar { width: 40px; height: 4px; border-radius: 2px; margin-bottom: 0.5rem; }
+.kpi-card .value { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.3rem; }
+.kpi-card .label { font-size: 0.85rem; font-weight: 700; color: var(--dark-text); margin-bottom: 0.3rem; }
+.kpi-card .detail { font-size: 0.75rem; color: var(--med-gray); }
+
+.bg-green-tint { background: var(--green-tint); border-color: var(--green); }
+.bg-amber-tint { background: var(--amber-tint); border-color: var(--amber); }
+.bg-blue-tint { background: var(--blue-tint); border-color: var(--blue); }
+.bg-red-tint { background: var(--red-tint); border-color: var(--red); }
+.text-green { color: var(--green); }
+.text-amber { color: var(--amber); }
+.text-blue { color: var(--blue); }
+.text-red { color: var(--red); }
+
+.bottom-bar {
+    background: var(--navy);
+    color: var(--white);
+    text-align: center;
+    padding: 0.8rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-radius: 12px;
+    letter-spacing: 0.01em;
+}
+
+/* TWO-PANEL */
+.two-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.panel {
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid;
+}
+
+/* THREE-PANEL */
+.three-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+.three-panel .panel-card {
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid;
+}
+.three-panel .panel-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.8rem; }
+.three-panel .panel-card ul { list-style: none; padding: 0; }
+.three-panel .panel-card li { padding: 0.3rem 0; font-size: 0.9rem; }
+.three-panel .panel-card li::before { content: "\2022"; margin-right: 0.5rem; font-weight: 700; }
+
+/* FOUR-PANEL */
+.four-panel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.borough-card {
+    border-radius: 12px;
+    padding: 1.2rem;
+    border: 1px solid;
+}
+.borough-card h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.2rem; }
+.borough-card .pop { font-size: 0.8rem; color: var(--med-gray); margin-bottom: 0.5rem; }
+.borough-card .big-rate { font-size: 2.2rem; font-weight: 700; text-align: center; margin: 0.3rem 0; }
+.borough-card .rate-label { font-size: 0.7rem; color: var(--med-gray); text-align: center; margin-bottom: 0.5rem; }
+.borough-card .inner-card {
+    background: var(--white);
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 0.6rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.8rem;
+}
+.borough-card .summary { font-size: 0.82rem; line-height: 1.4; }
+
+/* DATA TABLES */
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 1rem; }
+.data-table th {
+    background: var(--navy);
+    color: var(--white);
+    padding: 0.55rem 0.6rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+.data-table th:first-child { text-align: left; border-radius: 6px 0 0 0; }
+.data-table th:last-child { border-radius: 0 6px 0 0; }
+.data-table td { padding: 0.45rem 0.6rem; text-align: center; border-bottom: 1px solid #E5E7EB; }
+.data-table td:first-child { text-align: left; }
+.data-table tr:nth-child(even) { background: var(--light-gray); }
+.data-table tr:hover { background: #E8ECF1; }
+
+/* INSIGHT CARDS */
+.insight-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+.insight-card {
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid;
+}
+.insight-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+.insight-card p { font-size: 0.8rem; line-height: 1.4; }
+
+/* FACTOR GRID */
+.factor-grid { display: grid; grid-template-columns: 1fr; gap: 0; }
+.factor-item { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.2rem 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.factor-item .label { font-weight: 700; }
+
+/* RECOMMENDATION CARDS */
+.rec-card {
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    border: 1px solid;
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+.rec-card .num { font-size: 1.5rem; font-weight: 700; min-width: 2rem; }
+.rec-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+.rec-card p { font-size: 0.85rem; line-height: 1.5; }
+
+/* CLOSING SLIDE */
+.closing {
+    background: linear-gradient(135deg, #0F1724 0%, var(--navy) 50%, #1E3050 100%);
+    color: var(--white);
+    text-align: center;
+    padding: 5rem 2rem;
+}
+.closing h2 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; }
+.closing .message {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+}
+.closing .msg-bar { width: 30px; height: 3px; border-radius: 2px; }
+.closing .source { color: #7A889A; font-size: 0.85rem; margin-top: 2rem; }
+
+/* FOOTER */
+.slide-footer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--med-gray);
+    padding: 0.8rem;
+    border-top: 1px solid #E5E7EB;
+}
+
+/* DAILY STATS */
+.daily-stat { display: flex; align-items: baseline; gap: 0.8rem; margin-bottom: 0.6rem; }
+.daily-stat .num { font-size: 1.5rem; font-weight: 700; min-width: 3.5rem; text-align: right; }
+.daily-stat .desc { font-size: 0.95rem; }
+
+/* NON-CRIME LIST */
+.nc-item { display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.9rem; border-bottom: 1px solid rgba(0,0,0,0.04); }
+
+/* ENFORCEMENT TABLE HIGHLIGHT */
+.highlight-positive { color: var(--green); font-weight: 700; }
+.highlight-negative { color: var(--red); font-weight: 700; }
+
+/* CRITIQUE BOX */
+.critique-pair {
+    background: var(--white);
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.critique-box {
+    border-left: 4px solid var(--amber);
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.8rem;
+    background: var(--amber-tint);
+    border-radius: 0 8px 8px 0;
+}
+.critique-box h4 { color: var(--navy); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem; }
+.critique-box p { font-size: 0.85rem; font-style: italic; color: var(--med-gray); margin: 0; }
+.critique-rebuttal {
+    border-left: 4px solid var(--blue);
+    padding: 0.6rem 1rem;
+    background: var(--blue-tint);
+    border-radius: 0 8px 8px 0;
+}
+.critique-rebuttal h4 { color: var(--navy); font-size: 0.9rem; font-weight: 700; margin-bottom: 0.2rem; }
+.critique-rebuttal p { font-size: 0.85rem; line-height: 1.5; color: var(--dark-text); }
+
+/* ENFORCEMENT NOTE */
+.enforcement-note {
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin-top: 1rem;
+}
+
+/* NAV */
+.site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--navy);
+    padding: 0.6rem 1.5rem;
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    border-bottom: 3px solid var(--blue);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+.site-nav a {
+    color: #A0AEC0;
+    text-decoration: none;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    font-weight: 600;
+    transition: color 0.15s;
+}
+.site-nav a:hover { color: var(--white); }
+
+/* CHART CONTAINERS */
+.chart-container {
+    background: var(--white);
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    position: relative;
+    overflow: hidden;
+}
+.chart-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+.chart-subtitle {
+    font-size: 0.78rem;
+    color: var(--med-gray);
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+/* DONUT CONTAINER */
+.donut-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin: 1rem 0;
+}
+.donut-legend { font-size: 0.88rem; }
+.donut-legend div { margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+.donut-legend .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+
+/* TIME AUDIT */
+.time-audit {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+.time-block {
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    border: 1px solid;
+}
+.time-block h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; }
+.time-block .calc-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 0.15rem 0; }
+
+/* REFERENCES */
+.ref-list { list-style: none; padding: 0; }
+.ref-list li { font-size: 0.85rem; padding: 0.3rem 0; border-bottom: 1px solid #E5E7EB; }
+.ref-list li:last-child { border-bottom: none; }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .two-panel { grid-template-columns: 1fr; }
+    .three-panel { grid-template-columns: 1fr; }
+    .four-panel { grid-template-columns: repeat(2, 1fr); }
+    .insight-row { grid-template-columns: 1fr; }
+    .data-table { font-size: 0.75rem; }
+    .time-audit { grid-template-columns: 1fr; }
+    .donut-container { flex-direction: column; }
+}
+@media (max-width: 600px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .four-panel { grid-template-columns: 1fr; }
+    .title-slide h1 { font-size: 2rem; }
+}
+
+/* PRINT */
+@media print {
+    body { background: white; }
+    .content-slide { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+    .title-slide, .divider, .closing { break-inside: avoid; }
+    .site-nav { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="site-nav">
+    <a href="#title">Home</a>
+    <a href="#bottom-line">Bottom Line</a>
+    <a href="#what-police-do">What Police Do</a>
+    <a href="#safety-investment">Safety + Investment</a>
+    <a href="#takeaways">Takeaways</a>
+    <a href="#details">Details</a>
+    <a href="#trajectory">Trajectory</a>
+    <a href="#cfs">CFS Deep Dive</a>
+    <a href="#workload">Workload</a>
+    <a href="#enforcement">Enforcement</a>
+    <a href="#arrests">Arrests</a>
+    <a href="#categories">Categories</a>
+    <a href="#ytd">2026 YTD</a>
+    <a href="#may-yoy">May YoY</a>
+    <a href="#critiques">Critiques</a>
+    <a href="#regional">Regional</a>
+    <a href="#compare">Compare</a>
+    <a href="#structural">Structural</a>
+    <a href="#recs">Recommendations</a>
+    <a href="#refs">References</a>
+</nav>
+
+<!-- ============================================================ -->
+<!-- PART 1: FRONT PORCH                                          -->
+<!-- ============================================================ -->
+
+<!-- SECTION 1: TITLE -->
+<section id="title" class="title-slide">
+    <h1>Pottstown Public Safety</h1>
+    <div class="subtitle">A Decade of Data (2015 - 2025)</div>
+    <div class="accent-line"></div>
+    <div class="attribution">Pottstown Police Department &nbsp;|&nbsp; UCR Crime Statistics &nbsp;|&nbsp; July 2026</div>
+    <div class="sub-attribution">Data-driven analysis for borough leadership</div>
+</section>
+
+<!-- SECTION 2: THE BOTTOM LINE -->
+<section id="bottom-line" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>The Bottom Line</h2>
+            <div class="sub">10 years of Pottstown public safety data in 8 numbers</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Pottstown is safer than it has been in over 30 years. Serious crime is down 30.5% since 2015. Total crimes (Part I and Part II combined) hit their lowest recorded level at 2,979 in 2025. At the same time, demand on the police department increased 21.2%. Officers handle more work with the same staffing. These 8 numbers tell the full story.
+            </div>
+            <div class="kpi-grid">
+                <div class="kpi-card bg-green-tint">
+                    <div class="accent-bar" style="background:var(--green)"></div>
+                    <div class="value text-green">-30.5%</div>
+                    <div class="label">Serious Crime (Part I)</div>
+                    <div class="detail">1,543 (2015) to 1,072 (2025)</div>
+                </div>
+                <div class="kpi-card bg-green-tint">
+                    <div class="accent-bar" style="background:var(--green)"></div>
+                    <div class="value text-green">-55.9%</div>
+                    <div class="label">Burglaries</div>
+                    <div class="detail">118 (2015) to 52 (2025)</div>
+                </div>
+                <div class="kpi-card bg-green-tint">
+                    <div class="accent-bar" style="background:var(--green)"></div>
+                    <div class="value text-green">-32.8%</div>
+                    <div class="label">Assaults</div>
+                    <div class="detail">375 (2015) to 252 (2025)</div>
+                </div>
+                <div class="kpi-card bg-blue-tint">
+                    <div class="accent-bar" style="background:var(--blue)"></div>
+                    <div class="value text-blue">-20.5%</div>
+                    <div class="label">Domestic Disturbances</div>
+                    <div class="detail">1,228 (2015) to 976 (2025)<br>Lowest since 1999</div>
+                </div>
+            </div>
+            <div class="kpi-grid">
+                <div class="kpi-card bg-amber-tint">
+                    <div class="accent-bar" style="background:var(--amber)"></div>
+                    <div class="value text-amber">+21.2%</div>
+                    <div class="label">Calls for Service</div>
+                    <div class="detail">24,118 (2015) to 29,220 (2025)</div>
+                </div>
+                <div class="kpi-card bg-blue-tint">
+                    <div class="accent-bar" style="background:var(--blue)"></div>
+                    <div class="value text-blue">46</div>
+                    <div class="label">Sworn Officers</div>
+                    <div class="detail">Flat across the decade</div>
+                </div>
+                <div class="kpi-card bg-amber-tint">
+                    <div class="accent-bar" style="background:var(--amber)"></div>
+                    <div class="value text-amber">89.8%</div>
+                    <div class="label">Non-Crime Calls</div>
+                    <div class="detail">of all 2025 calls are not crime</div>
+                </div>
+                <div class="kpi-card bg-green-tint">
+                    <div class="accent-bar" style="background:var(--green)"></div>
+                    <div class="value text-green">-23.8%</div>
+                    <div class="label">Total Crimes (I+II)</div>
+                    <div class="detail">3,909 (2015) to 2,979 (2025)</div>
+                </div>
+            </div>
+            <div class="bottom-bar">Fewer crimes. &nbsp;More calls. &nbsp;Same number of officers.</div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset, tabs "CFS-Pt1-Pt2" and "PPD Stats" | Population: ~23,400 (2020 Census) | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 3: WHAT YOUR POLICE ACTUALLY DO -->
+<section id="what-police-do" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>What Your Police Actually Do</h2>
+            <div class="sub">29,220 calls in 2025: a breakdown of actual demand</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Nine out of every ten calls your police officers respond to have nothing to do with crime. They respond to medical emergencies, mental health crises, welfare checks, 911 hangups, building checks, accident investigations, and domestic disputes. In 2025, 26,241 of 29,220 calls were non-crime. Six sworn officers per shift handle all dispatched calls requiring police response. A 5-person civilian support team works 2-person shifts. The chief targets 50 officers while also working to improve non-police response efficiency for calls that do not require a sworn officer.
+            </div>
+            <!-- Donut + Legend (centered, full-width) -->
+            <div style="display:flex;align-items:center;justify-content:center;gap:2.5rem;margin-bottom:2rem;padding:1.5rem;background:var(--blue-tint);border:1px solid var(--blue);border-radius:12px">
+                <div class="donut-container" style="flex-shrink:0">
+                    <svg viewBox="0 0 200 200" width="150" height="150">
+                        <circle cx="100" cy="100" r="70" fill="none" stroke="#2563EB" stroke-width="28" stroke-dasharray="394.96 44.86" stroke-dashoffset="109.96" transform="rotate(-90 100 100)"/>
+                        <circle cx="100" cy="100" r="70" fill="none" stroke="#D97706" stroke-width="28" stroke-dasharray="44.86 394.96" stroke-dashoffset="154.82" transform="rotate(-90 100 100)"/>
+                        <text x="100" y="93" text-anchor="middle" font-size="22" font-weight="700" fill="#2563EB">89.8%</text>
+                        <text x="100" y="113" text-anchor="middle" font-size="10" fill="#6B7280">non-crime</text>
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-size:1.4rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem">29,220 Calls for Service in 2025</div>
+                    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem">
+                        <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#2563EB"></span>
+                        <span style="font-size:1.05rem"><strong>26,241</strong> Non-Crime Calls (89.8%)</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:0.6rem">
+                        <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#D97706"></span>
+                        <span style="font-size:1.05rem"><strong>2,979</strong> Crime-Related Calls (10.2%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sankey Ribbon Chart - Full Width -->
+            <div class="chart-container" style="margin-bottom:2rem">
+                <div class="chart-title">Where 29,220 Calls Flow (2025)</div>
+                <!--
+                    Layout: Source (col 0-100) → ribbons → Mid (col 200-290) → ribbons → Destinations (col 400+)
+                    Total height = 400. Non-crime = 358px (89.8%), Crime = 42px (10.2%)
+                    Non-crime subcategories scaled to 358px total:
+                      Other CFS: 17683/26241 = 67.4% of 358 = 241px
+                      Other Dist: 2114/26241 = 8.1% = 29px
+                      Domestic: 976/26241 = 3.7% = 22px (min)
+                      Accidents: 865/26241 = 3.3% = 20px (min)
+                      False Alarms: 541 = 18px (min)
+                      Abandoned: 410 = 16px (min)
+                      Other combined: 718 = 16px (min)
+                    Using generous minimums for readability.
+                -->
+                <svg viewBox="0 0 1100 440" width="100%" style="max-height:460px;display:block">
+                    <!-- SOURCE: Total CFS -->
+                    <rect x="5" y="10" width="95" height="400" rx="8" fill="#2563EB"/>
+                    <text x="52" y="200" text-anchor="middle" font-size="16" fill="white" font-weight="700">29,220</text>
+                    <text x="52" y="220" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.7)">Total CFS</text>
+
+                    <!-- MID: Crime block (TOP, 10.2% = 42px) -->
+                    <rect x="260" y="10" width="85" height="42" rx="8" fill="#D97706"/>
+                    <text x="302" y="36" text-anchor="middle" font-size="12" fill="white" font-weight="700">2,979</text>
+                    <!-- Ribbon: Source → Crime -->
+                    <path d="M100,10 C180,10 180,10 260,10 L260,52 C180,52 180,52 100,52 Z" fill="#D97706" opacity="0.10"/>
+
+                    <!-- MID: Non-Crime block (BOTTOM, 89.8% = 358px) -->
+                    <rect x="260" y="58" width="85" height="352" rx="8" fill="#2563EB" opacity="0.85"/>
+                    <text x="302" y="228" text-anchor="middle" font-size="14" fill="white" font-weight="700">26,241</text>
+                    <text x="302" y="245" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)">Non-Crime</text>
+                    <text x="302" y="258" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)">89.8%</text>
+                    <!-- Ribbon: Source → Non-Crime -->
+                    <path d="M100,55 C180,55 180,58 260,58 L260,410 C180,410 180,410 100,410 Z" fill="#2563EB" opacity="0.08"/>
+
+                    <!-- === DESTINATIONS: Crime at TOP, then divider, then Non-Crime below === -->
+
+                    <!-- Part I: 1,072 -->
+                    <path d="M345,10 C410,10 410,10 470,10 L470,28 C410,28 410,28 345,28 Z" fill="#D97706" opacity="0.08"/>
+                    <rect x="470" y="10" width="590" height="18" rx="6" fill="#FEF3C7" opacity="0.5"/>
+                    <rect x="470" y="10" width="36" height="18" rx="6" fill="#D97706" opacity="0.25"/>
+                    <text x="514" y="23" font-size="11" fill="#D97706" font-weight="600">Part I (serious crime)</text>
+                    <text x="1050" y="23" text-anchor="end" font-size="13" fill="#D97706" font-weight="700">1,072</text>
+
+                    <!-- Part II: 1,907 -->
+                    <path d="M345,30 C410,30 410,32 470,32 L470,54 C410,54 410,52 345,52 Z" fill="#F59E0B" opacity="0.08"/>
+                    <rect x="470" y="32" width="590" height="22" rx="6" fill="#FEF3C7" opacity="0.5"/>
+                    <rect x="470" y="32" width="64" height="22" rx="6" fill="#F59E0B" opacity="0.25"/>
+                    <text x="542" y="47" font-size="11" fill="#F59E0B" font-weight="600">Part II (lesser offenses)</text>
+                    <text x="1050" y="47" text-anchor="end" font-size="13" fill="#F59E0B" font-weight="700">1,907</text>
+
+                    <!-- Divider line -->
+                    <line x1="470" y1="62" x2="1060" y2="62" stroke="#2563EB" stroke-width="1" opacity="0.2" stroke-dasharray="4"/>
+
+                    <!-- Non-crime destinations below -->
+
+                    <!-- Other CFS: 17,683 -->
+                    <path d="M345,58 C410,58 410,70 470,70 L470,240 C410,240 410,228 345,228 Z" fill="#2563EB" opacity="0.06"/>
+                    <rect x="470" y="70" width="590" height="170" rx="6" fill="#2563EB" opacity="0.10"/>
+                    <text x="485" y="145" font-size="13" fill="#1A2332" font-weight="700">Other CFS</text>
+                    <text x="485" y="163" font-size="9" fill="#4B5563">Medicals, welfare checks, 911 hangups, building checks</text>
+                    <text x="1050" y="155" text-anchor="end" font-size="18" fill="#2563EB" font-weight="700">17,683</text>
+
+                    <!-- Other Disturbances: 2,114 -->
+                    <path d="M345,230 C410,230 410,245 470,245 L470,280 C410,280 410,268 345,268 Z" fill="#6366F1" opacity="0.06"/>
+                    <rect x="470" y="245" width="590" height="35" rx="6" fill="#F3F4F6"/>
+                    <rect x="470" y="245" width="70" height="35" rx="6" fill="#6366F1" opacity="0.20"/>
+                    <text x="485" y="267" font-size="11" fill="#1A2332" font-weight="600">Other Disturbances</text>
+                    <text x="1050" y="267" text-anchor="end" font-size="14" fill="#6366F1" font-weight="700">2,114</text>
+
+                    <!-- Domestic Disturbances: 976 -->
+                    <path d="M345,270 C410,270 410,284 470,284 L470,306 C410,306 410,292 345,292 Z" fill="#D97706" opacity="0.06"/>
+                    <rect x="470" y="284" width="590" height="22" rx="6" fill="#F3F4F6"/>
+                    <rect x="470" y="284" width="33" height="22" rx="6" fill="#D97706" opacity="0.25"/>
+                    <text x="510" y="299" font-size="11" fill="#1A2332" font-weight="600">Domestic Disturbances</text>
+                    <text x="1050" y="299" text-anchor="end" font-size="13" fill="#D97706" font-weight="700">976</text>
+
+                    <!-- Accident Investigations: 865 -->
+                    <path d="M345,294 C410,294 410,310 470,310 L470,330 C410,330 410,316 345,316 Z" fill="#059669" opacity="0.06"/>
+                    <rect x="470" y="310" width="590" height="20" rx="6" fill="#F3F4F6"/>
+                    <rect x="470" y="310" width="29" height="20" rx="6" fill="#059669" opacity="0.25"/>
+                    <text x="506" y="324" font-size="11" fill="#1A2332" font-weight="600">Accident Investigations</text>
+                    <text x="1050" y="324" text-anchor="end" font-size="13" fill="#059669" font-weight="700">865</text>
+
+                    <!-- False Alarms: 541 -->
+                    <path d="M345,318 C410,318 410,334 470,334 L470,350 C410,350 410,336 345,336 Z" fill="#9CA3AF" opacity="0.05"/>
+                    <rect x="470" y="334" width="590" height="16" rx="6" fill="#F3F4F6"/>
+                    <rect x="470" y="334" width="18" height="16" rx="6" fill="#9CA3AF" opacity="0.25"/>
+                    <text x="496" y="346" font-size="10" fill="#1A2332">False Alarms</text>
+                    <text x="1050" y="346" text-anchor="end" font-size="12" fill="#6B7280" font-weight="600">541</text>
+
+                    <!-- Abandoned Vehicles: 410 -->
+                    <path d="M345,338 C410,338 410,354 470,354 L470,368 C410,368 410,356 345,356 Z" fill="#9CA3AF" opacity="0.05"/>
+                    <rect x="470" y="354" width="590" height="14" rx="6" fill="#F3F4F6"/>
+                    <rect x="470" y="354" width="14" height="14" rx="6" fill="#9CA3AF" opacity="0.25"/>
+                    <text x="492" y="365" font-size="10" fill="#1A2332">Abandoned Vehicles</text>
+                    <text x="1050" y="365" text-anchor="end" font-size="12" fill="#6B7280" font-weight="600">410</text>
+
+                    <!-- Warrants + Harassment + Other: 718 -->
+                    <path d="M345,358 C410,358 410,372 470,372 L470,386 C410,386 410,376 345,376 Z" fill="#D1D5DB" opacity="0.05"/>
+                    <rect x="470" y="372" width="590" height="14" rx="6" fill="#F3F4F6"/>
+                    <rect x="470" y="372" width="24" height="14" rx="6" fill="#D1D5DB" opacity="0.30"/>
+                    <text x="502" y="383" font-size="9" fill="#6B7280">Warrants + Harassment + Other</text>
+                    <text x="1050" y="383" text-anchor="end" font-size="12" fill="#9CA3AF" font-weight="600">718</text>
+                </svg>
+                <div class="chart-subtitle">Total calls flow from left to right. Band height is proportional to volume. Non-crime categories dominate patrol operations.</div>
+            </div>
+
+            <!-- A Typical Day - Horizontal stat cards -->
+            <h3 style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:0.8rem">A Typical Day in Pottstown (2025)</h3>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.8rem;margin-bottom:1rem">
+                <div style="background:var(--blue-tint);border:1px solid var(--blue);border-radius:12px;padding:1rem;text-align:center">
+                    <div style="font-size:2rem;font-weight:700;color:var(--blue)">80</div>
+                    <div style="font-size:0.85rem;color:var(--navy)">calls per day</div>
+                </div>
+                <div style="background:var(--blue-tint);border:1px solid var(--blue);border-radius:12px;padding:1rem;text-align:center">
+                    <div style="font-size:2rem;font-weight:700;color:var(--blue)">72</div>
+                    <div style="font-size:0.85rem;color:var(--navy)">non-crime calls</div>
+                </div>
+                <div style="background:var(--amber-tint);border:1px solid var(--amber);border-radius:12px;padding:1rem;text-align:center">
+                    <div style="font-size:2rem;font-weight:700;color:var(--amber)">8</div>
+                    <div style="font-size:0.85rem;color:var(--navy)">crime-related calls</div>
+                </div>
+                <div style="background:var(--amber-tint);border:1px solid var(--amber);border-radius:12px;padding:1rem;text-align:center">
+                    <div style="font-size:2rem;font-weight:700;color:var(--amber)">~7</div>
+                    <div style="font-size:0.85rem;color:var(--navy)">dispatches per officer (est.)</div>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.8rem;margin-bottom:1rem">
+                <div style="background:var(--light-gray);border:1px solid #E5E7EB;border-radius:12px;padding:1rem;text-align:center">
+                    <div style="font-size:2rem;font-weight:700;color:var(--navy)">6</div>
+                    <div style="font-size:0.85rem;color:var(--navy)">sworn officers per shift</div>
+                </div>
+                <div style="background:var(--light-gray);border:1px solid #E5E7EB;border-radius:12px;padding:1rem;text-align:center">
+                    <div style="font-size:2rem;font-weight:700;color:var(--navy)">2</div>
+                    <div style="font-size:0.85rem;color:var(--navy)">civilian staff per shift</div>
+                    <div style="font-size:0.75rem;color:var(--med-gray)">(of 5-person team)</div>
+                </div>
+                <div style="background:var(--light-gray);border:1px solid #E5E7EB;border-radius:12px;padding:1rem;text-align:center">
+                    <div style="font-size:2rem;font-weight:700;color:var(--navy)">1.97</div>
+                    <div style="font-size:0.85rem;color:var(--navy)">officers per 1,000 residents</div>
+                    <div style="font-size:0.75rem;color:var(--med-gray)">(nat'l avg: 2.4)</div>
+                </div>
+            </div>
+            <div style="font-size:0.9rem;line-height:1.5;padding:0.8rem 1rem;background:var(--amber-tint);border:1px solid var(--amber);border-radius:8px">
+                <strong>Chief's target:</strong> 50 officers. Current priority is improving non-police response efficiency before adding headcount. Civilian diversion of non-crime CFS would free sworn officer capacity.
+            </div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset, tab "PPD Stats" | Population: ~23,400 (2020 Census) | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 4: SAFETY FOLLOWS INVESTMENT -->
+<section id="safety-investment" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Safety Follows Investment</h2>
+            <div class="sub">Crime reduction tracks economic development</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Every crime category that declined over the past decade correlates with economic improvement: more occupied buildings, more foot traffic, more employed residents, more stable housing. Burglary dropped 55.9% as vacancy fell. Larceny dropped 36.7% as commercial corridors filled. Assault dropped 32.8% as social services expanded. Parking citations rose 188.8% (1,459 to 4,215), reflecting increased downtown commercial activity.
+            </div>
+            <div class="two-panel">
+                <div>
+                    <div class="insight-card bg-green-tint" style="border-color:var(--green);margin-bottom:0.8rem">
+                        <h4 class="text-green">Burglary -55.9%</h4>
+                        <p>118 to 52. More occupied buildings, better lighting, more foot traffic. Vacancy drives burglary; occupancy prevents it.</p>
+                    </div>
+                    <div class="insight-card bg-green-tint" style="border-color:var(--green);margin-bottom:0.8rem">
+                        <h4 class="text-green">Larceny-Theft -36.7%</h4>
+                        <p>917 to 580. Filled storefronts, active commercial corridors, more eyes on the street.</p>
+                    </div>
+                    <div class="insight-card bg-green-tint" style="border-color:var(--green);margin-bottom:0.8rem">
+                        <h4 class="text-green">Assault -32.8%</h4>
+                        <p>375 to 252. Social service expansion, community organizations, behavioral health resources reduce interpersonal violence over time.</p>
+                    </div>
+                    <div class="insight-card bg-blue-tint" style="border-color:var(--blue);margin-bottom:0.8rem">
+                        <h4 class="text-blue">Domestic Disturbances -20.5%</h4>
+                        <p>1,228 to 976. Income stabilization, employment access, and housing quality improvements reduce household stress. Lowest since 1999.</p>
+                    </div>
+                    <div class="insight-card bg-green-tint" style="border-color:var(--green)">
+                        <h4 class="text-green">Parking Citations +188.8%</h4>
+                        <p>1,459 to 4,215. Downtown vitality indicator: more vehicles parked downtown correlates with commercial activity growth. <em style="color:var(--amber);font-size:0.8rem">⚠ Verify: civilian meter maid vs. officer breakdown needed.</em></p>
+                    </div>
+                </div>
+                <div class="panel bg-blue-tint" style="border-color:var(--blue)">
+                    <h3 class="text-blue" style="font-size:1.15rem;font-weight:700;margin-bottom:0.8rem">Pottstown's Investment Trajectory</h3>
+                    <p style="font-size:0.9rem;margin-bottom:0.8rem">Downtown Pottstown has experienced sustained reinvestment over the past decade:</p>
+                    <div style="font-size:0.88rem;line-height:1.6">
+                        <div style="padding:0.3rem 0;border-bottom:1px solid rgba(37,99,235,0.15)"><strong>Median home value:</strong> $195,000</div>
+                        <div style="padding:0.3rem 0;border-bottom:1px solid rgba(37,99,235,0.15)"><strong>Median household income:</strong> $61,000</div>
+                        <div style="padding:0.3rem 0;border-bottom:1px solid rgba(37,99,235,0.15)"><strong>Poverty rate:</strong> 17.5%</div>
+                        <div style="padding:0.3rem 0;border-bottom:1px solid rgba(37,99,235,0.15)"><strong>Housing vacancy:</strong> ~8%</div>
+                        <div style="padding:0.3rem 0;border-bottom:1px solid rgba(37,99,235,0.15)"><strong>College degree (BA+):</strong> 21%</div>
+                    </div>
+                    <div style="margin-top:1rem;padding:0.8rem;background:rgba(37,99,235,0.08);border-radius:8px;font-size:0.88rem;line-height:1.5">
+                        <strong>Trend direction:</strong> Every structural indicator has improved over the past decade. Home values are rising. Commercial occupancy is increasing. Poverty is declining. Crime follows these improvements with measurable consistency.
+                    </div>
+                    <div style="margin-top:1rem;padding:0.8rem;background:rgba(5,150,105,0.08);border-radius:8px;font-size:0.88rem;line-height:1.5">
+                        <strong>Peer benchmark:</strong> Phoenixville completed this same trajectory 10-15 years ahead of Pottstown. Same industrial heritage. Same post-closure devastation. Sustained investment produced a poverty rate of 6.3%, median income of $102,000, and a Part I crime rate of 20-25 per 1,000.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset | ACS 5-Year Estimates, Tables B19013, S1701, DP04, S1501 | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 5: WHAT THE NUMBERS MEAN FOR YOU -->
+<section id="takeaways" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>What the Numbers Mean for You</h2>
+            <div class="sub">Three takeaways every resident should know</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Your borough is measurably safer. Your officers are measurably stretched. Continued investment in both economic development and public safety infrastructure determines where Pottstown goes from here.
+            </div>
+            <div class="three-panel">
+                <div class="panel-card bg-green-tint" style="border-color:var(--green)">
+                    <h3 class="text-green">Your Borough Is Safer</h3>
+                    <ul>
+                        <li style="color:var(--green)">471 fewer serious crimes per year than 2015</li>
+                        <li style="color:var(--green)">Burglaries cut in half (118 to 52)</li>
+                        <li style="color:var(--green)">Assaults down 32.8% (375 to 252)</li>
+                        <li style="color:var(--green)">Total crimes at 30-year low (2,979)</li>
+                        <li style="color:var(--green)">2026 on pace for lowest Part I total ever recorded</li>
+                    </ul>
+                </div>
+                <div class="panel-card bg-amber-tint" style="border-color:var(--amber)">
+                    <h3 class="text-amber">Your Officers Are Stretched</h3>
+                    <ul>
+                        <li style="color:var(--amber)">635 calls per officer per year (up 21%)</li>
+                        <li style="color:var(--amber)">5,102 more calls in 2025 than 2015</li>
+                        <li style="color:var(--amber)">Same 46 officers handling all of it</li>
+                        <li style="color:var(--amber)">89.8% of calls have nothing to do with crime</li>
+                        <li style="color:var(--amber)">Proactive enforcement declining from time pressure</li>
+                    </ul>
+                </div>
+                <div class="panel-card bg-blue-tint" style="border-color:var(--blue)">
+                    <h3 class="text-blue">Investment Is the Path</h3>
+                    <ul>
+                        <li style="color:var(--blue)">Crime follows economics: every metric confirms it</li>
+                        <li style="color:var(--blue)">Downtown occupancy, housing, income all matter</li>
+                        <li style="color:var(--blue)">Pottstown's trajectory is positive and measurable</li>
+                        <li style="color:var(--blue)">Civilian CFS diversion frees officer capacity</li>
+                        <li style="color:var(--blue)">Keep building. The data supports it.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset | Population: ~23,400 (2020 Census) | July 2026</div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PART 2: THE DETAILS                                          -->
+<!-- ============================================================ -->
+
+<section id="details" class="divider">
+    <h2>The Details</h2>
+    <div class="accent-line"></div>
+    <p>Data tables, category breakdowns, and strategic analysis for council members who want the proof behind the headlines.</p>
+</section>
+
+<!-- SECTION 7: DECADAL TRAJECTORY -->
+<section id="trajectory" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Decadal Trajectory: Part I Crimes</h2>
+            <div class="sub">Year-by-year serious crime totals, 2015 to 2025 &nbsp;|&nbsp; CAGR: -3.6%/year</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Serious crime declined every year from 2015 through 2020, rebounded slightly in 2021-2023, then fell again in 2024-2025. The 2023 spike was driven almost entirely by motor vehicle theft (Hyundai/Kia vulnerability, a regional and national pattern). Core crime categories continued declining through that period. The five-year average from 2020-2025 is 1,099 Part I crimes per year, a structurally lower level than any prior five-year period in the dataset.
+            </div>
+            <table class="data-table">
+                <thead><tr><th>Year</th><th>Part I Total</th><th>YoY Change</th><th>YoY %</th><th>vs 2015</th></tr></thead>
+                <tbody>
+                    <tr><td>2015</td><td>1,543</td><td></td><td></td><td>Baseline</td></tr>
+                    <tr><td>2016</td><td>1,345</td><td>-198</td><td>-12.8%</td><td>-12.8%</td></tr>
+                    <tr><td>2017</td><td>1,304</td><td>-41</td><td>-3.0%</td><td>-15.5%</td></tr>
+                    <tr><td>2018</td><td>1,225</td><td>-79</td><td>-6.1%</td><td>-20.6%</td></tr>
+                    <tr><td>2019</td><td>1,060</td><td>-165</td><td>-13.5%</td><td>-31.3%</td></tr>
+                    <tr><td>2020</td><td>992</td><td>-68</td><td>-6.4%</td><td>-35.7%</td></tr>
+                    <tr><td>2021</td><td>1,060</td><td>+68</td><td>+6.9%</td><td>-31.3%</td></tr>
+                    <tr><td>2022</td><td>1,101</td><td>+41</td><td>+3.9%</td><td>-28.6%</td></tr>
+                    <tr><td>2023</td><td>1,281</td><td>+180</td><td>+16.3%</td><td>-17.0%</td></tr>
+                    <tr><td>2024</td><td>1,089</td><td>-192</td><td>-15.0%</td><td>-29.4%</td></tr>
+                    <tr><td>2025</td><td>1,072</td><td>-17</td><td>-1.6%</td><td>-30.5%</td></tr>
+                </tbody>
+            </table>
+
+            <!-- VISUAL 1: Dual-Axis Line Chart -->
+            <div class="chart-container">
+                <div class="chart-title">Part I Crime Decline vs. Calls for Service Growth (2015-2025)</div>
+                <svg viewBox="0 0 800 320" width="100%" style="max-height:360px">
+                    <line x1="80" y1="30" x2="80" y2="270" stroke="#E5E7EB" stroke-width="1"/>
+                    <line x1="80" y1="270" x2="760" y2="270" stroke="#E5E7EB" stroke-width="1"/>
+                    <line x1="80" y1="210" x2="760" y2="210" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+                    <line x1="80" y1="150" x2="760" y2="150" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+                    <line x1="80" y1="90" x2="760" y2="90" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+                    <line x1="80" y1="30" x2="760" y2="30" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+
+                    <text x="75" y="274" text-anchor="end" font-size="10" fill="#6B7280">800</text>
+                    <text x="75" y="214" text-anchor="end" font-size="10" fill="#6B7280">1,000</text>
+                    <text x="75" y="154" text-anchor="end" font-size="10" fill="#6B7280">1,200</text>
+                    <text x="75" y="94" text-anchor="end" font-size="10" fill="#6B7280">1,400</text>
+                    <text x="75" y="34" text-anchor="end" font-size="10" fill="#6B7280">1,600</text>
+                    <text x="15" y="155" text-anchor="middle" font-size="10" fill="#059669" font-weight="700" transform="rotate(-90,15,155)">Part I Crimes</text>
+
+                    <text x="765" y="274" text-anchor="start" font-size="10" fill="#6B7280">22K</text>
+                    <text x="765" y="214" text-anchor="start" font-size="10" fill="#6B7280">24K</text>
+                    <text x="765" y="154" text-anchor="start" font-size="10" fill="#6B7280">26K</text>
+                    <text x="765" y="94" text-anchor="start" font-size="10" fill="#6B7280">28K</text>
+                    <text x="765" y="34" text-anchor="start" font-size="10" fill="#6B7280">30K</text>
+                    <text x="792" y="155" text-anchor="middle" font-size="10" fill="#D97706" font-weight="700" transform="rotate(90,792,155)">Calls for Service</text>
+
+                    <text x="80" y="288" text-anchor="middle" font-size="10" fill="#6B7280">2015</text>
+                    <text x="148" y="288" text-anchor="middle" font-size="10" fill="#6B7280">2016</text>
+                    <text x="216" y="288" text-anchor="middle" font-size="10" fill="#6B7280">2017</text>
+                    <text x="284" y="288" text-anchor="middle" font-size="10" fill="#6B7280">2018</text>
+                    <text x="352" y="288" text-anchor="middle" font-size="10" fill="#6B7280">2019</text>
+                    <text x="420" y="288" text-anchor="middle" font-size="10" fill="#6B7280">2020</text>
+                    <text x="488" y="288" text-anchor="middle" font-size="10" fill="#6B7280">2021</text>
+                    <text x="556" y="288" text-anchor="middle" font-size="10" fill="#6B7280">2022</text>
+                    <text x="624" y="288" text-anchor="middle" font-size="10" fill="#6B7280">2023</text>
+                    <text x="692" y="288" text-anchor="middle" font-size="10" fill="#6B7280">2024</text>
+                    <text x="760" y="288" text-anchor="middle" font-size="10" fill="#6B7280">2025</text>
+
+                    <!-- Part I Crime line (green) with data labels on every point -->
+                    <polyline points="80,47 148,107 216,119 284,143 352,192 420,212 488,192 556,180 624,126 692,183 760,188" fill="none" stroke="#059669" stroke-width="3" stroke-linejoin="round"/>
+                    <circle cx="80" cy="47" r="4" fill="#059669"/><text x="80" y="38" text-anchor="middle" font-size="9" fill="#059669" font-weight="700">1,543</text>
+                    <circle cx="148" cy="107" r="4" fill="#059669"/><text x="148" y="98" text-anchor="middle" font-size="8" fill="#059669">1,345</text>
+                    <circle cx="216" cy="119" r="4" fill="#059669"/><text x="216" y="110" text-anchor="middle" font-size="8" fill="#059669">1,304</text>
+                    <circle cx="284" cy="143" r="4" fill="#059669"/><text x="284" y="134" text-anchor="middle" font-size="8" fill="#059669">1,225</text>
+                    <circle cx="352" cy="192" r="4" fill="#059669"/><text x="352" y="183" text-anchor="middle" font-size="9" fill="#059669" font-weight="700">1,060</text>
+                    <circle cx="420" cy="212" r="4" fill="#059669"/><text x="420" y="227" text-anchor="middle" font-size="9" fill="#059669" font-weight="700">992</text>
+                    <circle cx="488" cy="192" r="4" fill="#059669"/><text x="488" y="183" text-anchor="middle" font-size="8" fill="#059669">1,060</text>
+                    <circle cx="556" cy="180" r="4" fill="#059669"/><text x="556" y="171" text-anchor="middle" font-size="8" fill="#059669">1,101</text>
+                    <circle cx="624" cy="126" r="4" fill="#059669"/><text x="624" y="117" text-anchor="middle" font-size="9" fill="#059669" font-weight="600">1,281</text>
+                    <circle cx="692" cy="183" r="4" fill="#059669"/><text x="692" y="198" text-anchor="middle" font-size="8" fill="#059669">1,089</text>
+                    <circle cx="760" cy="188" r="4" fill="#059669"/><text x="760" y="203" text-anchor="middle" font-size="9" fill="#059669" font-weight="700">1,072</text>
+
+                    <!-- CFS line (amber, dashed) with data labels on every point -->
+                    <polyline points="80,207 148,200 216,191 284,221 352,177 420,171 488,123 556,114 624,94 692,74 760,51" fill="none" stroke="#D97706" stroke-width="3" stroke-linejoin="round" stroke-dasharray="8,4"/>
+                    <circle cx="80" cy="207" r="4" fill="#D97706"/><text x="80" y="222" text-anchor="middle" font-size="9" fill="#D97706" font-weight="700">24,118</text>
+                    <circle cx="148" cy="200" r="3" fill="#D97706"/><text x="148" y="215" text-anchor="middle" font-size="7" fill="#D97706">24,355</text>
+                    <circle cx="216" cy="191" r="3" fill="#D97706"/><text x="216" y="206" text-anchor="middle" font-size="7" fill="#D97706">24,643</text>
+                    <circle cx="284" cy="221" r="3" fill="#D97706"/><text x="284" y="236" text-anchor="middle" font-size="7" fill="#D97706">23,745</text>
+                    <circle cx="352" cy="177" r="3" fill="#D97706"/><text x="352" y="170" text-anchor="middle" font-size="7" fill="#D97706">25,112</text>
+                    <circle cx="420" cy="171" r="3" fill="#D97706"/><text x="420" y="163" text-anchor="middle" font-size="7" fill="#D97706">25,317</text>
+                    <circle cx="488" cy="123" r="3" fill="#D97706"/><text x="488" y="116" text-anchor="middle" font-size="7" fill="#D97706">27,111</text>
+                    <circle cx="556" cy="114" r="3" fill="#D97706"/><text x="556" y="107" text-anchor="middle" font-size="7" fill="#D97706">27,185</text>
+                    <circle cx="624" cy="94" r="3" fill="#D97706"/><text x="624" y="87" text-anchor="middle" font-size="7" fill="#D97706">27,862</text>
+                    <circle cx="692" cy="74" r="3" fill="#D97706"/><text x="692" y="67" text-anchor="middle" font-size="7" fill="#D97706">28,511</text>
+                    <circle cx="760" cy="51" r="4" fill="#D97706"/><text x="745" y="44" text-anchor="end" font-size="9" fill="#D97706" font-weight="700">29,220</text>
+
+                    <rect x="300" y="300" width="12" height="3" fill="#059669"/>
+                    <text x="316" y="304" font-size="10" fill="#059669" font-weight="600">Part I Crimes (left axis)</text>
+                    <rect x="480" y="300" width="12" height="3" fill="#D97706"/>
+                    <text x="496" y="304" font-size="10" fill="#D97706" font-weight="600">Calls for Service (right axis)</text>
+                </svg>
+                <div class="chart-subtitle">Crime fell 30.5% while calls for service rose 21.2%. The lines are moving in opposite directions.</div>
+            </div>
+
+            <div class="insight-row">
+                <div class="insight-card bg-green-tint" style="border-color:var(--green)">
+                    <h4 class="text-green">2019 Step Change</h4>
+                    <p>Part I dropped below 1,100 for the first time. Sustained economic investment and policing strategy converged.</p>
+                </div>
+                <div class="insight-card bg-amber-tint" style="border-color:var(--amber)">
+                    <h4 class="text-amber">2023 Spike = Noise</h4>
+                    <p>Part I rose to 1,281. MV theft surged to 129 (Hyundai/Kia vulnerability, regional trend). Core categories continued declining.</p>
+                </div>
+                <div class="insight-card bg-blue-tint" style="border-color:var(--blue)">
+                    <h4 class="text-blue">Five-Year Consolidation</h4>
+                    <p>2020-2025 averaged 1,099 Part I crimes per year. The borough has stabilized at a structurally lower crime level.</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset, tabs "UCR 2015" through "UCR 2025" and "CFS-Pt1-Pt2" | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 8: CFS DEEP DIVE -->
+<section id="cfs" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Calls for Service Deep Dive</h2>
+            <div class="sub">Total demand on the department vs. actual crime</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Non-crime calls rose from 83.8% to 89.8% of all CFS over the decade. The police department is increasingly a general emergency and social services responder. The "Other CFS" bucket (medicals, welfare checks, 911 hangups, building checks) constitutes 60.5% of all calls by itself.
+            </div>
+            <div class="two-panel" style="grid-template-columns:2.5fr 1fr">
+                <table class="data-table">
+                    <thead><tr><th>Year</th><th>Total CFS</th><th>Total Crimes</th><th>Non-Crime CFS</th><th>Crime %</th><th>Non-Crime %</th></tr></thead>
+                    <tbody>
+                        <tr><td>2015</td><td>24,118</td><td>3,909</td><td>20,209</td><td>16.2%</td><td>83.8%</td></tr>
+                        <tr><td>2016</td><td>24,350</td><td>3,730</td><td>20,620</td><td>15.3%</td><td>84.7%</td></tr>
+                        <tr><td>2017</td><td>24,643</td><td>3,849</td><td>20,794</td><td>15.6%</td><td>84.4%</td></tr>
+                        <tr><td>2018</td><td>23,522</td><td>3,264</td><td>20,258</td><td>13.9%</td><td>86.1%</td></tr>
+                        <tr><td>2019</td><td>25,112</td><td>3,083</td><td>22,029</td><td>12.3%</td><td>87.7%</td></tr>
+                        <tr><td>2020</td><td>25,317</td><td>2,966</td><td>22,351</td><td>11.7%</td><td>88.3%</td></tr>
+                        <tr><td>2021</td><td>26,913</td><td>3,071</td><td>23,842</td><td>11.4%</td><td>88.6%</td></tr>
+                        <tr><td>2022</td><td>27,185</td><td>2,941</td><td>24,244</td><td>10.8%</td><td>89.2%</td></tr>
+                        <tr><td>2023</td><td>27,832</td><td>3,371</td><td>24,461</td><td>12.1%</td><td>87.9%</td></tr>
+                        <tr><td>2024</td><td>28,511</td><td>3,091</td><td>25,420</td><td>10.8%</td><td>89.2%</td></tr>
+                        <tr><td>2025</td><td>29,220</td><td>2,979</td><td>26,241</td><td>10.2%</td><td>89.8%</td></tr>
+                    </tbody>
+                </table>
+                <div class="insight-card bg-amber-tint" style="border-color:var(--amber)">
+                    <h4 class="text-amber">Key Finding</h4>
+                    <p>Non-crime calls rose by 6,032 over the decade (+29.8%). Crime-related calls dropped by 930 (-23.8%). The entire growth in demand is non-crime.</p>
+                </div>
+            </div>
+
+            <!-- VISUAL 2: Ribbon Chart -->
+            <div class="chart-container" style="margin-top:1.5rem">
+                <div class="chart-title">Call Type Volume Shifts: 2015 / 2020 / 2025</div>
+                <svg viewBox="0 0 800 300" width="100%" style="max-height:340px">
+                    <text x="150" y="25" text-anchor="middle" font-size="13" fill="#1A2332" font-weight="700">2015</text>
+                    <text x="400" y="25" text-anchor="middle" font-size="13" fill="#1A2332" font-weight="700">2020</text>
+                    <text x="650" y="25" text-anchor="middle" font-size="13" fill="#1A2332" font-weight="700">2025</text>
+
+                    <!-- Other CFS -->
+                    <rect x="80" y="40" width="140" height="50" rx="6" fill="#1A2332"/>
+                    <text x="150" y="62" text-anchor="middle" font-size="10" fill="white" font-weight="600">Other CFS</text>
+                    <text x="150" y="78" text-anchor="middle" font-size="12" fill="#A0AEC0" font-weight="700">16,362</text>
+                    <rect x="330" y="40" width="140" height="50" rx="6" fill="#1A2332"/>
+                    <text x="400" y="62" text-anchor="middle" font-size="10" fill="white" font-weight="600">Other CFS</text>
+                    <text x="400" y="78" text-anchor="middle" font-size="12" fill="#A0AEC0" font-weight="700">14,991</text>
+                    <rect x="580" y="40" width="140" height="50" rx="6" fill="#1A2332"/>
+                    <text x="650" y="62" text-anchor="middle" font-size="10" fill="white" font-weight="600">Other CFS</text>
+                    <text x="650" y="78" text-anchor="middle" font-size="12" fill="#A0AEC0" font-weight="700">17,683</text>
+                    <path d="M220,65 C275,65 275,65 330,65" fill="none" stroke="#1A2332" stroke-width="2" opacity="0.3"/>
+                    <path d="M470,65 C525,65 525,65 580,65" fill="none" stroke="#1A2332" stroke-width="2" opacity="0.3"/>
+
+                    <!-- Other Disturbances -->
+                    <rect x="80" y="100" width="140" height="40" rx="6" fill="#D97706"/>
+                    <text x="150" y="117" text-anchor="middle" font-size="10" fill="white" font-weight="600">Other Dist.</text>
+                    <text x="150" y="132" text-anchor="middle" font-size="11" fill="white" font-weight="700">1,898</text>
+                    <rect x="330" y="100" width="140" height="40" rx="6" fill="#D97706"/>
+                    <text x="400" y="117" text-anchor="middle" font-size="10" fill="white" font-weight="600">Other Dist.</text>
+                    <text x="400" y="132" text-anchor="middle" font-size="11" fill="white" font-weight="700">2,303</text>
+                    <rect x="580" y="100" width="140" height="40" rx="6" fill="#D97706"/>
+                    <text x="650" y="117" text-anchor="middle" font-size="10" fill="white" font-weight="600">Other Dist.</text>
+                    <text x="650" y="132" text-anchor="middle" font-size="11" fill="white" font-weight="700">2,114</text>
+                    <path d="M220,120 C275,120 275,120 330,120" fill="none" stroke="#D97706" stroke-width="2" opacity="0.3"/>
+                    <path d="M470,120 C525,120 525,120 580,120" fill="none" stroke="#D97706" stroke-width="2" opacity="0.3"/>
+
+                    <!-- Domestics -->
+                    <rect x="80" y="150" width="140" height="40" rx="6" fill="#2563EB"/>
+                    <text x="150" y="167" text-anchor="middle" font-size="10" fill="white" font-weight="600">Domestics</text>
+                    <text x="150" y="182" text-anchor="middle" font-size="11" fill="white" font-weight="700">1,228</text>
+                    <rect x="330" y="150" width="140" height="40" rx="6" fill="#2563EB"/>
+                    <text x="400" y="167" text-anchor="middle" font-size="10" fill="white" font-weight="600">Domestics</text>
+                    <text x="400" y="182" text-anchor="middle" font-size="11" fill="white" font-weight="700">1,641</text>
+                    <rect x="580" y="150" width="140" height="40" rx="6" fill="#2563EB"/>
+                    <text x="650" y="167" text-anchor="middle" font-size="10" fill="white" font-weight="600">Domestics</text>
+                    <text x="650" y="182" text-anchor="middle" font-size="11" fill="white" font-weight="700">976</text>
+                    <path d="M220,170 C275,170 275,170 330,170" fill="none" stroke="#2563EB" stroke-width="2" opacity="0.3"/>
+                    <path d="M470,170 C525,170 525,170 580,170" fill="none" stroke="#2563EB" stroke-width="2" opacity="0.3"/>
+
+                    <!-- False Alarms -->
+                    <rect x="80" y="200" width="140" height="36" rx="6" fill="#059669"/>
+                    <text x="150" y="215" text-anchor="middle" font-size="10" fill="white" font-weight="600">False Alarms</text>
+                    <text x="150" y="229" text-anchor="middle" font-size="11" fill="white" font-weight="700">904</text>
+                    <rect x="330" y="200" width="140" height="36" rx="6" fill="#059669"/>
+                    <text x="400" y="215" text-anchor="middle" font-size="10" fill="white" font-weight="600">False Alarms</text>
+                    <text x="400" y="229" text-anchor="middle" font-size="11" fill="white" font-weight="700">673</text>
+                    <rect x="580" y="200" width="140" height="36" rx="6" fill="#059669"/>
+                    <text x="650" y="215" text-anchor="middle" font-size="10" fill="white" font-weight="600">False Alarms</text>
+                    <text x="650" y="229" text-anchor="middle" font-size="11" fill="white" font-weight="700">541</text>
+                    <path d="M220,218 C275,218 275,218 330,218" fill="none" stroke="#059669" stroke-width="2" opacity="0.3"/>
+                    <path d="M470,218 C525,218 525,218 580,218" fill="none" stroke="#059669" stroke-width="2" opacity="0.3"/>
+
+                    <!-- Accidents -->
+                    <rect x="80" y="246" width="140" height="36" rx="6" fill="#DC2626"/>
+                    <text x="150" y="261" text-anchor="middle" font-size="10" fill="white" font-weight="600">Accidents</text>
+                    <text x="150" y="275" text-anchor="middle" font-size="11" fill="white" font-weight="700">827</text>
+                    <rect x="330" y="246" width="140" height="36" rx="6" fill="#DC2626"/>
+                    <text x="400" y="261" text-anchor="middle" font-size="10" fill="white" font-weight="600">Accidents</text>
+                    <text x="400" y="275" text-anchor="middle" font-size="11" fill="white" font-weight="700">728</text>
+                    <rect x="580" y="246" width="140" height="36" rx="6" fill="#DC2626"/>
+                    <text x="650" y="261" text-anchor="middle" font-size="10" fill="white" font-weight="600">Accidents</text>
+                    <text x="650" y="275" text-anchor="middle" font-size="11" fill="white" font-weight="700">865</text>
+                    <path d="M220,264 C275,264 275,264 330,264" fill="none" stroke="#DC2626" stroke-width="2" opacity="0.3"/>
+                    <path d="M470,264 C525,264 525,264 580,264" fill="none" stroke="#DC2626" stroke-width="2" opacity="0.3"/>
+                </svg>
+                <div class="chart-subtitle">Other CFS dominates volume. Domestics fell 20.5%. False alarms fell 40.2%. Other Disturbances rose 11.4%.</div>
+            </div>
+
+            <h4 style="margin:1rem 0 0.5rem;font-size:0.95rem">Non-Crime CFS by Category (2015 vs. 2025)</h4>
+            <table class="data-table">
+                <thead><tr><th>Non-Crime Category</th><th>2015</th><th>2020</th><th>2025</th><th>10-Year Change</th></tr></thead>
+                <tbody>
+                    <tr><td>Other CFS (medicals, welfare, 911, bldg checks)</td><td>16,362</td><td>14,991</td><td>17,683</td><td>+1,321 (+8.1%)</td></tr>
+                    <tr><td>Other Disturbances</td><td>1,898</td><td>2,303</td><td>2,114</td><td>+216 (+11.4%)</td></tr>
+                    <tr><td>Domestic Disturbances</td><td>1,228</td><td>1,641</td><td>976</td><td>-252 (-20.5%)</td></tr>
+                    <tr><td>Accident Investigations</td><td>827</td><td>728</td><td>865</td><td>+38 (+4.6%)</td></tr>
+                    <tr><td>False Alarms</td><td>904</td><td>673</td><td>541</td><td>-363 (-40.2%)</td></tr>
+                    <tr><td>Abandoned Vehicles</td><td>269</td><td>340</td><td>410</td><td>+141 (+52.4%)</td></tr>
+                    <tr><td>Warrants Served</td><td>269</td><td>219</td><td>335</td><td>+66 (+24.5%)</td></tr>
+                    <tr><td>Harassment</td><td>405</td><td>211</td><td>276</td><td>-129 (-31.9%)</td></tr>
+                    <tr><td>Curfew / Runaways</td><td>102</td><td>102</td><td>107</td><td>+5 (+4.9%)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset, tab "PPD Stats" | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 9: PER-OFFICER WORKLOAD -->
+<section id="workload" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Per-Officer Workload</h2>
+            <div class="sub">Flat headcount, surging demand</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Each officer handled 524 total calls in 2015. In 2025, that number is 635. The crime workload per officer dropped 24% (85 to 65 crimes/officer), but the non-crime workload rose 30% (439 to 570 non-crime calls/officer). The net result: each officer handles 21% more total work, nearly all of it non-crime.
+            </div>
+            <div class="two-panel" style="grid-template-columns:2.5fr 1fr">
+                <table class="data-table">
+                    <thead><tr><th>Year</th><th>Officers</th><th>Total CFS</th><th>CFS/Officer</th><th>Crimes/Off.</th><th>Non-Crime/Off.</th></tr></thead>
+                    <tbody>
+                        <tr><td>2015</td><td>46</td><td>24,118</td><td>524</td><td>85</td><td>439</td></tr>
+                        <tr><td>2016</td><td>46</td><td>24,350</td><td>529</td><td>81</td><td>448</td></tr>
+                        <tr><td>2017</td><td>46</td><td>24,643</td><td>536</td><td>84</td><td>452</td></tr>
+                        <tr><td>2018</td><td>46</td><td>23,522</td><td>511</td><td>71</td><td>440</td></tr>
+                        <tr><td>2019</td><td>46</td><td>25,112</td><td>546</td><td>67</td><td>479</td></tr>
+                        <tr><td>2020</td><td>44</td><td>25,317</td><td>575</td><td>67</td><td>508</td></tr>
+                        <tr><td>2021</td><td>45</td><td>26,913</td><td>598</td><td>68</td><td>530</td></tr>
+                        <tr><td>2022</td><td>46</td><td>27,185</td><td>591</td><td>64</td><td>527</td></tr>
+                        <tr><td>2023</td><td>47</td><td>27,832</td><td>592</td><td>72</td><td>520</td></tr>
+                        <tr><td>2024</td><td>47</td><td>28,511</td><td>607</td><td>66</td><td>541</td></tr>
+                        <tr><td>2025</td><td>46</td><td>29,220</td><td>635</td><td>65</td><td>570</td></tr>
+                    </tbody>
+                </table>
+                <div>
+                    <div class="insight-card bg-green-tint" style="border-color:var(--green);margin-bottom:0.5rem">
+                        <h4 class="text-green">Crime Workload</h4>
+                        <p>85 crimes/officer (2015) to 65/officer (2025). Down 24%.</p>
+                    </div>
+                    <div class="insight-card bg-amber-tint" style="border-color:var(--amber);margin-bottom:0.5rem">
+                        <h4 class="text-amber">Non-Crime Workload</h4>
+                        <p>439 non-crime calls/officer (2015) to 570/officer (2025). Up 30%.</p>
+                    </div>
+                    <div class="insight-card bg-red-tint" style="border-color:var(--red)">
+                        <h4 class="text-red">Total Workload</h4>
+                        <p>524 total calls/officer (2015) to 635/officer (2025). Up 21%.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bottom-bar" style="margin-top:1rem">80 calls/day &nbsp;| &nbsp;~40 calls per 12-hour shift &nbsp;| &nbsp;6 officers on shift &nbsp;| &nbsp;~7 dispatches per officer per shift (est.)</div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset, tabs "CFS-Pt1-Pt2" and "PPD Stats" | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 10: PROACTIVE ENFORCEMENT DEFENSE -->
+<section id="enforcement" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Proactive Enforcement Defense</h2>
+            <div class="sub">A strict time audit of why traffic stops and drug arrests declined</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Traffic citations dropped 56.5% and DUI arrests dropped 83.2% over the decade. These declines reflect lost capacity. Officers responding to an estimated 7 dispatched calls per 12-hour shift (40.62 calls per shift ÷ 6 officers), plus administrative duties, court appearances, and report writing, have limited discretionary time for traffic enforcement and saturation patrols. Reactive CFS response consumed approximately 44% of shift time in 2015 and approximately 53% in 2025.
+            </div>
+            <table class="data-table">
+                <thead><tr><th>Enforcement Metric</th><th>2015</th><th>2025</th><th>Change</th><th>% Change</th></tr></thead>
+                <tbody>
+                    <tr><td>Traffic Citations</td><td>3,438</td><td>1,496</td><td>-1,942</td><td class="highlight-negative">-56.5%</td></tr>
+                    <tr><td>DUI Arrests</td><td>107</td><td>18</td><td>-89</td><td class="highlight-negative">-83.2%</td></tr>
+                    <tr><td>Drug Arrests</td><td>476</td><td>249</td><td>-227</td><td class="highlight-negative">-47.7%</td></tr>
+                    <tr><td>Total Arrests</td><td>2,687</td><td>1,789</td><td>-898</td><td class="highlight-negative">-33.4%</td></tr>
+                    <tr><td>Parking Citations</td><td>1,459</td><td>4,215</td><td>+2,756</td><td class="highlight-positive">+188.8%</td></tr>
+                </tbody>
+            </table>
+
+            <h4 style="margin:1.5rem 0 0.5rem;font-size:1rem;color:var(--navy)">Shift Time Audit</h4>
+            <div class="time-audit">
+                <div class="time-block bg-amber-tint" style="border-color:var(--amber)">
+                    <h4 class="text-amber">2015 Shift Capacity</h4>
+                    <div class="calc-row"><span>Total shift hours (6 officers x 12 hrs):</span><span><strong>72 hrs</strong></span></div>
+                    <div class="calc-row"><span>Daily CFS (24,118 / 365):</span><span><strong>66.1 calls</strong></span></div>
+                    <div class="calc-row"><span>Avg time per call (~29 min):</span><span><strong>31.9 hrs</strong></span></div>
+                    <div class="calc-row"><span>Reactive CFS % of shift time:</span><span><strong>~44%</strong></span></div>
+                    <div class="calc-row"><span>Remaining for proactive patrol:</span><span><strong>~40 hrs</strong></span></div>
+                </div>
+                <div class="time-block bg-red-tint" style="border-color:var(--red)">
+                    <h4 class="text-red">2025 Shift Capacity</h4>
+                    <div class="calc-row"><span>Total shift hours (6 officers x 12 hrs):</span><span><strong>72 hrs</strong></span></div>
+                    <div class="calc-row"><span>Daily CFS (29,220 / 365):</span><span><strong>80.1 calls</strong></span></div>
+                    <div class="calc-row"><span>Avg time per call (~29 min):</span><span><strong>38.7 hrs</strong></span></div>
+                    <div class="calc-row"><span>Reactive CFS % of shift time:</span><span><strong>~53%</strong></span></div>
+                    <div class="calc-row"><span>Remaining for proactive patrol:</span><span><strong>~33 hrs</strong></span></div>
+                </div>
+            </div>
+            <div class="insight-card bg-blue-tint" style="border-color:var(--blue);margin-top:1rem">
+                <h4 class="text-blue">Capacity Calculation</h4>
+                <p>Proactive patrol capacity dropped from approximately 40 hours per day to approximately 33 hours per day. That is a 17% reduction in discretionary time. Traffic citations, DUI patrols, and drug interdictions require exactly this type of uncommitted time.</p>
+            </div>
+            <div class="enforcement-note bg-green-tint" style="border:1px solid var(--green)">
+                <p><strong>Parking Citations +188.8% (1,459 to 4,215):</strong> Parking enforcement does not require sworn officers. This increase reflects downtown vitality and active code enforcement.</p>
+                <p style="font-size:0.8rem;color:var(--amber);margin-top:0.3rem"><strong>⚠ Verification required:</strong> Confirm what portion of parking citations are issued by the borough's civilian parking enforcement officer (meter maid) vs. sworn officers, and whether this position existed for the full decade. Do not cite this metric as evidence of sworn officer enforcement activity until the breakdown is verified.</p>
+            </div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset, tab "PPD Stats" | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 11: ARREST-TO-CRIME RATIO -->
+<section id="arrests" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Arrest-to-Crime Ratio</h2>
+            <div class="sub">Why arrests dropped 33.4% when crime dropped 23.8%</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Total arrests dropped from 2,687 to 1,789 (decline of 898). Drug arrests account for 227 and DUI arrests account for 89. Combined, these two policy-driven categories explain 316 of the 898 total drop (35.2%). Remove them, and the remaining arrest decline of 582 closely tracks the 930 decline in total crime.
+            </div>
+            <table class="data-table">
+                <thead><tr><th>Factor</th><th>Arrest Drop</th><th>% of Total Drop</th><th>Cause</th></tr></thead>
+                <tbody>
+                    <tr><td>Drug Arrests</td><td>-227</td><td>25.3%</td><td>Policy shift: treatment over arrest (476 to 249)</td></tr>
+                    <tr><td>DUI Arrests</td><td>-89</td><td>9.9%</td><td>No capacity for saturation patrols (107 to 18)</td></tr>
+                    <tr style="font-weight:700;background:var(--light-gray)"><td>Policy-Driven Total</td><td>-316</td><td>35.2%</td><td>Not enforcement failure</td></tr>
+                    <tr><td>Remaining Drop</td><td>-582</td><td>64.8%</td><td>Tracks natural crime decline (-930 total crimes)</td></tr>
+                </tbody>
+            </table>
+            <div class="insight-row">
+                <div class="insight-card bg-blue-tint" style="border-color:var(--blue)">
+                    <h4 class="text-blue">Drug Policy Shift</h4>
+                    <p>Drug arrests: 476 to 249. Deliberate statewide shift toward treatment-based intervention. Not a Pottstown anomaly.</p>
+                </div>
+                <div class="insight-card bg-amber-tint" style="border-color:var(--amber)">
+                    <h4 class="text-amber">DUI Capacity Loss</h4>
+                    <p>DUI arrests: 107 to 18. Officers have less discretionary time for saturation patrols. CFS volume crowds out proactive enforcement.</p>
+                </div>
+                <div class="insight-card bg-green-tint" style="border-color:var(--green)">
+                    <h4 class="text-green">Remaining Arrests Track Crime</h4>
+                    <p>Remove drug and DUI: remaining arrests dropped 582 against 930 fewer crimes. The ratio is consistent.</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset, tab "PPD Stats" | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 12: CATEGORY SPOTLIGHT -->
+<section id="categories" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Category Spotlight: Part I Crimes</h2>
+            <div class="sub">Every serious crime category, 2015 vs 2019 vs 2025</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Seven of eight Part I categories declined or held steady. Only motor vehicle theft increased, driven by a national Hyundai/Kia vulnerability that peaked in 2023 at 129 incidents and is now correcting. Larceny-theft accounts for 337 of the 471 total Part I decline (72% of all gains).
+            </div>
+            <table class="data-table">
+                <thead><tr><th>Category</th><th>2015</th><th>2019</th><th>2025</th><th>10-Year Change</th><th>Assessment</th></tr></thead>
+                <tbody>
+                    <tr><td>Murder/Manslaughter</td><td>1</td><td>5</td><td>0</td><td>-1 (-100%)</td><td>Low-volume, volatile</td></tr>
+                    <tr><td>Forcible Rape</td><td>22</td><td>30</td><td>22</td><td>0 (0.0%)</td><td>Stable, reporting may vary</td></tr>
+                    <tr><td>Robbery</td><td>49</td><td>27</td><td>43</td><td>-6 (-12.2%)</td><td>Moderate decline</td></tr>
+                    <tr><td>Assault</td><td>375</td><td>288</td><td>252</td><td>-123 (-32.8%)</td><td>Sustained decline</td></tr>
+                    <tr><td>Burglary</td><td>118</td><td>108</td><td>52</td><td>-66 (-55.9%)</td><td>Biggest win</td></tr>
+                    <tr><td>Larceny-Theft</td><td>917</td><td>557</td><td>580</td><td>-337 (-36.7%)</td><td>Volume driver of decline</td></tr>
+                    <tr><td>Motor Vehicle Theft</td><td>57</td><td>40</td><td>121</td><td>+64 (+112.3%)</td><td style="color:var(--red);font-weight:700">Regional outlier (Hyundai/Kia)</td></tr>
+                    <tr><td>Arson</td><td>4</td><td>5</td><td>2</td><td>-2 (-50.0%)</td><td>Low-volume</td></tr>
+                    <tr style="font-weight:700;background:var(--light-gray)"><td>TOTAL</td><td>1,543</td><td>1,060</td><td>1,072</td><td>-471 (-30.5%)</td><td>Structural decline</td></tr>
+                </tbody>
+            </table>
+            <div class="insight-row">
+                <div class="insight-card bg-green-tint" style="border-color:var(--green)">
+                    <h4 class="text-green">Burglary: Biggest Win (-55.9%)</h4>
+                    <p>118 to 52. Directly correlates with increased building occupancy and downtown investment.</p>
+                </div>
+                <div class="insight-card bg-blue-tint" style="border-color:var(--blue)">
+                    <h4 class="text-blue">Larceny: Volume Driver (-36.7%)</h4>
+                    <p>917 to 580. This single category accounts for 337 of the 471 total Part I decline (72% of all gains).</p>
+                </div>
+                <div class="insight-card bg-red-tint" style="border-color:var(--red)">
+                    <h4 class="text-red">MV Theft: Regional Outlier (+112.3%)</h4>
+                    <p>57 to 121. Peaked at 129 in 2023. 2026 YTD pace of ~65 suggests correction underway.</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset, tab "Part I Comp" | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 13: 2026 YTD -->
+<section id="ytd" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>2026 Year-to-Date (January through May)</h2>
+            <div class="sub">Early indicators for the current year</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Through the first five months of 2026, Pottstown recorded 422 Part I crimes. Annualized, that pace (~1,013) would produce the second-lowest Part I total ever. Burglary is on pace for a record low. Motor vehicle theft is correcting sharply. Total crimes (I+II) at 1,120 through May, annualized ~2,688, would be the lowest on record.
+            </div>
+            <table class="data-table">
+                <thead><tr><th>Category</th><th>Jan-May 2026</th><th>Annualized</th><th>2025 Full Year</th><th>Projected Change</th></tr></thead>
+                <tbody>
+                    <tr><td>Murder</td><td>2</td><td>~5</td><td>0</td><td>Low-volume, volatile</td></tr>
+                    <tr><td>Rape</td><td>8</td><td>~19</td><td>22</td><td>On pace for decline</td></tr>
+                    <tr><td>Robbery</td><td>9</td><td>~22</td><td>43</td><td style="color:var(--green);font-weight:700">Significant decline if sustained</td></tr>
+                    <tr><td>Assault</td><td>103</td><td>~247</td><td>252</td><td>Tracking 2025 level</td></tr>
+                    <tr><td>Burglary</td><td>15</td><td>~36</td><td>52</td><td style="color:var(--green);font-weight:700">On pace for record low</td></tr>
+                    <tr><td>Larceny-Theft</td><td>257</td><td>~617</td><td>580</td><td>Slight uptick (+6.4%)</td></tr>
+                    <tr><td>MV Theft</td><td>27</td><td>~65</td><td>121</td><td style="color:var(--green);font-weight:700">Correcting sharply (-46%)</td></tr>
+                    <tr><td>Arson</td><td>1</td><td>~2</td><td>2</td><td>Stable</td></tr>
+                    <tr style="font-weight:700;background:var(--light-gray)"><td>Part I Total</td><td>422</td><td>~1,013</td><td>1,072</td><td style="color:var(--green)">On pace for 2nd lowest ever</td></tr>
+                    <tr style="font-weight:700"><td>Part II Total</td><td>698</td><td>~1,675</td><td>1,907</td><td style="color:var(--green)">On pace for decline</td></tr>
+                    <tr style="font-weight:700;background:var(--light-gray)"><td>Total Crime (I+II)</td><td>1,120</td><td>~2,688</td><td>2,979</td><td style="color:var(--green)">Would be lowest on record</td></tr>
+                </tbody>
+            </table>
+            <div class="insight-row">
+                <div class="insight-card bg-green-tint" style="border-color:var(--green)">
+                    <h4 class="text-green">Burglary: Record-Low Pace</h4>
+                    <p>15 through May. Annualized ~36 would be the lowest in the full dataset.</p>
+                </div>
+                <div class="insight-card bg-green-tint" style="border-color:var(--green)">
+                    <h4 class="text-green">MV Theft: Correcting</h4>
+                    <p>27 through May (annualized ~65). Down from 121 in 2025. Software patches taking effect.</p>
+                </div>
+                <div class="insight-card bg-green-tint" style="border-color:var(--green)">
+                    <h4 class="text-green">Robbery: Significant Decline</h4>
+                    <p>9 through May (annualized ~22). Would be the lowest robbery count in the full dataset going back to 1993.</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset, tab "UCR 2026" | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 14: MAY 2025 vs MAY 2026 -->
+<section id="may-yoy" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>May 2025 vs. May 2026</h2>
+            <div class="sub">Source: PPD Monthly Borough Council Reports (Kevin Owens, Dept. Administrative Manager)</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                In May 2026, serious crime dropped 34.3% compared to May 2025. Aggravated assaults fell from 16 to 5. Burglary fell from 5 to 1. Motor vehicle theft fell from 13 to 5. Officers answered more calls (2,518 vs. 2,411, up 4.4%) and wrote 41.6% more traffic tickets (126 vs. 89). All with 6 officers per shift.
+            </div>
+
+            <h3 style="margin-bottom:0.5rem;color:var(--navy)">Operational Summary</h3>
+            <div class="insight-row" style="margin-bottom:1.5rem">
+                <div class="insight-card bg-amber-tint" style="border-color:var(--amber)">
+                    <h4 class="text-amber">Calls for Service</h4>
+                    <table class="data-table" style="margin-top:0.5rem">
+                        <thead><tr><th>Metric</th><th>May 2025</th><th>May 2026</th><th>Change</th></tr></thead>
+                        <tbody>
+                            <tr><td>Monthly CFS</td><td>2,411</td><td>2,518</td><td style="color:var(--red);font-weight:700">+107 (+4.4%)</td></tr>
+                            <tr><td>Daily Average</td><td>77.77</td><td>81.23</td><td style="color:var(--red);font-weight:700">+3.46/day</td></tr>
+                            <tr><td>Per 12hr Shift</td><td>38.89</td><td>40.62</td><td style="color:var(--red);font-weight:700">+1.73/shift</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="insight-card bg-blue-tint" style="border-color:var(--blue)">
+                    <h4 class="text-blue">Year-to-Date (Jan through May)</h4>
+                    <table class="data-table" style="margin-top:0.5rem">
+                        <thead><tr><th>Metric</th><th>Jan-May 2025</th><th>Jan-May 2026</th><th>Change</th></tr></thead>
+                        <tbody>
+                            <tr><td>Total CFS</td><td>11,509</td><td>12,110</td><td style="color:var(--red);font-weight:700">+601 (+5.2%)</td></tr>
+                            <tr><td>Daily Average</td><td>76.22</td><td>80.20</td><td style="color:var(--red);font-weight:700">+3.98/day</td></tr>
+                            <tr><td>Traffic Citations</td><td>89</td><td>126</td><td style="color:var(--green);font-weight:700">+37 (+41.6%)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="insight-card bg-green-tint" style="border-color:var(--green)">
+                    <h4 class="text-green">May Headline</h4>
+                    <p style="margin-top:0.3rem">Part I crime dropped 34.3%. Every major category declined. Officers handled 4.4% more calls and wrote 41.6% more traffic citations. Domestics dropped 102 to 93 (-8.8%).</p>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom:0.5rem;color:var(--navy)">Part I Crimes: May 2025 vs. May 2026</h3>
+            <table class="data-table" style="margin-bottom:1.5rem">
+                <thead><tr><th>Category</th><th>May 2025</th><th>May 2026</th><th>Change</th><th>Assessment</th></tr></thead>
+                <tbody>
+                    <tr><td>Murder/Manslaughter</td><td>0</td><td>2</td><td style="color:var(--red);font-weight:700">+2</td><td>Low-frequency; no trend from one month</td></tr>
+                    <tr><td>Forcible Rape</td><td>3</td><td>1</td><td style="color:var(--green);font-weight:700">-2</td><td>Down</td></tr>
+                    <tr><td>Robbery</td><td>6</td><td>2</td><td style="color:var(--green);font-weight:700">-4 (-67%)</td><td>Significant drop</td></tr>
+                    <tr><td>Aggravated Assault</td><td>16</td><td>5</td><td style="color:var(--green);font-weight:700">-11 (-69%)</td><td>Major single-month improvement</td></tr>
+                    <tr><td>Burglary</td><td>5</td><td>1</td><td style="color:var(--green);font-weight:700">-4 (-80%)</td><td>Consistent with record-low pace</td></tr>
+                    <tr><td>Theft</td><td>59</td><td>50</td><td style="color:var(--green);font-weight:700">-9 (-15%)</td><td>Steady decline</td></tr>
+                    <tr><td>Motor Vehicle Theft</td><td>13</td><td>5</td><td style="color:var(--green);font-weight:700">-8 (-62%)</td><td>Regional surge correcting</td></tr>
+                    <tr><td>Arson</td><td>0</td><td>1</td><td style="color:var(--red);font-weight:700">+1</td><td>Low-frequency; no trend</td></tr>
+                    <tr style="font-weight:700;background:var(--light-gray)"><td>PART I TOTAL</td><td>102</td><td>67</td><td style="color:var(--green)">-35 (-34.3%)</td><td>Broad-based decline</td></tr>
+                </tbody>
+            </table>
+
+            <h3 style="margin-bottom:0.5rem;color:var(--navy)">Selected Part II and Service Activity</h3>
+            <div class="two-panel" style="margin-bottom:1rem">
+                <div class="insight-card bg-green-tint" style="border-color:var(--green)">
+                    <h4 class="text-green">Declining</h4>
+                    <table class="data-table" style="margin-top:0.5rem">
+                        <thead><tr><th>Category</th><th>May 2025</th><th>May 2026</th><th>Change</th></tr></thead>
+                        <tbody>
+                            <tr><td>Domestic Disturbances</td><td>102</td><td>93</td><td style="color:var(--green);font-weight:700">-9 (-8.8%)</td></tr>
+                            <tr><td>False Alarms</td><td>44</td><td>36</td><td style="color:var(--green);font-weight:700">-8 (-18.2%)</td></tr>
+                            <tr><td>Harassment</td><td>34</td><td>27</td><td style="color:var(--green);font-weight:700">-7 (-20.6%)</td></tr>
+                            <tr><td>Narcotics Violations</td><td>23</td><td>19</td><td style="color:var(--green);font-weight:700">-4 (-17.4%)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="insight-card bg-red-tint" style="border-color:var(--red)">
+                    <h4 class="text-red">Increasing</h4>
+                    <table class="data-table" style="margin-top:0.5rem">
+                        <thead><tr><th>Category</th><th>May 2025</th><th>May 2026</th><th>Change</th></tr></thead>
+                        <tbody>
+                            <tr><td>Other Disturbances</td><td>205</td><td>234</td><td style="color:var(--red);font-weight:700">+29 (+14.1%)</td></tr>
+                            <tr><td>Misc Violations</td><td>13</td><td>20</td><td style="color:var(--red);font-weight:700">+7 (+53.8%)</td></tr>
+                            <tr><td>CFS Total</td><td>2,411</td><td>2,518</td><td style="color:var(--red);font-weight:700">+107 (+4.4%)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">Source: PPD Monthly Borough Council Reports, May 2025 and May 2026 (Kevin Owens, Dept. Administrative Manager)</div>
+    </div>
+</section>
+
+<!-- SECTION 15: ANTICIPATED COUNCIL CRITIQUES -->
+<section id="critiques" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Anticipated Council Critiques</h2>
+            <div class="sub">Seven likely challenges and the data that addresses each one</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                These six critiques represent the most common objections raised in council discussions. Each one has a specific, data-backed response grounded in the UCR dataset. None of these critiques are unreasonable. All of them have verifiable answers.
+            </div>
+
+            <div class="critique-pair">
+                <div class="critique-box">
+                    <h4>Critique 1: "Arrests are down 33.4%. Police aren't doing their jobs."</h4>
+                    <p>"Crime dropped 23.8% but arrests dropped 33.4%. That gap proves officers stopped enforcing the law."</p>
+                </div>
+                <div class="critique-rebuttal">
+                    <h4>Response</h4>
+                    <p>Drug arrests dropped 227 (476 to 249) due to statewide policy shift toward treatment. DUI arrests dropped 89 (107 to 18) due to lost patrol capacity. These two categories account for 316 of the 898 total arrest decline (35.2%). The remaining 582-arrest drop closely tracks the 930-crime decline.</p>
+                </div>
+            </div>
+
+            <div class="critique-pair">
+                <div class="critique-box">
+                    <h4>Critique 2: "1.97 officers per 1,000 is fine. We don't need more."</h4>
+                    <p>"Our ratio is adequate for a borough this size."</p>
+                </div>
+                <div class="critique-rebuttal">
+                    <h4>Response</h4>
+                    <p>The officer-to-resident ratio does not capture workload. Each officer handled 635 calls in 2025 (up 21% from 524 in 2015). 6 officers per shift process approximately 40 calls per 12-hour shift (~7 per officer, est.). Adding 4 officers to reach 50 would allow 7-8 per shift, reducing per-officer dispatch load to ~5-6 (est.).</p>
+                </div>
+            </div>
+
+            <div class="critique-pair">
+                <div class="critique-box">
+                    <h4>Critique 3: "Traffic citations are down 56.5%. Officers stopped writing tickets."</h4>
+                    <p>"DUI arrests dropped 83%. Where are the traffic patrols?"</p>
+                </div>
+                <div class="critique-rebuttal">
+                    <h4>Response</h4>
+                    <p>Reactive CFS response consumed ~44% of shift time in 2015 and ~53% in 2025. That 9-point increase comes directly out of proactive capacity. May 2026 shows traffic citations rebounding: 126 vs. 89 in May 2025 (+41.6%). Restoring proactive patrol at scale requires additional officers or civilian CFS diversion.</p>
+                </div>
+            </div>
+
+            <div class="critique-pair">
+                <div class="critique-box">
+                    <h4>Critique 4: "Crime is down. We should cut the police budget."</h4>
+                    <p>"If crime dropped 30%, we can reduce spending proportionally."</p>
+                </div>
+                <div class="critique-rebuttal">
+                    <h4>Response</h4>
+                    <p>Crime is down but total demand is up 21.2% (24,118 to 29,220 CFS). Pottstown spends $252 per resident on policing. Phoenixville spends $350. Norristown spends $456. Pottstown already operates at the lowest per-resident cost among its peers.</p>
+                </div>
+            </div>
+
+            <div class="critique-pair">
+                <div class="critique-box">
+                    <h4>Critique 5: "We spend $5.9M and still have 45.8 crimes per 1,000."</h4>
+                    <p>"Other boroughs spend more and have lower crime rates."</p>
+                </div>
+                <div class="critique-rebuttal">
+                    <h4>Response</h4>
+                    <p>Phoenixville's 20-25 rate reflects $102,000 median income, 6.3% poverty, and $370,000 home values. Pottstown's 45.8 rate reflects $61,000 income, 17.5% poverty, and $195,000 home values. Crime rate is a function of socioeconomic conditions. Pottstown's rate has fallen 30.5% on the lowest per-resident police budget among peers.</p>
+                </div>
+            </div>
+
+            <div class="critique-pair">
+                <div class="critique-box">
+                    <h4>Critique 6: "The chief wants 50 officers. That's a budget increase for fewer crimes."</h4>
+                    <p>"If crime is at a 30-year low, why do we need more officers?"</p>
+                </div>
+                <div class="critique-rebuttal">
+                    <h4>Response</h4>
+                    <p>The request is driven by CFS volume. 29,220 calls in 2025 vs. 24,118 in 2015 (+21.2%). Each officer handled 635 calls vs. 524 (+21.2%). Four additional officers would bring per-shift count from 6 to 7-8, reducing per-officer dispatch load from ~7 to ~5-6 (est.). The chief has stated the priority is first improving non-police efficiency. The 50-officer target is a capacity restoration measure.</p>
+                </div>
+            </div>
+
+            <div class="critique-pair">
+                <div class="critique-box">
+                    <h4>Critique 7: "90% of calls are non-crime. Hire civilians, cut the force."</h4>
+                    <p>"If nine out of ten calls have nothing to do with crime, why are we sending armed officers?"</p>
+                </div>
+                <div class="critique-rebuttal">
+                    <h4>Response</h4>
+                    <p>"Non-crime" is a UCR classification describing the outcome, not the response requirement at dispatch. The majority of non-crime calls carry legal mandates or immediate safety risks requiring sworn officer response:</p>
+                    <table class="data-table" style="margin:0.8rem 0">
+                        <thead><tr><th>Non-Crime Category</th><th>2025</th><th>Sworn Required?</th><th>Reason</th></tr></thead>
+                        <tbody>
+                            <tr><td>Other CFS (911 hangups, welfare, building checks)</td><td>17,683</td><td style="font-weight:700;color:var(--blue)">Yes</td><td>911 hangups may be emergencies; welfare checks can discover crime scenes</td></tr>
+                            <tr><td>Domestic Disturbances</td><td>976</td><td style="font-weight:700;color:var(--blue)">Yes</td><td>PA law; highest escalation risk</td></tr>
+                            <tr><td>Other Disturbances</td><td>2,114</td><td style="font-weight:700;color:var(--blue)">Yes</td><td>Scene safety requires sworn authority</td></tr>
+                            <tr><td>Accident Investigations</td><td>865</td><td style="font-weight:700;color:var(--blue)">Yes</td><td>PA Title 75 mandate</td></tr>
+                            <tr><td>Warrants Served</td><td>335</td><td style="font-weight:700;color:var(--blue)">Yes</td><td>Sworn officers only, by law</td></tr>
+                            <tr><td>False Alarms</td><td>541</td><td style="font-weight:700;color:var(--blue)">Yes</td><td>Cannot distinguish from real emergency until arrival</td></tr>
+                            <tr><td>Abandoned Vehicles</td><td>410</td><td style="color:var(--green)">Divertable</td><td>Civilian code enforcement</td></tr>
+                            <tr><td>Harassment</td><td>276</td><td style="font-weight:700;color:var(--blue)">Often</td><td>Threats, stalking, protective orders</td></tr>
+                        </tbody>
+                    </table>
+                    <p>Realistic divertable portion: approximately 10-15% of non-crime calls. A 5-person civilian team already handles triage, reports, and non-emergency requests. The floor on sworn staffing is set by PA law, response time requirements, and the safety profile of domestic, disturbance, and welfare calls.</p>
+                    <p style="margin-top:0.3rem"><strong>Takeaway:</strong> "Non-crime" describes the UCR outcome classification, not the response requirement at time of dispatch.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset, all tabs | Analysis prepared July 2026</div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PART 3: REGIONAL CONTEXT                                     -->
+<!-- ============================================================ -->
+
+<section id="regional" class="divider">
+    <h2>Regional Context</h2>
+    <div class="accent-line"></div>
+    <p>How Pottstown compares to similar boroughs with the same industrial heritage.</p>
+</section>
+
+<!-- SECTION 17: BOROUGH COMPARISON -->
+<section id="compare" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>How Does Pottstown Compare?</h2>
+            <div class="sub">Four boroughs with shared industrial heritage</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Four boroughs, all former industrial towns, at different stages of economic recovery. Coatesville (early recovery) has the highest crime rate at 65-80 per 1,000. Pottstown (mid-recovery) is at 45.8 and declining. Norristown (county seat) carries elevated institutional demand at 55-65. Phoenixville (post-recovery) completed the investment cycle at 20-25. The pattern is consistent: economic investment reduces crime over time.
+            </div>
+            <div class="four-panel">
+                <div class="borough-card bg-blue-tint" style="border-color:var(--blue)">
+                    <h3 class="text-blue">Pottstown</h3>
+                    <div class="pop">Population: 23,400</div>
+                    <div class="big-rate text-blue">45.8</div>
+                    <div class="rate-label">Part I per 1,000 residents</div>
+                    <div class="inner-card">
+                        <div>46 officers (1.97/1K)</div>
+                        <div>$5.9M ($252/res)</div>
+                        <div>Median income: $61,000</div>
+                        <div>Poverty: 17.5%</div>
+                    </div>
+                    <div class="summary">Mid-recovery. Crime declining steadily. Staffing flat. CFS surging. Investment trajectory positive. 10-15 years behind Phoenixville.</div>
+                </div>
+                <div class="borough-card bg-amber-tint" style="border-color:var(--amber)">
+                    <h3 class="text-amber">Norristown</h3>
+                    <div class="pop">Population: 35,700</div>
+                    <div class="big-rate text-amber">55-65</div>
+                    <div class="rate-label">Part I per 1,000 residents (est.)</div>
+                    <div class="inner-card">
+                        <div>72 officers (2.02/1K)</div>
+                        <div>$16.3M ($456/res)</div>
+                        <div>Median income: $56,000</div>
+                        <div>Poverty: 18.2%</div>
+                    </div>
+                    <div class="summary">County seat with higher density and institutional demand. Lowest median income among peers. Spends nearly double per resident on policing.</div>
+                </div>
+                <div class="borough-card bg-red-tint" style="border-color:var(--red)">
+                    <h3 class="text-red">Coatesville</h3>
+                    <div class="pop">Population: 13,000</div>
+                    <div class="big-rate text-red">65-80</div>
+                    <div class="rate-label">Part I per 1,000 residents (est.)</div>
+                    <div class="inner-card">
+                        <div>32 officers (2.47/1K)</div>
+                        <div>$4.5M ($346/res)</div>
+                        <div>Median income: $47,000</div>
+                        <div>Poverty: 26.8%</div>
+                    </div>
+                    <div class="summary">Highest crime rate among peers. Smallest population. Highest poverty. Early-stage recovery with significant structural challenges.</div>
+                </div>
+                <div class="borough-card bg-green-tint" style="border-color:var(--green)">
+                    <h3 class="text-green">Phoenixville</h3>
+                    <div class="pop">Population: 18,600</div>
+                    <div class="big-rate text-green">20-25</div>
+                    <div class="rate-label">Part I per 1,000 residents (est.)</div>
+                    <div class="inner-card">
+                        <div>31 officers (1.67/1K)</div>
+                        <div>$6.5M ($350/res)</div>
+                        <div>Median income: $102,000</div>
+                        <div>Poverty: 6.3%</div>
+                    </div>
+                    <div class="summary">Post-recovery success. Same industrial DNA. 15 years of sustained investment produced dramatically lower crime.</div>
+                </div>
+            </div>
+
+            <!-- VISUAL 3: Horizontal Bar Chart -->
+            <div class="chart-container" style="margin-top:1.5rem">
+                <div class="chart-title">Per-Capita Crime Rate Comparison (Part I per 1,000 Residents)</div>
+                <svg viewBox="0 0 750 220" width="100%" style="max-height:240px">
+                    <text x="120" y="42" text-anchor="end" font-size="12" fill="#1F2A37" font-weight="600">Coatesville</text>
+                    <text x="120" y="55" text-anchor="end" font-size="9" fill="#6B7280">Pop: 13,000</text>
+                    <rect x="130" y="30" width="430" height="28" rx="6" fill="#DC2626" opacity="0.85"/>
+                    <text x="568" y="49" font-size="14" fill="#DC2626" font-weight="700">65-80</text>
+
+                    <text x="120" y="92" text-anchor="end" font-size="12" fill="#1F2A37" font-weight="600">Norristown</text>
+                    <text x="120" y="105" text-anchor="end" font-size="9" fill="#6B7280">Pop: 35,700</text>
+                    <rect x="130" y="80" width="370" height="28" rx="6" fill="#D97706" opacity="0.85"/>
+                    <text x="508" y="99" font-size="14" fill="#D97706" font-weight="700">55-65</text>
+
+                    <text x="120" y="142" text-anchor="end" font-size="12" fill="#1F2A37" font-weight="700">Pottstown</text>
+                    <text x="120" y="155" text-anchor="end" font-size="9" fill="#6B7280">Pop: 23,400</text>
+                    <rect x="130" y="130" width="280" height="28" rx="6" fill="#2563EB" opacity="0.85"/>
+                    <text x="418" y="149" font-size="14" fill="#2563EB" font-weight="700">45.8</text>
+
+                    <text x="120" y="192" text-anchor="end" font-size="12" fill="#1F2A37" font-weight="600">Phoenixville</text>
+                    <text x="120" y="205" text-anchor="end" font-size="9" fill="#6B7280">Pop: 18,600</text>
+                    <rect x="130" y="180" width="150" height="28" rx="6" fill="#059669" opacity="0.85"/>
+                    <text x="288" y="199" font-size="14" fill="#059669" font-weight="700">20-25</text>
+                </svg>
+                <div class="chart-subtitle">All rates per 1,000 residents. Pottstown rate verified from UCR data. Peer rates estimated from PA UCR.</div>
+            </div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR, PA State UCR, Census ACS 5-Year Estimates | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 18: STRUCTURAL FACTORS -->
+<section id="structural" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Why Some Towns Have More Crime</h2>
+            <div class="sub">Structural factors that drive demand for police services</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Crime rate tracks socioeconomic conditions with measurable consistency across all four boroughs. Higher poverty, lower income, higher vacancy, and lower educational attainment correlate with higher crime rates. The gap between Pottstown and Phoenixville is economic, and it is closing.
+            </div>
+            <div class="two-panel">
+                <div class="panel bg-amber-tint" style="border-color:var(--amber)">
+                    <h3 class="text-amber" style="font-size:1.15rem;margin-bottom:1rem">Pottstown (Mid-Recovery)</h3>
+                    <div class="factor-grid">
+                        <div class="factor-item"><span class="label">Poverty Rate:</span><span>17.5%</span></div>
+                        <div class="factor-item"><span class="label">Homeless Population:</span><span>359 (Montgomery County PIT)</span></div>
+                        <div class="factor-item"><span class="label">Housing Vacancy:</span><span>~8%</span></div>
+                        <div class="factor-item"><span class="label">Median Home Value:</span><span>$195,000</span></div>
+                        <div class="factor-item"><span class="label">College Degree (BA+):</span><span>21%</span></div>
+                        <div class="factor-item"><span class="label">Single-Parent Households:</span><span>~35%</span></div>
+                        <div class="factor-item"><span class="label">County Overdose Deaths:</span><span>139 (Montco, 2023)</span></div>
+                        <div class="factor-item"><span class="label">Median Household Income:</span><span>$61,000</span></div>
+                        <div class="factor-item"><span class="label">Part I Crime Rate:</span><span>45.8 per 1,000</span></div>
+                    </div>
+                </div>
+                <div class="panel bg-green-tint" style="border-color:var(--green)">
+                    <h3 class="text-green" style="font-size:1.15rem;margin-bottom:1rem">Phoenixville (Post-Recovery)</h3>
+                    <div class="factor-grid">
+                        <div class="factor-item"><span class="label">Poverty Rate:</span><span>6.3%</span></div>
+                        <div class="factor-item"><span class="label">Homeless Population:</span><span>~Functional zero</span></div>
+                        <div class="factor-item"><span class="label">Housing Vacancy:</span><span>~4%</span></div>
+                        <div class="factor-item"><span class="label">Median Home Value:</span><span>$370,000</span></div>
+                        <div class="factor-item"><span class="label">College Degree (BA+):</span><span>53%</span></div>
+                        <div class="factor-item"><span class="label">Single-Parent Households:</span><span>~28%</span></div>
+                        <div class="factor-item"><span class="label">County Overdose Deaths:</span><span>69 (Chester County, 2023)</span></div>
+                        <div class="factor-item"><span class="label">Median Household Income:</span><span>$102,000</span></div>
+                        <div class="factor-item"><span class="label">Part I Crime Rate:</span><span>~20-25 per 1,000</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">Source: Census ACS 5-Year Estimates, Tables B19013, S1701, DP04, S1501, B09002 | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 19: FOUR BOROUGHS ONE STORY -->
+<section class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Four Boroughs, One Story</h2>
+            <div class="sub">Industrial towns at different stages of economic recovery</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Same industrial heritage. Different stages of recovery. Investment determines the trajectory. Coatesville is earliest in its recovery. Pottstown is mid-cycle and accelerating. Norristown carries unique county-seat burdens. Phoenixville completed the cycle.
+            </div>
+            <div class="four-panel">
+                <div class="borough-card bg-red-tint" style="border-color:var(--red)">
+                    <h3 class="text-red">Coatesville</h3>
+                    <div class="pop">Early Recovery | Pop: 13,000 | Income: $47,000<br>Heritage: Lukens Steel</div>
+                    <div class="inner-card">
+                        <div><strong class="text-red">Part I Rate: 65-80</strong></div>
+                        <div>Violent: ~15-20 | Property: ~50-60</div>
+                        <div>Trend: Elevated, early improvement</div>
+                    </div>
+                    <div class="summary">Smallest population, highest crime rate. Steel closure devastated the local economy. Recovery started later than peers.</div>
+                </div>
+                <div class="borough-card bg-amber-tint" style="border-color:var(--amber)">
+                    <h3 class="text-amber">Pottstown</h3>
+                    <div class="pop">Mid-Recovery | Pop: 23,400 | Income: $61,000<br>Heritage: Bethlehem Steel / Mrs. Smith's</div>
+                    <div class="inner-card">
+                        <div><strong class="text-amber">Part I Rate: 45.8</strong></div>
+                        <div>Violent: ~13.5 | Property: ~32.2</div>
+                        <div>Trend: Declining steadily, 10-year lows</div>
+                    </div>
+                    <div class="summary">Part I crimes down 30.5% over 10 years. Downtown investment accelerating. Poverty and vacancy elevated but improving.</div>
+                </div>
+                <div class="borough-card bg-blue-tint" style="border-color:var(--blue)">
+                    <h3 class="text-blue">Norristown</h3>
+                    <div class="pop">County Seat | Pop: 35,700 | Income: $56,000<br>Heritage: County government hub</div>
+                    <div class="inner-card">
+                        <div><strong class="text-blue">Part I Rate: 55-65</strong></div>
+                        <div>Violent: ~15-20 | Property: ~40-45</div>
+                        <div>Trend: Stable-to-declining</div>
+                    </div>
+                    <div class="summary">Largest population. County seat with high institutional demand. Lowest median income. Spends $456/resident on policing.</div>
+                </div>
+                <div class="borough-card bg-green-tint" style="border-color:var(--green)">
+                    <h3 class="text-green">Phoenixville</h3>
+                    <div class="pop">Post-Recovery | Pop: 18,600 | Income: $102,000<br>Heritage: Phoenix Steel</div>
+                    <div class="inner-card">
+                        <div><strong class="text-green">Part I Rate: 20-25</strong></div>
+                        <div>Violent: ~3-5 | Property: ~17-20</div>
+                        <div>Trend: Low and stable</div>
+                    </div>
+                    <div class="summary">The success case. Same industrial DNA. 15 years of sustained investment produced a structurally different town.</div>
+                </div>
+            </div>
+            <div class="bottom-bar" style="margin-top:1rem">Same industrial heritage. Different stages of recovery. Investment determines the trajectory.</div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR, PA State UCR, Census ACS 5-Year Estimates | July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 20: STRUCTURAL DEMAND TABLE -->
+<section class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Structural Demand Comparison</h2>
+            <div class="sub">15 factors that drive crime and calls for service across four boroughs</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                Every structural factor that generates crime is elevated in Pottstown relative to Phoenixville. Pottstown operates at the lowest per-resident police budget ($252) among all four peers. The gap between Pottstown and Phoenixville is economic, and it is closing.
+            </div>
+            <table class="data-table">
+                <thead><tr><th>Metric</th><th>Pottstown</th><th>Norristown</th><th>Coatesville</th><th>Phoenixville</th></tr></thead>
+                <tbody>
+                    <tr><td>Population</td><td>23,400</td><td>35,700</td><td>13,000</td><td>18,600</td></tr>
+                    <tr><td>Sworn Officers</td><td>46</td><td>72</td><td>32</td><td>31</td></tr>
+                    <tr><td>Officers per 1,000</td><td>1.97</td><td>2.02</td><td>2.47</td><td>1.67</td></tr>
+                    <tr><td>Police Budget</td><td>$5.9M</td><td>$16.3M</td><td>$4.5M</td><td>$6.5M</td></tr>
+                    <tr><td>Budget per Resident</td><td>$252</td><td>$456</td><td>$346</td><td>$350</td></tr>
+                    <tr><td>Poverty Rate</td><td>17.5%</td><td>18.2%</td><td>26.8%</td><td>6.3%</td></tr>
+                    <tr><td>Median Income</td><td>$61,000</td><td>$56,000</td><td>$47,000</td><td>$102,000</td></tr>
+                    <tr><td>Median Home Value</td><td>$195,000</td><td>~$185,000</td><td>~$165,000</td><td>$370,000</td></tr>
+                    <tr><td>Owner-Occupied</td><td>~48%</td><td>~38%</td><td>~42%</td><td>~62%</td></tr>
+                    <tr><td>Vacancy Rate</td><td>~8%</td><td>~9%</td><td>~12%</td><td>~4%</td></tr>
+                    <tr><td>College Degree (BA+)</td><td>21%</td><td>~18%</td><td>~15%</td><td>53%</td></tr>
+                    <tr><td>Single-Parent HH</td><td>~35%</td><td>~40%</td><td>~38%</td><td>~28%</td></tr>
+                    <tr><td>County Overdose Deaths</td><td>139</td><td>139</td><td>69</td><td>69</td></tr>
+                    <tr><td>Homeless (PIT Count)</td><td>359</td><td>359</td><td>~120</td><td>~Func. zero</td></tr>
+                    <tr style="font-weight:700;background:var(--light-gray)"><td>Part I Crime Rate</td><td>45.8</td><td>55-65</td><td>65-80</td><td>20-25</td></tr>
+                </tbody>
+            </table>
+            <div class="insight-row">
+                <div class="insight-card bg-amber-tint" style="border-color:var(--amber)">
+                    <h4 class="text-amber">Demand Problem</h4>
+                    <p>Every structural factor that drives CFS is elevated in Pottstown relative to Phoenixville.</p>
+                </div>
+                <div class="insight-card bg-blue-tint" style="border-color:var(--blue)">
+                    <h4 class="text-blue">Budget Reality</h4>
+                    <p>Pottstown: $252/resident. Norristown: $456. Phoenixville: $350. Pottstown operates on less.</p>
+                </div>
+                <div class="insight-card bg-green-tint" style="border-color:var(--green)">
+                    <h4 class="text-green">Investment Path</h4>
+                    <p>Lower poverty, higher income, lower vacancy = lower crime rate. The path is economic development.</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-footer">Source: Census ACS 5-Year Estimates, PA UCR, Municipal Budget Documents | July 2026</div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- CLOSING                                                      -->
+<!-- ============================================================ -->
+
+<!-- SECTION 21: STRATEGIC RECOMMENDATIONS -->
+<section id="recs" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>Strategic Recommendations</h2>
+            <div class="sub">Five data-driven actions for the next 3-5 years</div>
+        </div>
+        <div class="slide-body">
+            <div class="front-porch">
+                <div class="front-porch-label">Front-Porch Summary</div>
+                These five recommendations follow directly from the data. Civilian CFS diversion is the highest-leverage intervention because it addresses the root constraint: sworn officer time consumed by non-crime calls.
+            </div>
+            <div class="rec-card bg-blue-tint" style="border-color:var(--blue)">
+                <div class="num text-blue">1</div>
+                <div><h4 class="text-blue">Civilian CFS Diversion</h4><p>Route non-crime calls to trained civilian responders. 26,241 calls (89.8%) do not require sworn officer response. Even diverting 15-20% frees significant sworn officer time for proactive enforcement. This is the chief's stated priority before adding headcount.</p></div>
+            </div>
+            <div class="rec-card bg-red-tint" style="border-color:var(--red)">
+                <div class="num text-red">2</div>
+                <div><h4 class="text-red">Motor Vehicle Theft Mitigation</h4><p>MV theft is the one Part I category that increased (+112.3%). 2026 data shows correction underway (annualized ~65 vs. 121 in 2025). Continue manufacturer recall/patch compliance, targeted awareness campaigns, and regional task force coordination.</p></div>
+            </div>
+            <div class="rec-card bg-amber-tint" style="border-color:var(--amber)">
+                <div class="num text-amber">3</div>
+                <div><h4 class="text-amber">Domestic Violence Investment</h4><p>Domestic disturbances at 976 (lowest since 1999) but still represent 3.3% of all CFS and are among the most resource-intensive calls. Continue crisis intervention, victim services, and housing stability programs.</p></div>
+            </div>
+            <div class="rec-card bg-amber-tint" style="border-color:var(--amber)">
+                <div class="num text-amber">4</div>
+                <div><h4 class="text-amber">Proactive Enforcement Restoration</h4><p>Traffic citations down 56.5%, DUI arrests down 83.2%. Civilian CFS diversion (Recommendation 1) is the prerequisite. May 2026 data (+41.6% traffic citations) shows officers enforce when capacity allows.</p></div>
+            </div>
+            <div class="rec-card bg-green-tint" style="border-color:var(--green)">
+                <div class="num text-green">5</div>
+                <div><h4 class="text-green">Continue Economic Development</h4><p>Every metric confirms that crime follows economics. Downtown occupancy, housing investment, commercial corridor development, and income growth are the structural levers that produce lasting crime reduction. Phoenixville proves the model works.</p></div>
+            </div>
+        </div>
+        <div class="slide-footer">Source: PPD UCR 10-Year Dataset, all tabs | Analysis prepared July 2026</div>
+    </div>
+</section>
+
+<!-- SECTION 22: CLOSING -->
+<section class="closing">
+    <h2>The Data Is Clear</h2>
+    <div style="width:150px;height:3px;background:linear-gradient(90deg,transparent,var(--blue),transparent);margin:0 auto 2rem"></div>
+    <div class="message"><span class="msg-bar" style="background:var(--green)"></span><span style="color:var(--green)">Pottstown is safer than it has been in 30 years.</span></div>
+    <div class="message"><span class="msg-bar" style="background:var(--amber)"></span><span style="color:var(--amber)">Your officers are stretched thinner than ever.</span></div>
+    <div class="message"><span class="msg-bar" style="background:var(--blue)"></span><span style="color:var(--blue)">Continued investment is the path forward.</span></div>
+    <div class="source" style="margin-top:3rem">
+        <p>Source: Pottstown Police Department UCR 10-Year Dataset (2015-2025)</p>
+        <p>Population: ~23,400 (2020 Census) | Analysis prepared July 2026</p>
+        <p style="margin-top:0.3rem;font-size:0.8rem">Peer comparison: Census ACS 5-Year Estimates, PA UCR, municipal budget documents</p>
+    </div>
+</section>
+
+<!-- SECTION 23: REFERENCES APPENDIX -->
+<section id="refs" class="section">
+    <div class="content-slide">
+        <div class="slide-header">
+            <h2>References Appendix</h2>
+            <div class="sub">Data sources cited in this analysis</div>
+        </div>
+        <div class="slide-body">
+            <h4 style="margin-bottom:0.5rem;color:var(--navy)">Primary Data Source</h4>
+            <ul class="ref-list">
+                <li><strong>Pottstown Police Department UCR 10-Year Dataset</strong> (May 2026 STATS - UCR - PPD - 10 YR.xlsx). Spreadsheet tabs cited: "UCR 2015" through "UCR 2025", "UCR 2026", "CFS-Pt1-Pt2", "PPD Stats", "UCR Comp", "Part I Comp", "Part II Comp".</li>
+                <li><strong>PPD Monthly Borough Council Reports</strong>, May 2025 and May 2026. Source: Kevin Owens, Department Administrative Manager.</li>
+            </ul>
+            <h4 style="margin:1rem 0 0.5rem;color:var(--navy)">Census and Demographic Data</h4>
+            <ul class="ref-list">
+                <li><strong>U.S. Census Bureau, American Community Survey (ACS) 5-Year Estimates.</strong> Tables cited:
+                    <ul style="list-style:disc;margin-left:1.5rem;margin-top:0.3rem">
+                        <li style="border:none;padding:0.15rem 0">B19013: Median Household Income</li>
+                        <li style="border:none;padding:0.15rem 0">S1701: Poverty Status in the Past 12 Months</li>
+                        <li style="border:none;padding:0.15rem 0">DP04: Selected Housing Characteristics (vacancy, owner-occupied, home values)</li>
+                        <li style="border:none;padding:0.15rem 0">S1501: Educational Attainment</li>
+                        <li style="border:none;padding:0.15rem 0">B09002: Children by Presence and Type of Parent</li>
+                    </ul>
+                </li>
+                <li><strong>2020 Decennial Census.</strong> Population figures for Pottstown (23,400), Norristown (35,700), Coatesville (13,000), Phoenixville (18,600).</li>
+            </ul>
+            <h4 style="margin:1rem 0 0.5rem;color:var(--navy)">State and Federal Crime Data</h4>
+            <ul class="ref-list">
+                <li><strong>Pennsylvania State Police, Uniform Crime Reporting System (UCRS).</strong> Peer borough crime statistics.</li>
+                <li><strong>FBI Uniform Crime Report (UCR) / NIBRS.</strong> National officer-to-population ratios and per-capita crime benchmarks.</li>
+            </ul>
+            <h4 style="margin:1rem 0 0.5rem;color:var(--navy)">Other Sources</h4>
+            <ul class="ref-list">
+                <li><strong>Montgomery County Point-in-Time (PIT) Homeless Count, 2023.</strong> Homeless population: 359.</li>
+                <li><strong>Chester County Point-in-Time (PIT) Homeless Count, 2023.</strong></li>
+                <li><strong>PA Department of Drug and Alcohol Programs.</strong> County overdose deaths (Montgomery: 139, Chester: 69, 2023).</li>
+                <li><strong>Municipal budget documents.</strong> Police budgets: Pottstown ($5.9M), Norristown ($16.3M), Coatesville ($4.5M), Phoenixville ($6.5M).</li>
+            </ul>
+            <h4 style="margin:1rem 0 0.5rem;color:var(--navy)">Methodological Notes</h4>
+            <ul class="ref-list">
+                <li>All per-capita crime rates use per 1,000 residents. Pottstown rate: 1,072 / 23.4 = 45.8.</li>
+                <li>Peer borough Part I rates estimated from PA UCR data. Ranges used where exact figures unavailable.</li>
+                <li>CAGR: (1072/1543)^(1/10) - 1 = -3.6%.</li>
+                <li>Non-crime CFS = Total CFS minus Total Crimes (Part I + Part II).</li>
+                <li>2026 annualized projections assume Jan-May pace continues. These are projections, not forecasts.</li>
+                <li>Tilde (~) prefix indicates estimated values. No estimated values are presented as verified.</li>
+            </ul>
+        </div>
+        <div class="slide-footer">Prepared July 2026 | All data verified against source spreadsheet</div>
+    </div>
+</section>
+
+</body>
+</html>
