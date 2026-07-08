@@ -1844,9 +1844,120 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                 </div>
             </div>
 
-            <div class="bottom-bar" style="margin-top:1rem">$202 per call. $252 per resident. Lowest among peers on both measures. Highest call volume per capita.</div>
+            <!-- Bubble Chart: Cost/Resident (X) vs Cost/Call (Y), bubble size = CFS/1K -->
+            <div class="chart-container" style="margin-top:2rem">
+                <div class="chart-title">Police Cost Efficiency: Pottstown vs. Peers and National Sample</div>
+                <p style="text-align:center;font-size:0.8rem;color:var(--med-gray);margin-bottom:0.5rem">X = Cost per resident | Y = Cost per call | Bubble size = Calls per 1,000 residents (larger = more calls handled)</p>
+                <svg viewBox="0 0 900 520" width="100%" style="max-height:540px;display:block">
+                    <!-- Grid and axes -->
+                    <rect x="80" y="20" width="780" height="420" fill="#F9FAFB" rx="4"/>
+                    <!-- Horizontal grid lines -->
+                    <line x1="80" y1="104" x2="860" y2="104" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+                    <line x1="80" y1="188" x2="860" y2="188" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+                    <line x1="80" y1="272" x2="860" y2="272" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+                    <line x1="80" y1="356" x2="860" y2="356" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+                    <!-- Vertical grid lines -->
+                    <line x1="236" y1="20" x2="236" y2="440" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+                    <line x1="392" y1="20" x2="392" y2="440" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+                    <line x1="548" y1="20" x2="548" y2="440" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+                    <line x1="704" y1="20" x2="704" y2="440" stroke="#E5E7EB" stroke-width="0.5" stroke-dasharray="4"/>
+                    <!-- Axes -->
+                    <line x1="80" y1="440" x2="860" y2="440" stroke="#9CA3AF" stroke-width="1"/>
+                    <line x1="80" y1="20" x2="80" y2="440" stroke="#9CA3AF" stroke-width="1"/>
+
+                    <!-- Y-axis labels (Cost per call: $100 to $450) -->
+                    <text x="75" y="440" text-anchor="end" font-size="9" fill="#6B7280">$100</text>
+                    <text x="75" y="356" text-anchor="end" font-size="9" fill="#6B7280">$200</text>
+                    <text x="75" y="272" text-anchor="end" font-size="9" fill="#6B7280">$300</text>
+                    <text x="75" y="188" text-anchor="end" font-size="9" fill="#6B7280">$400</text>
+                    <text x="75" y="104" text-anchor="end" font-size="9" fill="#6B7280">$500</text>
+                    <text x="25" y="240" text-anchor="middle" font-size="10" fill="#1A2332" font-weight="600" transform="rotate(-90,25,240)">Cost Per Call ($)</text>
+
+                    <!-- X-axis labels (Cost per resident: $200 to $500) -->
+                    <text x="80" y="458" text-anchor="middle" font-size="9" fill="#6B7280">$200</text>
+                    <text x="236" y="458" text-anchor="middle" font-size="9" fill="#6B7280">$250</text>
+                    <text x="392" y="458" text-anchor="middle" font-size="9" fill="#6B7280">$300</text>
+                    <text x="548" y="458" text-anchor="middle" font-size="9" fill="#6B7280">$350</text>
+                    <text x="704" y="458" text-anchor="middle" font-size="9" fill="#6B7280">$400</text>
+                    <text x="860" y="458" text-anchor="middle" font-size="9" fill="#6B7280">$450</text>
+                    <text x="470" y="485" text-anchor="middle" font-size="10" fill="#1A2332" font-weight="600">Cost Per Resident ($)</text>
+
+                    <!-- Scale: X: $200=80, $450=860 → 1px = $0.32, or $1 = 3.12px -->
+                    <!-- Scale: Y: $100=440, $500=104 → 1px = $1.19, or $1 = 0.84px. $100=440, each $100 = 84px up -->
+                    <!-- Bubble size: CFS/1K. Range ~800-1800. Scale: radius = CFS/1K / 50 -->
+
+                    <!-- National sample towns (gray bubbles) -->
+                    <!-- Northfield MN: $224/res, $157/call, 1428 CFS/1K → x=155, y=392, r=28 -->
+                    <circle cx="155" cy="392" r="28" fill="#9CA3AF" opacity="0.25" stroke="#9CA3AF" stroke-width="1"/>
+                    <text x="155" y="425" text-anchor="middle" font-size="8" fill="#6B7280">Northfield MN</text>
+
+                    <!-- Batavia NY: $272/res, $175/call, 1549 CFS/1K → x=305, y=381, r=31 -->
+                    <circle cx="305" cy="381" r="31" fill="#9CA3AF" opacity="0.25" stroke="#9CA3AF" stroke-width="1"/>
+                    <text x="305" y="416" text-anchor="middle" font-size="8" fill="#6B7280">Batavia NY</text>
+
+                    <!-- Mooresville NC: $261/res, $143/call, 1827 CFS/1K → x=270, y="397" r=37 -->
+                    <circle cx="270" cy="403" r="37" fill="#9CA3AF" opacity="0.25" stroke="#9CA3AF" stroke-width="1"/>
+                    <text x="270" y="380" text-anchor="start" font-size="8" fill="#6B7280">Mooresville NC</text>
+
+                    <!-- Dover NH: $288/res, $304/call, 946 CFS/1K → x=355, y=269, r=19 -->
+                    <circle cx="355" cy="269" r="19" fill="#9CA3AF" opacity="0.25" stroke="#9CA3AF" stroke-width="1"/>
+                    <text x="355" y="253" text-anchor="middle" font-size="8" fill="#6B7280">Dover NH</text>
+
+                    <!-- Birmingham MI: $324/res, $341/call, 948 CFS/1K → x=467, y=238, r=19 -->
+                    <circle cx="467" cy="238" r="19" fill="#9CA3AF" opacity="0.25" stroke="#9CA3AF" stroke-width="1"/>
+                    <text x="467" y="222" text-anchor="middle" font-size="8" fill="#6B7280">Birmingham MI</text>
+
+                    <!-- Laconia NH: $335/res, $243/call, 1380 CFS/1K → x=501, y=320, r=28 -->
+                    <circle cx="501" cy="320" r="28" fill="#9CA3AF" opacity="0.25" stroke="#9CA3AF" stroke-width="1"/>
+                    <text x="501" y="300" text-anchor="middle" font-size="8" fill="#6B7280">Laconia NH</text>
+
+                    <!-- Ashland OR: $331/res, $408/call, 811 CFS/1K → x=489, y="181", r=16 -->
+                    <circle cx="489" cy="181" r="16" fill="#9CA3AF" opacity="0.25" stroke="#9CA3AF" stroke-width="1"/>
+                    <text x="489" y="170" text-anchor="middle" font-size="8" fill="#6B7280">Ashland OR</text>
+
+                    <!-- Concord NH: $354/res, $316/call, 1120 CFS/1K → x=560, y="259", r=22 -->
+                    <circle cx="560" cy="259" r="22" fill="#9CA3AF" opacity="0.25" stroke="#9CA3AF" stroke-width="1"/>
+                    <text x="560" y="243" text-anchor="middle" font-size="8" fill="#6B7280">Concord NH</text>
+
+                    <!-- Matthews NC: $366/res, $220/call, 1661 CFS/1K → x=597, y="339", r=33 -->
+                    <circle cx="597" cy="339" r="33" fill="#9CA3AF" opacity="0.25" stroke="#9CA3AF" stroke-width="1"/>
+                    <text x="597" y="315" text-anchor="middle" font-size="8" fill="#6B7280">Matthews NC</text>
+
+                    <!-- PEER BOROUGHS (colored) -->
+                    <!-- Coatesville: $346/res, $333/call, ~1015 CFS/1K → x=535, y=244, r=20 -->
+                    <circle cx="535" cy="244" r="20" fill="#DC2626" opacity="0.25" stroke="#DC2626" stroke-width="2"/>
+                    <text x="535" y="222" text-anchor="middle" font-size="9" fill="#DC2626" font-weight="600">Coatesville</text>
+
+                    <!-- Phoenixville: $350/res, $394/call, ~887 CFS/1K → x=548, y=193, r=18 -->
+                    <circle cx="548" cy="193" r="18" fill="#059669" opacity="0.25" stroke="#059669" stroke-width="2"/>
+                    <text x="570" y="185" font-size="9" fill="#059669" font-weight="600">Phoenixville</text>
+
+                    <!-- Norristown: $456/res, $435/call, ~1050 CFS/1K → x=860, y=159, r=21 -->
+                    <circle cx="830" cy="159" r="21" fill="#D97706" opacity="0.25" stroke="#D97706" stroke-width="2"/>
+                    <text x="830" y="140" text-anchor="middle" font-size="9" fill="#D97706" font-weight="600">Norristown</text>
+
+                    <!-- POTTSTOWN (highlighted, largest) -->
+                    <!-- $252/res, $202/call, 1241 CFS/1K → x=242, y=354, r=25 -->
+                    <circle cx="242" cy="354" r="28" fill="#2563EB" opacity="0.30" stroke="#2563EB" stroke-width="3"/>
+                    <circle cx="242" cy="354" r="5" fill="#2563EB"/>
+                    <text x="242" y="335" text-anchor="middle" font-size="12" fill="#2563EB" font-weight="700">POTTSTOWN</text>
+                    <text x="242" y="348" text-anchor="middle" font-size="8" fill="#2563EB">$202/call | $252/res</text>
+
+                    <!-- Legend -->
+                    <circle cx="120" cy="500" r="8" fill="#2563EB" opacity="0.30" stroke="#2563EB" stroke-width="2"/>
+                    <text x="135" y="504" font-size="9" fill="#1A2332" font-weight="600">Pottstown</text>
+                    <circle cx="230" cy="500" r="8" fill="#D97706" opacity="0.25" stroke="#D97706" stroke-width="2"/>
+                    <text x="245" y="504" font-size="9" fill="#1A2332">Peer boroughs</text>
+                    <circle cx="360" cy="500" r="8" fill="#9CA3AF" opacity="0.25" stroke="#9CA3AF" stroke-width="1"/>
+                    <text x="375" y="504" font-size="9" fill="#1A2332">National sample</text>
+                    <text x="530" y="504" font-size="8" fill="#6B7280">Bubble size = calls per 1,000 residents (larger = more calls handled)</text>
+                </svg>
+                <div class="chart-subtitle">Bottom-left = lower cost. Pottstown handles above-average call volume at the lowest cost per call and per resident among all plotted municipalities. Sources: PPD Stats, Police Scorecard, municipal annual reports.</div>
+            </div>
+
+            <div class="bottom-bar" style="margin-top:1rem">$202 per call. $252 per resident. Lowest cost position among all plotted municipalities. Above-average call volume per capita.</div>
         </div>
-        <div class="slide-footer">Source: PPD Stats tab (CFS, Budget), PA DCED Jenkintown Police Cost Analysis (2024, MontCo avg), peer budgets from public records | July 2026</div>
+        <div class="slide-footer">Source: PPD Stats tab (CFS, Budget), Police Scorecard, PA DCED, municipal annual reports and budgets | July 2026</div>
     </div>
 </section>
 
