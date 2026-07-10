@@ -917,8 +917,8 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                     <div class="label">Time-Adjusted Cost</div>
                     <div class="detail" style="text-align:left; margin-top:0.5rem;">
                         <strong>What it measures:</strong> The share of the police budget that goes to answering calls, based on how much officer time calls actually consume.<br><br>
-                        <strong>How it's calculated:</strong> The Chief estimates each call takes about 1 hour. 29,220 calls = 29,220 officer-hours. 46 officers &times; 2,080 work hours/year = 95,680 total hours. Calls use 30.5% of officer time. 30.5% of $10,264,691 = $3,130,731. Divided by 29,220 calls = <strong>$107</strong>.<br><br>
-                        <strong>What it shows:</strong> Officers spend 30.5% of their working hours on dispatched calls. The other 69.5% is patrols, investigations, court, training, community policing, and administration.<br><br>
+                        <strong>How it's calculated:</strong> The Chief estimates each call takes about 1 hour (varies by type). 29,220 calls &times; ~1 hour = ~29,220 officer-hours. 46 officers &times; 2,080 work hours/year = 95,680 total hours. Calls use an estimated 30.5% of officer time. 30.5% of $10,264,691 = $3,130,731. Divided by 29,220 calls = <strong>$107</strong>.<br><br>
+                        <strong>Note:</strong> This is a derived estimate. The 1-hour-per-call figure is the Chief's approximation; the 2,080-hour year is a standard that does not account for leave, training, or court absences. The actual percentage may be higher.<br><br>
                         <strong>Like:</strong> Gas plus wear on the car for one trip.
                     </div>
                 </div>
@@ -943,7 +943,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                 <strong>It depends on the question:</strong>
                 <ul style="margin:0.5rem 0 0; padding-left:1.2rem; list-style:disc;">
                     <li><strong>"How much does it cost to send an officer?"</strong> &rarr; <strong>$85</strong> (direct response cost)</li>
-                    <li><strong>"How much of the police budget goes to answering calls?"</strong> &rarr; <strong>$107</strong> (time-adjusted cost &mdash; 30.5% of the budget)</li>
+                    <li><strong>"How much of the police budget goes to answering calls?"</strong> &rarr; <strong>~$107</strong> (estimated time-adjusted cost &mdash; ~30.5% of the budget, based on Chief's ~1 hr/call estimate)</li>
                     <li><strong>"What does the borough spend on policing per call?"</strong> &rarr; <strong>$351</strong> (full department cost)</li>
                 </ul>
                 <p style="margin-top:0.5rem">All three are calculated from verifiable data: the Chief's hourly cost estimate (June 2026), PPD's call count (29,220), and the 2025 Adopted Budget ($10,264,691). No number in this section is estimated, assumed, or taken from a national average.</p>
@@ -962,20 +962,21 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                     <tr><td>Standard Work Hours Per Officer/Year</td><td class="right">2,080</td><td>Standard (40 hrs &times; 52 weeks)</td></tr>
                     <tr><td>Total Officer-Hours Available</td><td class="right">95,680</td><td>46 officers &times; 2,080 hours</td></tr>
                     <tr><td>Officer-Hours on Dispatched Calls</td><td class="right">29,220</td><td>29,220 calls &times; ~1 hour each</td></tr>
-                    <tr><td>% of Officer Time on Calls</td><td class="right">30.5%</td><td>29,220 / 95,680</td></tr>
-                    <tr><td>% of Officer Time on Other Duties</td><td class="right">69.5%</td><td>Patrols, investigations, court, training, community policing</td></tr>
+                    <tr><td>Estimated % of Officer Time on Calls</td><td class="right">~30.5%</td><td>29,220 / 95,680 (derived estimate &mdash; see note below)</td></tr>
+                    <tr><td>Estimated % on Other Duties</td><td class="right">~69.5%</td><td>Patrols, investigations, court, training, community policing</td></tr>
                     <tr><td>Population</td><td class="right">23,400</td><td>2020 Census</td></tr>
                     <tr><td>Cost Per Resident</td><td class="right">$439</td><td>$10,264,691 / 23,400</td></tr>
                 </tbody>
             </table>
 
             <div class="method-box">
-                <h3>What This Means in Plain Terms</h3>
+                <h3>Estimated Time Allocation</h3>
                 <div class="formula" style="font-size:1.1rem;">
-                    Officers spend <span class="result">30.5%</span> of their time answering calls.<br>
-                    The other <span class="result">69.5%</span> is everything else that keeps the borough safe.
+                    An estimated <span class="result">30.5%</span> of officer time is spent on dispatched calls.<br>
+                    The remaining <span class="result">~69.5%</span> covers all other police duties.
                 </div>
-                <p style="text-align:center; font-size:0.92rem; margin-top:0.5rem;">Patrols through your neighborhood. Following up on last week's burglary. Testifying in court. Training. Checking on a business after hours. Talking to students at school. These activities do not generate a "call" in the system &mdash; but they are a large part of why crime has fallen 30.5% over the decade.</p>
+                <p style="text-align:center; font-size:0.88rem; margin-top:0.5rem; color:var(--med-gray);"><strong>Important:</strong> This is a derived estimate, not a measured figure. It is based on the Chief's approximation of ~1 hour per call (which he noted varies by call type) and a standard 2,080-hour work year (which does not account for vacation, sick leave, FMLA, or training absences). If actual available hours are lower than 2,080, the percentage of time on calls would be higher. Precise time allocation would require CAD dispatch data.</p>
+                <p style="text-align:center; font-size:0.92rem; margin-top:0.5rem;">The other duties include: patrols, follow-up investigations, court appearances, report writing, training, community policing, and administration. These activities do not generate a "call" in the dispatch system.</p>
             </div>
 
             <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">Budget Exclusions (Conservative)</h4>
@@ -987,7 +988,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                 Including all three would raise the full department cost to <strong>$433 per call</strong>.
             </div>
 
-            <div class="bottom-bar">Three ways to measure cost per call: $85 (direct response), $107 (time-adjusted), $351 (full department). All from verifiable Pottstown data.</div>
+            <div class="bottom-bar">Three ways to measure cost per call: $85 (direct response), ~$107 (estimated time-adjusted), $351 (full department). $85 and $351 are from verifiable Pottstown data. $107 is derived from the Chief's ~1 hr/call estimate.</div>
         </div>
     </div>
 </section>
