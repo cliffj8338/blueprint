@@ -3,7 +3,7 @@
  * MONOLITH LINES: 1723–2066
  */
 
-export var BP_VERSION = 'v4.48.9';
+export var BP_VERSION = 'v4.48.30';
 export var BP_BUILD   = '20260406-design-polish';
 export var JOB_SCHEMA_VERSION = '2.0';
 export var JOB_SKILLS_CAP     = 50;

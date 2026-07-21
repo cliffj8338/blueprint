@@ -1,7 +1,7 @@
 
         // ============================================================
         // BLUEPRINT v4.46.90 - BUILD 20260314-security-hardening
-        var BP_VERSION = 'v4.48.9';
+        var BP_VERSION = 'v4.48.30';
         
         // ===== JOB SCHEMA VERSION =====
         // Schema.org + JDX JobSchema+ aligned structured job format

@@ -1,7 +1,7 @@
 
         // ============================================================
         // BLUEPRINT v4.47.09 - BUILD 20260315-domain-inject-at-parse-time
-        var BP_VERSION = 'v4.48.29';
+        var BP_VERSION = 'v4.48.30';
 
         var BP_PALETTE = {
             blue: '#60a5fa', purple: '#bf5af2', green: '#30d158',
@@ -1425,13 +1425,24 @@
         // ===== ADMIN ROLE CHECK =====
         function checkAdminRole(uid) {
             if (!fbDb) return Promise.resolve(false);
-            return fbDb.collection('users').doc(uid).get()
+            var ref = fbDb.collection('users').doc(uid);
+            // v4.48.30: server-first read — offline cache can hold a stale role,
+            // which desyncs saves from security rules and rejects every write.
+            return ref.get({ source: 'server' })
+                .catch(function(err) {
+                    console.warn('[Admin] Server role read failed (' + (err.code || err.message) + '), falling back to cache');
+                    return ref.get();
+                })
                 .then(function(doc) {
-                    if (doc.exists && doc.data().role === 'admin') {
+                    var role = (doc.exists && doc.data().role) ? doc.data().role : 'user';
+                    // Sync the authoritative role so saves always match the rules
+                    window._serverRole = doc.exists ? role : null;
+                    if (typeof userData !== 'undefined' && doc.exists) userData.role = role;
+                    if (role === 'admin') {
                         console.log('[Admin] Admin role confirmed');
                         return true;
                     }
-                    console.log('ℹ️ User role:', doc.exists ? (doc.data().role || 'user') : 'no document');
+                    console.log('ℹ️ User role:', doc.exists ? role : 'no document');
                     return false;
                 })
                 .catch(function(err) {
@@ -1941,7 +1952,8 @@
                             }
                         } catch(e) {}
                     }
-                    userData.role = data.role || 'user';
+                    // v4.48.30: prefer server-confirmed role over possibly-cached doc data
+                    userData.role = window._serverRole || data.role || 'user';
                     userData.roles = data.roles || [];
                     userData.preferences = data.preferences || userData.preferences;
                     userData.applications = data.applications || [];
