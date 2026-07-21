@@ -698,7 +698,9 @@
 
         // ===== STABILITY: SAVE DEBOUNCE (H3) =====
         var _saveDebounceTimer = null;
+        window._dataDirty = false;
         function debouncedSave(delay) {
+            window._dataDirty = true;
             if (_saveDebounceTimer) clearTimeout(_saveDebounceTimer);
             _saveDebounceTimer = setTimeout(function() {
                 _saveDebounceTimer = null;
@@ -1654,6 +1656,15 @@
                 return Promise.resolve(false);
             }
             
+            // THROTTLE: coalesce rapid-fire saves (startup paths call saveUserData
+            // multiple times) — full-profile writes are 1-3MB each. If a successful
+            // save happened <5s ago, defer via the debounce instead of writing again.
+            if (!opts.force && window._lastSavedAt && (Date.now() - window._lastSavedAt.getTime()) < 5000) {
+                console.log('[Save] Throttled (saved ' + Math.round((Date.now() - window._lastSavedAt.getTime())/1000) + 's ago) — deferring via debounce');
+                debouncedSave(5000);
+                return Promise.resolve(false);
+            }
+            
             if (fbUser.displayName && userData.profile) {
                 userData.profile.name = fbUser.displayName;
             }
@@ -1661,6 +1672,7 @@
             var si = document.getElementById('saveIndicator');
             if (si) { si.innerHTML = bpIcon('upload',12) + ' Saving...'; si.style.opacity = '0.6'; si.style.color = 'var(--text-muted)'; }
             
+            window._dataDirty = true;
             var uid = fbUser.uid;
             var data = _buildFirestoreData();
 
@@ -1680,6 +1692,7 @@
                         console.log('☁ Saved to Firestore' + (attempt > 1 ? ' (retry ' + (attempt - 1) + ')' : ''));
                         _saveFailCount = 0;
                         _saveCircuitOpen = false;
+                        window._dataDirty = false;
                         recordApiHealth('firebase-db', 'ok', 'Operational');
                         _clearSaveBackup();
                         window._lastSavedAt = new Date();
@@ -21628,7 +21641,10 @@
                     blueprintData.purpose = imported.purpose || '';
                     blueprintData.outcomes = imported.outcomes || [];
                     normalizeUserRoles();
-                    saveToFirestore().then(function() { location.reload(); });
+                    saveToFirestore({ force: true }).then(function(ok) {
+                        if (ok) { location.reload(); }
+                        else { showToast('Save failed — your changes are backed up locally. Please try again.', 'error', 6000); }
+                    });
                 } catch (error) {
                     showToast('Import error: ' + error.message, 'error');
                 }
@@ -23775,7 +23791,10 @@
                     blueprintData.outcomes = imported.outcomes || [];
                     normalizeUserRoles();
                     closeWizard();
-                    saveToFirestore().then(function() { location.reload(); });
+                    saveToFirestore({ force: true }).then(function(ok) {
+                        if (ok) { location.reload(); }
+                        else { showToast('Save failed — your changes are backed up locally. Please try again.', 'error', 6000); }
+                    });
                 } catch(err) {
                     showToast('File read error: ' + err.message, 'error');
                 }
@@ -29284,8 +29303,12 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
                 // Without this, every re-init stacks a new interval.
                 if (!window._autoSaveInterval) {
                     window._autoSaveInterval = setInterval(function() {
-                        saveUserData();
-                        if (fbUser && fbDb) debouncedSave(500);
+                        // Only write when something actually changed — a full-profile
+                        // Firestore write every 60s regardless of activity exhausts
+                        // the write stream and wastes bandwidth.
+                        if (window._dataDirty) {
+                            saveUserData();
+                        }
                     }, 60000);
                 }
             }
@@ -34340,7 +34363,10 @@ body {
                     blueprintData.outcomes = imported.outcomes || [];
                     normalizeUserRoles();
                     showToast('Profile imported! Saving and refreshing...', 'success');
-                    saveToFirestore().then(function() { location.reload(); });
+                    saveToFirestore({ force: true }).then(function(ok) {
+                        if (ok) { location.reload(); }
+                        else { showToast('Save failed — your changes are backed up locally. Please try again.', 'error', 6000); }
+                    });
                 } catch(err) {
                     showToast('Import error: ' + err.message, 'error');
                 }
@@ -48059,8 +48085,9 @@ body {
         function _debouncedSavePrefs() {
             if (_prefsSaveTimer) clearTimeout(_prefsSaveTimer);
             _prefsSaveTimer = setTimeout(function() {
+                // saveUserData() already persists to Firestore when signed in —
+                // the extra debouncedSave(500) here caused a duplicate full write.
                 saveUserData();
-                if (fbUser && fbDb) debouncedSave(500);
             }, 1500);
         }
         window.updateMatchThreshold = updateMatchThreshold;
