@@ -490,6 +490,7 @@ export default async function handler(req, res) {
 
   // Himalayas: ONE call (no server-side search)
   if (!timeUp()) collectJobs(await fetchHimalayas());
+  else errors.push('himalayas: skipped (time budget)');
 
   // Remotive + Jobicy: broad queries in parallel
   if (!timeUp()) {
@@ -497,6 +498,8 @@ export default async function handler(req, res) {
       FREE_SOURCE_QUERIES.flatMap(q => [fetchRemotive(q), fetchJobicy(q)])
     );
     freeResults.forEach(collectJobs);
+  } else {
+    errors.push('remotive/jobicy: skipped (time budget)');
   }
 
   // USAJobs: A/B groups, 500 results/query, paginate if >500 available
@@ -510,7 +513,7 @@ export default async function handler(req, res) {
     results.forEach(collectJobs);
     // If any query has more than 500 results, fetch page 2
     const needsPage2 = results.filter(r => r.total > 500);
-    if (needsPage2.length > 0) {
+    if (needsPage2.length > 0 && !timeUp()) {
       const p2 = await Promise.all(needsPage2.map(r => fetchUSAJobs(r.query, 2)));
       p2.forEach(collectJobs);
     }
@@ -601,15 +604,22 @@ export default async function handler(req, res) {
   }
 
   // ── Phase 8: Update metadata ───────────────────────────────
-  let totalInDb = written;
-  try {
-    const countSnap = await db.collection('jobs').count().get();
-    totalInDb = countSnap.data().count;
-  } catch (e) {
-    // count() may not be available on older SDK
+  // Guard the count() aggregation — if time is short, skip it so the
+  // meta write (the whole point of the sync record) always happens.
+  let totalInDb = null;
+  if (Date.now() < startTime + 285000) {
+    try {
+      const countSnap = await db.collection('jobs').count().get();
+      totalInDb = countSnap.data().count;
+    } catch (e) {
+      // count() may not be available on older SDK
+    }
   }
+  if (totalInDb === null) totalInDb = written;
 
+  const partial = errors.some(e => e.indexOf('time budget') !== -1);
   const meta = {
+    partial,
     lastSync: admin.firestore.FieldValue.serverTimestamp(),
     totalJobs: totalInDb,
     jobsSynced: allJobs.size,
