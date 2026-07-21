@@ -1128,6 +1128,7 @@
                 } else {
                     console.log('🔓 Not signed in');
                     fbIsAdmin = false;
+                    window._serverRole = null;
                     updateAuthUI();
                     authReadyResolve(null);
                 }
@@ -1319,6 +1320,7 @@
                 safeRemove('currentProfile');
                 safeRemove('blueprint_waitlist');
                 safeRemove('wbMagicLinkEmail');
+                window._serverRole = null;
                 
                 showToast('Signed out.', 'info');
                 updateAuthUI();
@@ -1592,7 +1594,10 @@
             
             data = sanitizeForFirestore(data);
             data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
-            data.role = _ud.role || 'user';
+            // v4.48.30: NEVER send role on updates. The client cannot change role
+            // (rules reject any mismatch), and a stale cached role in the payload
+            // caused every save to be rejected. Omitting it always passes the rules.
+            delete data.role;
             delete data.isAdmin;
             return data;
         }
@@ -1687,7 +1692,7 @@
             var uid = fbUser.uid;
             var data = _buildFirestoreData();
 
-            console.log('[Save] role:', data.role, 'profileType:', data.profileType,
+            console.log('[Save] role: (omitted from payload) profileType:', data.profileType,
                 'keys:', Object.keys(data).length,
                 'skills:', (data.skills || []).length,
                 'savedJobs:', (data.savedJobs || []).length,
