@@ -435,6 +435,12 @@ export default async function handler(req, res) {
   }
 
   const startTime = Date.now();
+  // v4.48.31: Time budget — Vercel kills the function at 300s. Fetching stops
+  // at 190s so Firestore writes + meta update ALWAYS complete. Without this,
+  // syncs that outgrew 300s timed out silently for months (no meta update).
+  const FETCH_DEADLINE = startTime + 190000;
+  const WRITE_DEADLINE = startTime + 275000;
+  const timeUp = () => Date.now() > FETCH_DEADLINE;
   const allJobs = new Map();
   const errors = [];
   const sourceCounts = { jsearch: 0, remotive: 0, usajobs: 0, himalayas: 0, jobicy: 0, adzuna: 0, themuse: 0 };
@@ -471,6 +477,7 @@ export default async function handler(req, res) {
 
   // ── Phase 1: JSearch (paid, batched 3 at a time) ──────────
   for (let i = 0; i < jsearchQueries.length; i += 3) {
+    if (timeUp()) { errors.push('jsearch: stopped early (time budget)'); break; }
     const batch = jsearchQueries.slice(i, i + 3);
     const results = await Promise.all(batch.map(q => fetchJSearch(q, JSEARCH_PAGES)));
     results.forEach(r => {
@@ -482,19 +489,22 @@ export default async function handler(req, res) {
   // ── Phase 2: Free sources (parallel, no cost) ─────────────
 
   // Himalayas: ONE call (no server-side search)
-  collectJobs(await fetchHimalayas());
+  if (!timeUp()) collectJobs(await fetchHimalayas());
 
   // Remotive + Jobicy: broad queries in parallel
-  const freeResults = await Promise.all(
-    FREE_SOURCE_QUERIES.flatMap(q => [fetchRemotive(q), fetchJobicy(q)])
-  );
-  freeResults.forEach(collectJobs);
+  if (!timeUp()) {
+    const freeResults = await Promise.all(
+      FREE_SOURCE_QUERIES.flatMap(q => [fetchRemotive(q), fetchJobicy(q)])
+    );
+    freeResults.forEach(collectJobs);
+  }
 
   // USAJobs: A/B groups, 500 results/query, paginate if >500 available
   // Free API, no rate limit — maximize coverage
   const usajobsQueries = syncGroup === 'A' ? USAJOBS_GROUP_A : USAJOBS_GROUP_B;
   console.log('[jobs-sync] USAJobs: group ' + syncGroup + ', ' + usajobsQueries.length + ' queries × 500/page');
   for (let i = 0; i < usajobsQueries.length; i += 5) {
+    if (timeUp()) { errors.push('usajobs: stopped early (time budget)'); break; }
     const batch = usajobsQueries.slice(i, i + 5);
     const results = await Promise.all(batch.map(q => fetchUSAJobs(q, 1)));
     results.forEach(collectJobs);
@@ -528,6 +538,7 @@ export default async function handler(req, res) {
     }
     // Run 15 at a time
     for (let i = 0; i < adzCalls.length; i += 15) {
+      if (timeUp()) { errors.push('adzuna: stopped early (time budget)'); break; }
       const batch = adzCalls.slice(i, i + 15);
       const results = await Promise.all(batch.map(c => fetchAdzuna(c[0], c[1], c[2])));
       results.forEach(collectJobs);
@@ -547,6 +558,7 @@ export default async function handler(req, res) {
       }
     }
     for (let i = 0; i < museCalls.length; i += 10) {
+      if (timeUp()) { errors.push('themuse: stopped early (time budget)'); break; }
       const batch = museCalls.slice(i, i + 10);
       const results = await Promise.all(batch.map(c => fetchMuse(c[0], c[1])));
       results.forEach(collectJobs);
@@ -561,6 +573,7 @@ export default async function handler(req, res) {
   let written = 0;
 
   for (let i = 0; i < jobEntries.length; i += 450) {
+    if (Date.now() > WRITE_DEADLINE) { errors.push('write: stopped at ' + written + '/' + jobEntries.length + ' (time budget)'); break; }
     const chunk = jobEntries.slice(i, i + 450);
     const fbBatch = db.batch();
     chunk.forEach(([id, job]) => {
@@ -574,6 +587,7 @@ export default async function handler(req, res) {
   // ── Phase 7: Cleanup old jobs (>30 days) ───────────────────
   let cleaned = 0;
   try {
+    if (Date.now() > WRITE_DEADLINE) throw new Error('skipped (time budget)');
     const cutoff = admin.firestore.Timestamp.fromDate(new Date(Date.now() - 30 * 86400000));
     const oldSnap = await db.collection('jobs').where('syncedAt', '<', cutoff).limit(500).get();
     if (!oldSnap.empty) {
