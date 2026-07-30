@@ -1,7 +1,7 @@
 
         // ============================================================
         // BLUEPRINT v4.47.09 - BUILD 20260315-domain-inject-at-parse-time
-        var BP_VERSION = 'v4.48.33';
+        var BP_VERSION = 'v4.48.34';
         // ===== AI MODEL IDS =====
         // Keep in sync with src/core/constants.js (single source of truth)
         var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';
@@ -34837,14 +34837,16 @@ body {
                         + '<div style="font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--c-muted); margin-bottom:6px;">Saved Guides (' + savedGuides.length + '/5)</div>'
                         + '<div style="display:grid; gap:5px;">';
                     savedGuides.forEach(function(sg) {
+                        var safeId = String(sg.id || '').replace(/[^a-zA-Z0-9_-]/g, '');
                         var when = sg.createdAt ? new Date(sg.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                        var modeText = mLabels[sg.mode] ? mLabels[sg.mode] : escapeHtml(String(sg.mode || ''));
                         html += '<div style="display:flex; align-items:center; gap:8px; padding:7px 10px; background:var(--c-surface-2); border:1px solid var(--c-surface-4); border-radius:8px;">'
-                            + '<div onclick="openSavedNegGuide(\'' + sg.id + '\')" style="flex:1; cursor:pointer; min-width:0;">'
+                            + '<div onclick="openSavedNegGuide(\'' + safeId + '\')" style="flex:1; cursor:pointer; min-width:0;">'
                             + '<div style="font-size:0.78em; font-weight:600; color:var(--c-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(sg.roleTitle || 'Negotiation Guide') + '</div>'
-                            + '<div style="font-size:0.66em; color:var(--c-faint);">' + (mLabels[sg.mode] || sg.mode || '') + (when ? ' · ' + when : '') + '</div>'
+                            + '<div style="font-size:0.66em; color:var(--c-faint);">' + modeText + (when ? ' · ' + when : '') + '</div>'
                             + '</div>'
-                            + '<button onclick="openSavedNegGuide(\'' + sg.id + '\')" title="View" style="background:none; border:none; cursor:pointer; color:var(--accent); padding:3px;">' + bpIcon('eye',13) + '</button>'
-                            + '<button onclick="deleteSavedNegGuide(\'' + sg.id + '\')" title="Delete" style="background:none; border:none; cursor:pointer; color:var(--c-muted); padding:3px;">' + bpIcon('trash',13) + '</button>'
+                            + '<button onclick="openSavedNegGuide(\'' + safeId + '\')" title="View" style="background:none; border:none; cursor:pointer; color:var(--accent); padding:3px;">' + bpIcon('eye',13) + '</button>'
+                            + '<button onclick="deleteSavedNegGuide(\'' + safeId + '\')" title="Delete" style="background:none; border:none; cursor:pointer; color:var(--c-muted); padding:3px;">' + bpIcon('trash',13) + '</button>'
                             + '</div>';
                     });
                     html += '</div></div>';
@@ -53479,6 +53481,11 @@ body {
             if (!cur || !cur.guide) { showToast('No guide to save', 'error'); return; }
             if (!userData.savedNegotiationGuides) userData.savedNegotiationGuides = [];
             var list = userData.savedNegotiationGuides;
+            // Size guardrail: cap the serialized guide at ~25KB so 5 guides
+            // can never push the user doc toward Firestore's 1MB limit.
+            var guideJson = '';
+            try { guideJson = JSON.stringify(cur.guide); } catch(e) { showToast('Could not save guide', 'error'); return; }
+            if (guideJson.length > 25000) { showToast('Guide too large to save', 'error'); return; }
             var entry = {
                 id: 'ng_' + Date.now(),
                 createdAt: new Date().toISOString(),
@@ -53506,20 +53513,21 @@ body {
             var list = userData.savedNegotiationGuides || [];
             var entry = null;
             for (var i = 0; i < list.length; i++) { if (list[i].id === id) { entry = list[i]; break; } }
-            if (!entry) { showToast('Saved guide not found', 'error'); return; }
+            if (!entry || !entry.guide) { showToast('Saved guide not found', 'error'); return; }
             var modal = document.getElementById('exportModal');
             var mContent = modal ? modal.querySelector('.modal-content') : null;
             if (!modal || !mContent) return;
+            var comp = entry.comp || {};
             var tv = {
-                conservativeOffer: entry.comp.conservative,
-                standardOffer: entry.comp.standard,
-                competitiveOffer: entry.comp.competitive,
-                yourWorth: entry.comp.justified,
-                total: entry.comp.justified
+                conservativeOffer: comp.conservative || 0,
+                standardOffer: comp.standard || 0,
+                competitiveOffer: comp.competitive || 0,
+                yourWorth: comp.justified || 0,
+                total: comp.justified || 0
             };
             history.pushState({ modal: true }, '');
             modal.classList.add('active');
-            _renderNegGuide(entry.guide, tv, entry.comp.currentComp, entry.mode, function(h) { mContent.innerHTML = h; });
+            _renderNegGuide(entry.guide, tv, comp.currentComp || 0, entry.mode || 'external', function(h) { mContent.innerHTML = h; });
         }
         window.openSavedNegGuide = openSavedNegGuide;
 
