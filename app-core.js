@@ -1,7 +1,7 @@
 
         // ============================================================
         // BLUEPRINT v4.47.09 - BUILD 20260315-domain-inject-at-parse-time
-        var BP_VERSION = 'v4.48.32';
+        var BP_VERSION = 'v4.48.33';
         // ===== AI MODEL IDS =====
         // Keep in sync with src/core/constants.js (single source of truth)
         var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';
@@ -150,6 +150,48 @@
             safeRemove('bpIncidentLog');
         }
         window.clearIncidentLog = clearIncidentLog;
+        
+        // ===== REMOTE (SERVER-PERSISTED) INCIDENTS =====
+        // Critical incidents (e.g. model-retirement fallback) are persisted by
+        // api/ai.js into the Firestore `system_incidents` collection so the admin
+        // sees them even when another user's session triggered the fallback.
+        // Admin-only read (enforced by Firestore rules).
+        var _remoteIncidents = [];
+        var _remoteIncidentsFetchedAt = 0;
+        
+        function fetchRemoteIncidents() {
+            if (!fbDb || !fbUser) return Promise.resolve(false);
+            return fbDb.collection('system_incidents')
+                .orderBy('timestamp', 'desc')
+                .limit(30)
+                .get()
+                .then(function(snap) {
+                    var list = [];
+                    snap.forEach(function(doc) {
+                        var d = doc.data() || {};
+                        list.push({
+                            id: doc.id,
+                            severity: d.severity || 'critical',
+                            feature: d.feature || 'system',
+                            message: d.message || '',
+                            details: d.model ? { model: d.model } : null,
+                            timestamp: d.timestamp || new Date(0).toISOString(),
+                            resolved: !!d.resolved,
+                            remote: true
+                        });
+                    });
+                    _remoteIncidents = list;
+                    _remoteIncidentsFetchedAt = Date.now();
+                    return true;
+                })
+                .catch(function(e) {
+                    // Non-admins get permission-denied — expected, ignore quietly.
+                    if (e && e.code !== 'permission-denied') {
+                        console.warn('Remote incidents fetch failed:', e.message);
+                    }
+                    return false;
+                });
+        }
         
         // ===== SHARED DROPDOWN OPTION LISTS =====
         var WB_INDUSTRIES = [
@@ -1596,6 +1638,7 @@
                         seniority: j.seniority || '', matchData: j.matchData || {}, addedAt: j.addedAt || new Date().toISOString(),
                         sample: j.sample || false };
                 }),
+                savedNegotiationGuides: (_ud.savedNegotiationGuides || []).slice(0, 5),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             data.profileType = _ud.profileType || (_ud.explorerData ? 'explorer' : 'standard');
@@ -1982,6 +2025,7 @@
                     userData.preferences = data.preferences || userData.preferences;
                     userData.applications = data.applications || [];
                     userData.savedJobs = data.savedJobs || [];
+                    userData.savedNegotiationGuides = data.savedNegotiationGuides || [];
                     userData.workHistory = data.workHistory || [];
                     userData.education = data.education || [];
                     userData.certifications = data.certifications || [];
@@ -2143,6 +2187,7 @@
                         userData.purpose = d.purpose || '';
                         userData.roles = d.roles || [];
                         userData.savedJobs = d.savedJobs || [];
+                        userData.savedNegotiationGuides = d.savedNegotiationGuides || [];
                         userData.workHistory = d.workHistory || [];
                         userData.education = d.education || [];
                         userData.certifications = d.certifications || [];
@@ -4992,7 +5037,16 @@
             });
             
             // ===== INCIDENT LOG =====
-            var incidents = getIncidentLog();
+            // Refresh server-persisted incidents (fired by other users' sessions),
+            // then re-render once so they show up alongside local incidents.
+            if (fbDb && fbUser && Date.now() - _remoteIncidentsFetchedAt > 60000) {
+                _remoteIncidentsFetchedAt = Date.now(); // prevent refetch loop
+                fetchRemoteIncidents().then(function(fetched) {
+                    if (fetched && el && el.isConnected) renderAdminStatus(el);
+                });
+            }
+            var incidents = getIncidentLog().concat(_remoteIncidents);
+            incidents.sort(function(a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
             var unresolvedCount = incidents.filter(function(i) { return !i.resolved; }).length;
             
             html += '<div style="background:var(--bg-elevated); border:1px solid var(--border);'
@@ -5048,7 +5102,8 @@
                     
                     if (inc.details) {
                         var detailStr = '';
-                        if (inc.details.fallback) detailStr += 'Fallback: ' + inc.details.fallback;
+                        if (inc.details.model) detailStr += 'Model: ' + escapeHtml(inc.details.model);
+                        if (inc.details.fallback) detailStr += (detailStr ? ' \u00B7 ' : '') + 'Fallback: ' + inc.details.fallback;
                         if (inc.details.manageUrl) detailStr += (detailStr ? ' \u00B7 ' : '') + '<a href="' + inc.details.manageUrl + '" target="_blank" rel="noopener" style="color:var(--accent);">Manage</a>';
                         if (detailStr) {
                             html += '<div style="font-size:0.72em; color:var(--text-muted); margin-top:2px;">' + detailStr + '</div>';
@@ -5234,6 +5289,18 @@
             var log = getIncidentLog();
             log.forEach(function(inc) { inc.resolved = true; inc.resolvedAt = new Date().toISOString(); });
             saveIncidentLog(log);
+            // Also resolve server-persisted incidents (admin-only Firestore update)
+            var nowIso = new Date().toISOString();
+            _remoteIncidents.forEach(function(inc) {
+                if (inc.resolved) return;
+                inc.resolved = true;
+                inc.resolvedAt = nowIso;
+                if (fbDb) {
+                    fbDb.collection('system_incidents').doc(inc.id)
+                        .update({ resolved: true, resolvedAt: nowIso })
+                        .catch(function(e) { console.warn('Failed to resolve remote incident:', e.message); });
+                }
+            });
             showToast('All incidents resolved.', 'info');
             renderAdminStatus(document.getElementById('adminTabContent'));
         }
@@ -34762,6 +34829,27 @@ body {
                 html += '<button onclick="showNegotiationGuideV2()" style="margin-top:10px; width:100%; padding:8px 12px; background:rgba(178,80,0,0.15); border:1px solid rgba(178,80,0,0.3); border-radius:8px; color:var(--warning); font-size:0.78em; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">'
                     + bpIcon('target',13) + ' Build My Negotiation Guide</button>';
 
+                // ── Saved guides (max 5) ──
+                var savedGuides = userData.savedNegotiationGuides || [];
+                if (savedGuides.length > 0) {
+                    var mLabels = { external: 'External Offer', internal: 'Internal Move', review: 'Performance Review' };
+                    html += '<div style="margin-top:10px;">'
+                        + '<div style="font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--c-muted); margin-bottom:6px;">Saved Guides (' + savedGuides.length + '/5)</div>'
+                        + '<div style="display:grid; gap:5px;">';
+                    savedGuides.forEach(function(sg) {
+                        var when = sg.createdAt ? new Date(sg.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                        html += '<div style="display:flex; align-items:center; gap:8px; padding:7px 10px; background:var(--c-surface-2); border:1px solid var(--c-surface-4); border-radius:8px;">'
+                            + '<div onclick="openSavedNegGuide(\'' + sg.id + '\')" style="flex:1; cursor:pointer; min-width:0;">'
+                            + '<div style="font-size:0.78em; font-weight:600; color:var(--c-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(sg.roleTitle || 'Negotiation Guide') + '</div>'
+                            + '<div style="font-size:0.66em; color:var(--c-faint);">' + (mLabels[sg.mode] || sg.mode || '') + (when ? ' · ' + when : '') + '</div>'
+                            + '</div>'
+                            + '<button onclick="openSavedNegGuide(\'' + sg.id + '\')" title="View" style="background:none; border:none; cursor:pointer; color:var(--accent); padding:3px;">' + bpIcon('eye',13) + '</button>'
+                            + '<button onclick="deleteSavedNegGuide(\'' + sg.id + '\')" title="Delete" style="background:none; border:none; cursor:pointer; color:var(--c-muted); padding:3px;">' + bpIcon('trash',13) + '</button>'
+                            + '</div>';
+                    });
+                    html += '</div></div>';
+                }
+
                 html += '</div></div>'; // end right col
                 html += '</div></div>'; // end 2-col body + card
 
@@ -53372,12 +53460,186 @@ body {
             valHtml += '</div>';
             html += section(bpIcon('star',12) + ' Values & Questions', 'var(--c-orange)', valHtml);
 
-            html += '<button onclick="showNegotiationGuideV2()" style="width:100%; margin-top:4px; padding:10px; background:var(--c-surface-2); border:1px solid var(--c-surface-5); border-radius:8px; color:var(--c-muted); font-size:0.82em; cursor:pointer;">← Back to Role Picker</button>';
+            // ── Save / Export footer ──
+            window._negGuideCurrent = { guide: g, tv: tv, currentComp: currentComp, mode: mode };
+            html += '<div style="display:flex; gap:8px; margin-top:4px;">'
+                + '<button onclick="saveCurrentNegGuide(this)" style="flex:1; padding:10px; background:rgba(36,138,61,0.12); border:1px solid rgba(36,138,61,0.3); border-radius:8px; color:var(--success); font-size:0.82em; font-weight:700; cursor:pointer;">' + bpIcon('save',13) + ' Save Guide</button>'
+                + '<button onclick="exportNegGuidePDF()" style="flex:1; padding:10px; background:rgba(0,113,227,0.1); border:1px solid rgba(0,113,227,0.25); border-radius:8px; color:var(--accent); font-size:0.82em; font-weight:700; cursor:pointer;">' + bpIcon('download',13) + ' Save as PDF</button>'
+                + '</div>';
+            html += '<button onclick="showNegotiationGuideV2()" style="width:100%; margin-top:8px; padding:10px; background:var(--c-surface-2); border:1px solid var(--c-surface-5); border-radius:8px; color:var(--c-muted); font-size:0.82em; cursor:pointer;">← Back to Role Picker</button>';
             html += '</div>'; // end modal-body
 
             renderFn(html);
         }
         window._renderNegGuide = _renderNegGuide;
+
+        // ── Saved Negotiation Guides (max 5) ──────────────────────────────
+        function saveCurrentNegGuide(btn) {
+            var cur = window._negGuideCurrent;
+            if (!cur || !cur.guide) { showToast('No guide to save', 'error'); return; }
+            if (!userData.savedNegotiationGuides) userData.savedNegotiationGuides = [];
+            var list = userData.savedNegotiationGuides;
+            var entry = {
+                id: 'ng_' + Date.now(),
+                createdAt: new Date().toISOString(),
+                mode: cur.mode || 'external',
+                roleTitle: (cur.guide.roleTitle || '').substring(0, 120),
+                guide: cur.guide,
+                comp: {
+                    currentComp: cur.currentComp || 0,
+                    conservative: cur.tv ? (cur.tv.conservativeOffer || 0) : 0,
+                    standard:     cur.tv ? (cur.tv.standardOffer || 0) : 0,
+                    competitive:  cur.tv ? (cur.tv.competitiveOffer || 0) : 0,
+                    justified:    cur.tv ? (cur.tv.yourWorth || cur.tv.total || 0) : 0
+                }
+            };
+            list.unshift(entry);
+            if (list.length > 5) list.length = 5; // keep newest 5
+            saveToFirestore();
+            if (btn) { btn.innerHTML = bpIcon('check',13) + ' Saved'; btn.disabled = true; btn.style.opacity = '0.7'; }
+            showToast('Guide saved (' + list.length + '/5)', 'success');
+            if (typeof renderBlueprintTabContent === 'function') { try { renderBlueprintTabContent(); } catch(e) {} }
+        }
+        window.saveCurrentNegGuide = saveCurrentNegGuide;
+
+        function openSavedNegGuide(id) {
+            var list = userData.savedNegotiationGuides || [];
+            var entry = null;
+            for (var i = 0; i < list.length; i++) { if (list[i].id === id) { entry = list[i]; break; } }
+            if (!entry) { showToast('Saved guide not found', 'error'); return; }
+            var modal = document.getElementById('exportModal');
+            var mContent = modal ? modal.querySelector('.modal-content') : null;
+            if (!modal || !mContent) return;
+            var tv = {
+                conservativeOffer: entry.comp.conservative,
+                standardOffer: entry.comp.standard,
+                competitiveOffer: entry.comp.competitive,
+                yourWorth: entry.comp.justified,
+                total: entry.comp.justified
+            };
+            history.pushState({ modal: true }, '');
+            modal.classList.add('active');
+            _renderNegGuide(entry.guide, tv, entry.comp.currentComp, entry.mode, function(h) { mContent.innerHTML = h; });
+        }
+        window.openSavedNegGuide = openSavedNegGuide;
+
+        function deleteSavedNegGuide(id) {
+            var list = userData.savedNegotiationGuides || [];
+            userData.savedNegotiationGuides = list.filter(function(g) { return g.id !== id; });
+            saveToFirestore();
+            showToast('Guide deleted', 'success');
+            if (typeof renderBlueprintTabContent === 'function') { try { renderBlueprintTabContent(); } catch(e) {} }
+        }
+        window.deleteSavedNegGuide = deleteSavedNegGuide;
+
+        // ── PDF export of the current guide (jsPDF text flow) ─────────────
+        function exportNegGuidePDF() {
+            var cur = window._negGuideCurrent;
+            if (!cur || !cur.guide) { showToast('No guide to export', 'error'); return; }
+            if (typeof showcaseExportGuard === 'function' && showcaseExportGuard()) return;
+            if (!window.jspdf || !window.jspdf.jsPDF) { showToast('PDF library not loaded', 'error'); return; }
+            var g = cur.guide, tv = cur.tv || {};
+            var doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+            var pw = doc.internal.pageSize.getWidth(), ph = doc.internal.pageSize.getHeight();
+            var margin = 18, maxW = pw - margin * 2, y = 0;
+            var modeLabel = cur.mode === 'external' ? 'External Offer' : cur.mode === 'internal' ? 'Internal Move' : 'Performance Review';
+
+            function ensureRoom(h) { if (y + h > ph - 16) { doc.addPage(); y = 18; } }
+            function heading(txt, rgb) {
+                ensureRoom(14);
+                y += 8;
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+                doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+                doc.text(txt.toUpperCase(), margin, y);
+                y += 2;
+                doc.setDrawColor(rgb[0], rgb[1], rgb[2]); doc.setLineWidth(0.4);
+                doc.line(margin, y, margin + maxW, y);
+                y += 5;
+            }
+            function para(txt, opts) {
+                opts = opts || {};
+                if (!txt) return;
+                doc.setFont('helvetica', opts.bold ? 'bold' : (opts.italic ? 'italic' : 'normal'));
+                doc.setFontSize(opts.size || 9.5);
+                var c = opts.color || [40, 45, 55];
+                doc.setTextColor(c[0], c[1], c[2]);
+                var lines = doc.splitTextToSize(String(txt), maxW - (opts.indent || 0));
+                lines.forEach(function(ln) {
+                    ensureRoom(5);
+                    doc.text(ln, margin + (opts.indent || 0), y);
+                    y += 4.6;
+                });
+                y += (opts.gap != null ? opts.gap : 1.5);
+            }
+
+            // Title block
+            doc.setFillColor(30, 64, 175); doc.rect(0, 0, pw, 30, 'F');
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(255, 255, 255);
+            doc.text('Negotiation Guide', margin, 13);
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+            doc.text(modeLabel + (g.roleTitle ? ' - ' + g.roleTitle : ''), margin, 20);
+            doc.setFontSize(8); doc.setTextColor(200, 215, 245);
+            doc.text('Generated ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), margin, 25.5);
+            y = 38;
+
+            // Compensation
+            heading('Compensation', [178, 80, 0]);
+            para('Conservative: $' + Math.round(tv.conservativeOffer || 0).toLocaleString()
+               + '    Standard: $' + Math.round(tv.standardOffer || 0).toLocaleString()
+               + '    Competitive: $' + Math.round(tv.competitiveOffer || 0).toLocaleString(), { bold: true });
+            if (g.theAsk && g.theAsk.number) {
+                para('YOUR ASK: $' + Math.round(g.theAsk.number).toLocaleString(), { bold: true, size: 10.5, color: [178, 80, 0] });
+                (g.theAsk.justification || []).forEach(function(j, i) { para((i + 1) + '. ' + j, { indent: 3 }); });
+            }
+            if (g.openingMove) {
+                heading('Opening Move', [0, 113, 227]);
+                para('"' + g.openingMove + '"', { italic: true });
+            }
+            if (g.strengths && g.strengths.length) {
+                heading('Your Strengths', [36, 138, 61]);
+                g.strengths.forEach(function(s) {
+                    para(s.title, { bold: true, color: [36, 138, 61] });
+                    para(s.evidence, { indent: 3 });
+                    para('"' + (s.hook || '') + '"', { italic: true, indent: 3, gap: 3 });
+                });
+            }
+            if (g.weaknessNeutralizations && g.weaknessNeutralizations.length) {
+                heading('Weaknesses - Reframed', [178, 80, 0]);
+                g.weaknessNeutralizations.forEach(function(w) {
+                    para('Concern: ' + (w.weakness || ''), { bold: true });
+                    para('Reframe: ' + (w.reframe || ''), { indent: 3 });
+                    para('"' + (w.bridgeLine || '') + '"', { italic: true, indent: 3, gap: 3 });
+                });
+            }
+            if (g.blindSpots && g.blindSpots.length) {
+                heading('Blind Spots', [200, 30, 40]);
+                g.blindSpots.forEach(function(b) {
+                    para(b.risk, { bold: true, color: [200, 30, 40] });
+                    para(b.why, { indent: 3 });
+                    para('Mitigation: ' + (b.mitigation || ''), { indent: 3, gap: 3 });
+                });
+            }
+            if (g.counterOfferPlaybook && g.counterOfferPlaybook.length) {
+                heading('Counter-Offer Playbook', [110, 80, 200]);
+                g.counterOfferPlaybook.forEach(function(c) {
+                    para(c.scenario, { bold: true, color: [110, 80, 200] });
+                    para('"' + (c.response || '') + '"', { italic: true, indent: 3, gap: 3 });
+                });
+            }
+            if ((g.valueConnections && g.valueConnections.length) || (g.questionsToAsk && g.questionsToAsk.length)) {
+                heading('Values & Questions', [178, 110, 0]);
+                (g.valueConnections || []).forEach(function(v) { para((v.value || '') + ': ' + (v.connection || ''), { indent: 3 }); });
+                if (g.questionsToAsk && g.questionsToAsk.length) {
+                    para('Questions to Ask:', { bold: true });
+                    g.questionsToAsk.forEach(function(q) { para('- ' + q, { indent: 3 }); });
+                }
+            }
+
+            var fname = 'negotiation-guide-' + (g.roleTitle || modeLabel).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').substring(0, 50) + '.pdf';
+            doc.save(fname);
+            if (typeof logAnalyticsEvent === 'function') { try { logAnalyticsEvent('negotiation_guide_pdf', { mode: cur.mode }); } catch(e) {} }
+        }
+        window.exportNegGuidePDF = exportNegGuidePDF;
 
         
         // ===== IMPACT RATING ENGINE =====
