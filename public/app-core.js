@@ -31084,6 +31084,7 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
         // [removed] openExportModal — dead code cleanup v4.22.0
 
         function closeExportModal() {
+            if (window._stopNegGuideLoadingAnim) window._stopNegGuideLoadingAnim();
             var m = document.getElementById('exportModal');
             m.classList.remove('active');
             m.style.display = '';
@@ -56585,6 +56586,7 @@ body {
             // Close any open modals first
             var openModal = document.querySelector('.modal.active');
             if (openModal) {
+                if (window._stopNegGuideLoadingAnim) window._stopNegGuideLoadingAnim();
                 openModal.classList.remove('active');
                 return;
             }
