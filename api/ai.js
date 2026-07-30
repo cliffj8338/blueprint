@@ -3,6 +3,7 @@
 // Deploy: place in /api/ai.js, set ANTHROPIC_API_KEY in Vercel Environment Variables.
 
 import crypto from 'crypto';
+import { fsSet, fsGet, fsUpdate } from './lib/firestore-rest.js';
 
 // Firebase project config
 const FIREBASE_PROJECT_ID = 'work-blueprint';
@@ -77,6 +78,59 @@ async function verifyFirebaseToken(idToken) {
     }
     
     return payload; // { sub: uid, email: ..., ... }
+}
+
+// Persist a model-retirement incident to the admin-visible `system_incidents`
+// Firestore collection, so the admin health panel surfaces the warning even
+// when a regular user's session triggered the fallback. Best-effort: never
+// blocks or fails the AI response. No secrets/PII — only severity, feature
+// tag, message, model name, and timestamp.
+// Dedupe: one document per model (deterministic doc id), so a prolonged
+// retirement updates a single incident instead of appending one doc per
+// failing AI call. An in-memory throttle also skips repeat writes from the
+// same warm instance for a few minutes to avoid hammering Firestore.
+const incidentWriteTimes = new Map(); // model -> last write ms (per warm instance)
+const INCIDENT_WRITE_THROTTLE_MS = 10 * 60 * 1000; // 10 minutes
+
+function incidentDocId(model) {
+    // Firestore doc ids must not contain '/'; keep it short and predictable.
+    return 'mr-' + String(model).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 120);
+}
+
+async function persistModelIncident(model, message) {
+    try {
+        const now = Date.now();
+        const lastWrite = incidentWriteTimes.get(model) || 0;
+        if (now - lastWrite < INCIDENT_WRITE_THROTTLE_MS) return;
+        incidentWriteTimes.set(model, now);
+
+        const docId = incidentDocId(model);
+        const existing = await fsGet('system_incidents', docId);
+        if (existing && existing.resolved === false) {
+            // Unresolved incident already on record for this model — just bump
+            // the last-seen timestamp and occurrence count.
+            await fsUpdate('system_incidents', docId, {
+                lastSeen: new Date().toISOString(),
+                occurrences: (typeof existing.occurrences === 'number' ? existing.occurrences : 1) + 1
+            });
+            return;
+        }
+        // No incident yet, or the previous one was resolved (re-raise it —
+        // if the model is still failing after an admin marked it resolved,
+        // that resolution was premature).
+        await fsSet('system_incidents', docId, {
+            severity: 'critical',
+            feature: 'anthropic-model-retired',
+            message: String(message).slice(0, 1000),
+            model: String(model).slice(0, 100),
+            timestamp: new Date().toISOString(),
+            lastSeen: new Date().toISOString(),
+            occurrences: 1,
+            resolved: false
+        });
+    } catch (err) {
+        console.error('Failed to persist model-retirement incident:', err.message);
+    }
 }
 
 // Simple rate limiting (resets on cold start, ~5 min window on Vercel)
@@ -193,9 +247,20 @@ export default async function handler(req, res) {
                     console.warn(`Model fallback succeeded: "${body.model}" -> "${BP_AI_MODEL}"`);
                     res.setHeader('X-BP-Model-Fallback', '1');
                     res.setHeader('Access-Control-Expose-Headers', 'X-BP-Model-Fallback');
+                    await persistModelIncident(body.model,
+                        `Requested AI model "${body.model}" was rejected by Anthropic (likely retired); ` +
+                        `server fell back to the default model "${BP_AI_MODEL}". Update the model allowlist in api/ai.js.`);
                 } else {
                     console.error(`Model fallback to "${BP_AI_MODEL}" also failed with status ${anthropicRes.status}`);
+                    await persistModelIncident(body.model,
+                        `Requested AI model "${body.model}" was rejected by Anthropic (likely retired) and the ` +
+                        `fallback to "${BP_AI_MODEL}" also failed (status ${anthropicRes.status}). Update api/ai.js.`);
                 }
+            } else if (isModelNotFound) {
+                // The default model itself was rejected — no fallback possible.
+                await persistModelIncident(body.model,
+                    `Anthropic rejected the default AI model "${body.model}" (not_found_error) — likely retired, ` +
+                    `no fallback available. All AI features are broken until api/ai.js is updated.`);
             }
             
             res.setHeader('Access-Control-Allow-Origin', 'https://myblueprint.work');

@@ -28,9 +28,16 @@
     {
       "path": "/api/jobs-sync",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/rules-sync",
+      "schedule": "30 */6 * * *"
     }
   ],
   "functions": {
+    "api/rules-sync.js": {
+      "includeFiles": "firestore.rules"
+    },
     "api/ai.js": {
       "maxDuration": 60
     },

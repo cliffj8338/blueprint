@@ -603,6 +603,32 @@ export default async function handler(req, res) {
     errors.push('Cleanup: ' + e.message);
   }
 
+  // ── Phase 7b: Cleanup resolved system incidents (>30 days) ──
+  // The system_incidents collection (written by api/ai.js on model-retirement
+  // fallbacks) is otherwise append-only; purge resolved incidents whose last
+  // activity is older than 30 days so it can't grow without bound.
+  let incidentsCleaned = 0;
+  try {
+    if (Date.now() > WRITE_DEADLINE) throw new Error('skipped (time budget)');
+    const cutoffIso = new Date(Date.now() - 30 * 86400000).toISOString();
+    const snap = await db.collection('system_incidents')
+      .where('resolved', '==', true).limit(500).get();
+    if (!snap.empty) {
+      const delBatch = db.batch();
+      snap.docs.forEach(doc => {
+        const d = doc.data();
+        const last = d.lastSeen || d.timestamp || '';
+        if (last && last < cutoffIso) {
+          delBatch.delete(doc.ref);
+          incidentsCleaned++;
+        }
+      });
+      if (incidentsCleaned > 0) await delBatch.commit();
+    }
+  } catch (e) {
+    errors.push('Incident cleanup: ' + e.message);
+  }
+
   // ── Phase 8: Update metadata ───────────────────────────────
   // Guard the count() aggregation — if time is short, skip it so the
   // meta write (the whole point of the sync record) always happens.
@@ -632,6 +658,7 @@ export default async function handler(req, res) {
     usajobsQueries: usajobsQueries.length,
     errors: errors.slice(0, 20),
     cleaned,
+    incidentsCleaned,
     duration: Date.now() - startTime
   };
   await db.collection('meta').doc('jobsSync').set(meta);

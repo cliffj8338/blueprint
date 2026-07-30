@@ -1,4 +1,4 @@
-// Blueprint™ Firestore Rules v2.9 | 2026-04-06
+// Blueprint™ Firestore Rules v3.0 | 2026-07-30
 // Changelog:
 //   v1.0 | 2026-01-15 | Initial rules
 //   v1.1 | 2026-02-01 | work_blueprints subcollection (30-key limit)
@@ -30,6 +30,11 @@
 //                        Update rule: accept all explorer + standard fields.
 //   v2.9 | 2026-04-06 | activities array cap (100 items) on user docs.
 //                        Write rate limit: max 1 write per second per user.
+//   v3.0 | 2026-07-30 | system_incidents collection — server-written (api/ai.js
+//                        via Firestore REST, no auth context) model-retirement
+//                        incidents; admin-only read. Public create is strictly
+//                        field-validated. No PII: severity, feature tag,
+//                        message, model name, timestamp only.
 
 rules_version = '2';
 service cloud.firestore {
@@ -272,6 +277,28 @@ service cloud.firestore {
     match /meta/{docId} {
       allow read: if isAuth();
       allow write: if false;
+    }
+
+    // ── SYSTEM INCIDENTS (v3.0) ──────────────────────
+    // Critical operational incidents (e.g. retired AI model fallback) written
+    // server-side by api/ai.js via the Firestore REST API (unauthenticated,
+    // like galileo_counter), read by the admin health panel.
+    match /system_incidents/{docId} {
+      allow get, list: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['severity','feature','message','model','timestamp','resolved','resolvedAt'])
+        && request.resource.data.severity is string
+        && request.resource.data.severity in ['critical','warning','info']
+        && request.resource.data.feature is string
+        && request.resource.data.feature.size() <= 50
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 1000
+        && request.resource.data.model is string
+        && request.resource.data.model.size() <= 100
+        && request.resource.data.timestamp is string
+        && request.resource.data.timestamp.size() <= 40;
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['resolved','resolvedAt']);
+      allow delete: if isAdmin();
     }
 
     // ── COMMAND CENTER (v2.5 / v2.6 / v2.7) ─────────

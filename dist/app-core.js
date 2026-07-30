@@ -1,7 +1,7 @@
 
         // ============================================================
         // BLUEPRINT v4.47.09 - BUILD 20260315-domain-inject-at-parse-time
-        var BP_VERSION = 'v4.48.34';
+        var BP_VERSION = 'v4.48.35';
         // ===== AI MODEL IDS =====
         // Keep in sync with src/core/constants.js (single source of truth)
         var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';
@@ -158,6 +158,32 @@
         // Admin-only read (enforced by Firestore rules).
         var _remoteIncidents = [];
         var _remoteIncidentsFetchedAt = 0;
+        
+        // Rules-sync cron heartbeat (task #18): api/rules-sync.js writes
+        // meta/rules_sync { lastRunAt, lastResult } on every successful run.
+        // The Status tab flags the safety net as stale after >13h (two missed
+        // 6-hourly runs) so a silently dead cron is noticed immediately.
+        var RULES_SYNC_STALE_MS = 13 * 60 * 60 * 1000;
+        var _rulesSyncMeta = null;      // { lastRunAt, lastResult } or null
+        var _rulesSyncFetched = false;  // true once a fetch completed (even if doc missing)
+        var _rulesSyncFetchedAt = 0;
+        
+        function fetchRulesSyncMeta() {
+            if (!fbDb || !fbUser) return Promise.resolve(false);
+            return fbDb.collection('meta').doc('rules_sync').get()
+                .then(function(doc) {
+                    _rulesSyncMeta = doc.exists ? (doc.data() || null) : null;
+                    _rulesSyncFetched = true;
+                    _rulesSyncFetchedAt = Date.now();
+                    return true;
+                })
+                .catch(function(e) {
+                    if (e && e.code !== 'permission-denied') {
+                        console.warn('Rules-sync heartbeat fetch failed:', e.message);
+                    }
+                    return false;
+                });
+        }
         
         function fetchRemoteIncidents() {
             if (!fbDb || !fbUser) return Promise.resolve(false);
@@ -5035,6 +5061,50 @@
                 
                 html += '</div>';
             });
+            
+            // ===== RULES-SYNC HEARTBEAT (task #18) =====
+            if (fbDb && fbUser && Date.now() - _rulesSyncFetchedAt > 60000) {
+                _rulesSyncFetchedAt = Date.now(); // prevent refetch loop
+                fetchRulesSyncMeta().then(function(fetched) {
+                    if (fetched && el && el.isConnected) renderAdminStatus(el);
+                });
+            }
+            (function() {
+                var hb = _rulesSyncMeta;
+                var lastRun = hb && hb.lastRunAt ? new Date(hb.lastRunAt) : null;
+                var ageMs = lastRun ? (Date.now() - lastRun.getTime()) : null;
+                var stale = !lastRun || isNaN(ageMs) || ageMs > RULES_SYNC_STALE_MS;
+                var statusColor, statusText;
+                if (!_rulesSyncFetched) {
+                    statusColor = 'var(--text-muted)';
+                    statusText = 'Checking\u2026';
+                    stale = false;
+                } else if (!lastRun) {
+                    statusColor = 'var(--danger)';
+                    statusText = 'Never ran \u2014 no heartbeat recorded. The rules-sync cron may not be configured.';
+                } else if (stale) {
+                    statusColor = 'var(--danger)';
+                    statusText = 'STALE \u2014 last check ' + Math.round(ageMs / 3600000) + 'h ago (expected every 6h). '
+                        + 'The rules-sync cron may have silently stopped; check Vercel cron config and function logs.';
+                } else {
+                    statusColor = 'var(--success, var(--c-green, #2e9e5b))';
+                    var mins = Math.round(ageMs / 60000);
+                    statusText = 'Last check ' + (mins < 90 ? mins + 'm' : Math.round(ageMs / 3600000) + 'h') + ' ago'
+                        + (hb.lastResult ? ' \u00B7 ' + hb.lastResult : '');
+                }
+                html += '<div style="background:var(--bg-elevated); border:1px solid '
+                    + (stale && _rulesSyncFetched ? 'var(--danger)' : 'var(--border)') + ';'
+                    + ' border-radius:10px; padding:14px 16px; margin-bottom:14px;">'
+                    + '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">'
+                    + '<span style="font-size:0.82em; font-weight:700; color:var(--text-secondary);'
+                    + ' text-transform:uppercase; letter-spacing:0.05em;">'
+                    + bpIcon('shield', 14) + ' Rules-Sync Safety Check</span>'
+                    + '<span style="width:8px; height:8px; border-radius:50%; background:' + statusColor + '; display:inline-block;"></span>'
+                    + '<span style="font-size:0.82em; color:' + (stale && _rulesSyncFetched ? 'var(--danger)' : 'var(--text-muted)') + ';">'
+                    + statusText + '</span>'
+                    + (lastRun ? '<span style="font-size:0.75em; color:var(--text-muted); margin-left:auto;">' + lastRun.toLocaleString() + '</span>' : '')
+                    + '</div></div>';
+            })();
             
             // ===== INCIDENT LOG =====
             // Refresh server-persisted incidents (fired by other users' sessions),
@@ -53224,13 +53294,69 @@ body {
         }
         window._negGuideSelectMode = _negGuideSelectMode;
 
-        async function _buildNegGuideWithAI(mode, role, tv, renderFn) {
-            // ── Loading state ──────────────────────────────────────────────
+        function _stopNegGuideLoadingAnim() {
+            if (window._negGuideAnimTimer) { clearInterval(window._negGuideAnimTimer); window._negGuideAnimTimer = null; }
+        }
+        function _startNegGuideLoadingAnim(renderFn) {
+            _stopNegGuideLoadingAnim();
+            var steps = [
+                { icon: 'user',    label: 'Reading your profile & career history…' },
+                { icon: 'zap',     label: 'Weighing your strengths & skill levels…' },
+                { icon: 'outcomes', label: 'Pulling your key outcomes & wins…' },
+                { icon: 'target',  label: 'Benchmarking your comp against market data…' },
+                { icon: 'shield',  label: 'Anticipating counter-offers & blind spots…' },
+                { icon: 'edit',    label: 'Scripting your opening move…' },
+                { icon: 'sparkle', label: 'Polishing your personalized playbook…' }
+            ];
             renderFn('<div class="modal-header"><div class="modal-header-left"><h2 class="modal-title">' + bpIcon('target',18) + ' Building Your Guide…</h2></div>'
-                + '<button class="modal-close" onclick="closeExportModal()">×</button></div>'
+                + '<button class="modal-close" onclick="_stopNegGuideLoadingAnim();closeExportModal()">×</button></div>'
                 + '<div class="modal-body" style="padding:40px 28px; text-align:center;">'
-                + '<div style="opacity:0.5; margin-bottom:16px;">' + bpIcon('loader',36) + '</div>'
-                + '<p style="color:var(--c-muted); font-size:0.9em;">Analyzing your profile, strengths, and comp data…</p></div>');
+                + '<style>'
+                + '@keyframes ngPulse{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.18);opacity:1}}'
+                + '@keyframes ngRing{0%{transform:scale(.6);opacity:.6}100%{transform:scale(1.9);opacity:0}}'
+                + '@keyframes ngShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}'
+                + '@keyframes ngStepIn{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}'
+                + '</style>'
+                + '<div style="position:relative; width:72px; height:72px; margin:0 auto 20px;">'
+                +   '<div style="position:absolute; inset:0; border-radius:50%; border:2px solid var(--c-accent,#4f6ef7); animation:ngRing 1.8s ease-out infinite;"></div>'
+                +   '<div style="position:absolute; inset:0; border-radius:50%; border:2px solid var(--c-accent,#4f6ef7); animation:ngRing 1.8s ease-out .9s infinite;"></div>'
+                +   '<div id="ngStepIcon" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; animation:ngPulse 1.8s ease-in-out infinite;">' + bpIcon('user',30) + '</div>'
+                + '</div>'
+                + '<div id="ngStepLabel" style="min-height:22px; font-weight:600; font-size:0.95em; animation:ngStepIn .4s ease;">' + steps[0].label + '</div>'
+                + '<div style="max-width:340px; margin:18px auto 10px; height:8px; border-radius:99px; background:var(--c-border,#e5e7eb); overflow:hidden;">'
+                +   '<div id="ngProgressBar" style="height:100%; width:2%; border-radius:99px; transition:width .9s ease; background:linear-gradient(90deg,var(--c-accent,#4f6ef7),#8b5cf6,var(--c-accent,#4f6ef7)); background-size:200% 100%; animation:ngShimmer 2.2s linear infinite;"></div>'
+                + '</div>'
+                + '<div id="ngProgressPct" style="font-size:0.8em; color:var(--c-muted); margin-bottom:14px;">0%</div>'
+                + '<p style="color:var(--c-muted); font-size:0.85em; margin:0;">Crafting a guide from your full profile — this can take 2–3 minutes. Worth the wait.</p>'
+                + '</div>');
+            var start = Date.now();
+            var EXPECTED = 150000; // ~2.5 min typical
+            window._negGuideAnimTimer = setInterval(function() {
+                var bar = document.getElementById('ngProgressBar');
+                if (!bar) { _stopNegGuideLoadingAnim(); return; }
+                var t = (Date.now() - start) / EXPECTED;
+                // Ease toward 95%, never complete until real data arrives
+                var pct = Math.min(95, Math.round((1 - Math.pow(1 - Math.min(t, 1), 2)) * 88 + Math.min(t, 3) * 2.5));
+                bar.style.width = pct + '%';
+                var pctEl = document.getElementById('ngProgressPct');
+                if (pctEl) pctEl.textContent = pct + '%';
+                var stepIdx = Math.min(steps.length - 1, Math.floor(t * steps.length));
+                var labelEl = document.getElementById('ngStepLabel');
+                if (labelEl && labelEl.textContent !== steps[stepIdx].label) {
+                    labelEl.textContent = steps[stepIdx].label;
+                    labelEl.style.animation = 'none';
+                    void labelEl.offsetWidth;
+                    labelEl.style.animation = 'ngStepIn .4s ease';
+                    var iconEl = document.getElementById('ngStepIcon');
+                    if (iconEl) iconEl.innerHTML = bpIcon(steps[stepIdx].icon, 30);
+                }
+            }, 1000);
+        }
+        window._stopNegGuideLoadingAnim = _stopNegGuideLoadingAnim;
+
+        async function _buildNegGuideWithAI(mode, role, tv, renderFn) {
+            // ── Loading state: animated progress ──────────────────────────
+            _startNegGuideLoadingAnim(renderFn);
 
             logAnalyticsEvent('negotiation_guide', { mode: mode, hasRole: !!role });
 
@@ -53308,9 +53434,17 @@ body {
                 var jsonEnd = raw.lastIndexOf('}');
                 if (jsonStart >= 0 && jsonEnd > jsonStart) raw = raw.substring(jsonStart, jsonEnd + 1);
                 var guide = JSON.parse(raw);
+                var doneBar = document.getElementById('ngProgressBar');
+                if (doneBar) {
+                    doneBar.style.width = '100%';
+                    var pctEl = document.getElementById('ngProgressPct');
+                    if (pctEl) pctEl.textContent = '100%';
+                }
+                _stopNegGuideLoadingAnim();
                 _renderNegGuide(guide, tv, currentComp, mode, renderFn);
             } catch(e) {
                 console.warn('[NegGuide] AI call failed:', e);
+                _stopNegGuideLoadingAnim();
                 _renderNegGuideError(renderFn, e.message, mode, role, tv);
             }
         }
