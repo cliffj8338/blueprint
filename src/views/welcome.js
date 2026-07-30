@@ -6289,7 +6289,7 @@ Rules:
         }
 
         var data = await callAnthropicAPI({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-sonnet-4-6',
                 max_tokens: 4000,
                 system: systemPrompt,
                 messages: [{ role: 'user', content: userContent }]
@@ -6966,7 +6966,7 @@ async function wizardRegeneratePurpose() {
 
     try {
         var data = await callAnthropicAPI({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-sonnet-4-6',
                 max_tokens: 300,
                 messages: [{
                     role: 'user',
@@ -7394,7 +7394,7 @@ export async function explorerRunSkillDiscovery() {
 
     try {
         var response = await callAnthropicAPI({
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-sonnet-4-6',
             max_tokens: 3000,
             messages: [{ role: 'user', content: prompt }]
         }, null, 'explorer-skills');
@@ -7549,7 +7549,7 @@ export async function explorerSaveSkills() {
 
     try {
         var response = await callAnthropicAPI({
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-sonnet-4-6',
             max_tokens: 3000,
             messages: [{ role: 'user', content: prompt }]
         }, null, 'explorer-careers');

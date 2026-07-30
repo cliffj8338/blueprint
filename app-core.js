@@ -1,7 +1,7 @@
 
         // ============================================================
         // BLUEPRINT v4.47.09 - BUILD 20260315-domain-inject-at-parse-time
-        var BP_VERSION = 'v4.48.30';
+        var BP_VERSION = 'v4.48.31';
 
         var BP_PALETTE = {
             blue: '#60a5fa', purple: '#bf5af2', green: '#30d158',
@@ -1428,7 +1428,7 @@
         function checkAdminRole(uid) {
             if (!fbDb) return Promise.resolve(false);
             var ref = fbDb.collection('users').doc(uid);
-            // v4.48.30: server-first read — offline cache can hold a stale role,
+            // v4.48.31: server-first read — offline cache can hold a stale role,
             // which desyncs saves from security rules and rejects every write.
             return ref.get({ source: 'server' })
                 .catch(function(err) {
@@ -1594,7 +1594,7 @@
             
             data = sanitizeForFirestore(data);
             data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
-            // v4.48.30: NEVER send role on updates. The client cannot change role
+            // v4.48.31: NEVER send role on updates. The client cannot change role
             // (rules reject any mismatch), and a stale cached role in the payload
             // caused every save to be rejected. Omitting it always passes the rules.
             delete data.role;
@@ -1957,7 +1957,7 @@
                             }
                         } catch(e) {}
                     }
-                    // v4.48.30: prefer server-confirmed role over possibly-cached doc data
+                    // v4.48.31: prefer server-confirmed role over possibly-cached doc data
                     userData.role = window._serverRole || data.role || 'user';
                     userData.roles = data.roles || [];
                     userData.preferences = data.preferences || userData.preferences;
@@ -5102,7 +5102,7 @@
                     var probeRes = await fetch(AI_PROXY_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-                        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] })
+                        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] })
                     });
                     if (probeRes.ok) {
                         recordApiHealth('anthropic-proxy', 'ok', 'Operational');
@@ -23090,7 +23090,7 @@
 
             try {
                 var response = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-20250514',
+                    model: 'claude-sonnet-4-6',
                     max_tokens: 500,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'explorer-ai-expand');
@@ -23387,7 +23387,7 @@
 
             try {
                 var response = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-20250514',
+                    model: 'claude-sonnet-4-6',
                     max_tokens: 3000,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'explorer-skills');
@@ -23557,7 +23557,7 @@
 
             try {
                 var response = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-20250514',
+                    model: 'claude-sonnet-4-6',
                     max_tokens: 3000,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'explorer-careers');
@@ -26766,7 +26766,7 @@ Extract ALL positions. ALL certifications from sidebar AND body. Values: 4-7 spe
 
             try {
                 var data = await callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 300,
                         messages: [{
                             role: 'user',
@@ -33874,7 +33874,7 @@ body {
 
             try {
                 var response = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-20250514', max_tokens: 2000,
+                    model: 'claude-sonnet-4-6', max_tokens: 2000,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'explorer-people');
                 var text = response.content[0].text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
@@ -33943,7 +33943,7 @@ body {
                 + '{"careerPaths":[{"title":"...","whyFit":"...","salary":"$XX,000-$YY,000","entryValue":45000,"midValue":72000,"seniorValue":110000,"growth":"...","skillsYouHave":["Skill1"],"skillsToLearn":[{"name":"...","valueAdd":8000,"timeToLearn":"2-3 months","how":"..."}],"nextSteps":["Step 1"]}],"values":["Value1","Value2"]}';
             try {
                 var response = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-20250514', max_tokens: 3000,
+                    model: 'claude-sonnet-4-6', max_tokens: 3000,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'explorer-careers');
                 var text = response.content[0].text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
@@ -41923,7 +41923,7 @@ body {
                     + 'Do NOT include placeholder brackets like [Company] or [Name]. Use the actual names provided.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 1500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'cover-letter')
@@ -42116,7 +42116,7 @@ body {
                     + 'Format with clear section headers. Be specific, not generic.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 2500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'interview-prep')
@@ -42276,7 +42276,7 @@ body {
                     + 'Separate each section with a clear header.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 1500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'linkedin-profile')
@@ -44259,7 +44259,7 @@ body {
                 + '- If no clear title, use "Untitled Position"\n';
             
             var data = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-20250514',
+                    model: 'claude-sonnet-4-6',
                     max_tokens: 8000,
                     system: systemPrompt,
                     messages: [{ role: 'user', content: userPrompt }]
@@ -53169,7 +53169,7 @@ body {
 
             try {
                 var data = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-20250514',
+                    model: 'claude-sonnet-4-6',
                     max_tokens: 1800,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'negotiation_guide');

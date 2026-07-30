@@ -1,7 +1,7 @@
 
         // ============================================================
         // BLUEPRINT v4.46.90 - BUILD 20260314-security-hardening
-        var BP_VERSION = 'v4.48.30';
+        var BP_VERSION = 'v4.48.31';
         
         // ===== JOB SCHEMA VERSION =====
         // Schema.org + JDX JobSchema+ aligned structured job format
@@ -4317,7 +4317,7 @@
                     var probeRes = await fetch(AI_PROXY_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-                        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] })
+                        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] })
                     });
                     if (probeRes.ok) {
                         recordApiHealth('anthropic-proxy', 'ok', 'Operational');
@@ -21082,7 +21082,7 @@ Rules:
                 }
 
                 var data = await callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 4000,
                         system: systemPrompt,
                         messages: [{ role: 'user', content: userContent }]
@@ -21759,7 +21759,7 @@ Rules:
 
             try {
                 var data = await callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 300,
                         messages: [{
                             role: 'user',
@@ -33934,7 +33934,7 @@ body {
                     + 'Do NOT include placeholder brackets like [Company] or [Name]. Use the actual names provided.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 1500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'cover-letter')
@@ -34125,7 +34125,7 @@ body {
                     + 'Format with clear section headers. Be specific, not generic.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 2500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'interview-prep')
@@ -34283,7 +34283,7 @@ body {
                     + 'Separate each section with a clear header.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 1500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'linkedin-profile')
@@ -36119,7 +36119,7 @@ body {
                 + '- If no clear title, use "Untitled Position"\n';
             
             var data = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-20250514',
+                    model: 'claude-sonnet-4-6',
                     max_tokens: 4000,
                     system: systemPrompt,
                     messages: [{ role: 'user', content: userPrompt }]
@@ -44650,7 +44650,7 @@ body {
 
             try {
                 var data = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-20250514',
+                    model: 'claude-sonnet-4-6',
                     max_tokens: 1800,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'negotiation_guide');

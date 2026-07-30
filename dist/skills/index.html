@@ -4374,7 +4374,7 @@
                     var probeRes = await fetch(AI_PROXY_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-                        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] })
+                        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] })
                     });
                     if (probeRes.ok) {
                         recordApiHealth('anthropic-proxy', 'ok', 'Operational');
@@ -10181,7 +10181,7 @@ Rules:
                 }
 
                 var data = await callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 4000,
                         system: systemPrompt,
                         messages: [{ role: 'user', content: userContent }]
@@ -10858,7 +10858,7 @@ Rules:
 
             try {
                 var data = await callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 300,
                         messages: [{
                             role: 'user',
@@ -20854,7 +20854,7 @@ body {
                     + 'Do NOT include placeholder brackets like [Company] or [Name]. Use the actual names provided.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 1500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'cover-letter')
@@ -21045,7 +21045,7 @@ body {
                     + 'Format with clear section headers. Be specific, not generic.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 2500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'interview-prep')
@@ -21203,7 +21203,7 @@ body {
                     + 'Separate each section with a clear header.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-6',
                         max_tokens: 1500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'linkedin-profile')
@@ -21907,7 +21907,7 @@ body {
                 + '- For common role-implied skills that are obvious but unstated (e.g., ATS for recruiters, Excel for analysts, Git for developers), include them as Preferred';
             
             var data = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-20250514',
+                    model: 'claude-sonnet-4-6',
                     max_tokens: 2000,
                     system: systemPrompt,
                     messages: [{ role: 'user', content: userPrompt }]

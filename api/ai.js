@@ -139,9 +139,9 @@ export default async function handler(req, res) {
         const body = req.body;
         
         // Enforce model and limits (prevent abuse)
-        const allowedModels = ['claude-sonnet-4-20250514', 'claude-haiku-4-5-20251001'];
+        const allowedModels = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001'];
         if (!allowedModels.includes(body.model)) {
-            body.model = 'claude-sonnet-4-20250514';
+            body.model = 'claude-sonnet-4-6';
         }
         if (!body.max_tokens) {
             body.max_tokens = 4096;

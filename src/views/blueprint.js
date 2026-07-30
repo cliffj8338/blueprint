@@ -7000,7 +7000,7 @@ export function buildCoverLetter(jobIdx) {
             + 'Do NOT include placeholder brackets like [Company] or [Name]. Use the actual names provided.';
 
         callAnthropicAPI({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-sonnet-4-6',
                 max_tokens: 1500,
                 messages: [{ role: 'user', content: prompt }]
             }, apiKey, 'cover-letter')
@@ -7191,7 +7191,7 @@ export function buildInterviewPrep(jobIdx) {
             + 'Format with clear section headers. Be specific, not generic.';
 
         callAnthropicAPI({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-sonnet-4-6',
                 max_tokens: 2500,
                 messages: [{ role: 'user', content: prompt }]
             }, apiKey, 'interview-prep')
@@ -7349,7 +7349,7 @@ export function generateLinkedInProfile() {
             + 'Separate each section with a clear header.';
 
         callAnthropicAPI({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-sonnet-4-6',
                 max_tokens: 1500,
                 messages: [{ role: 'user', content: prompt }]
             }, apiKey, 'linkedin-profile')
