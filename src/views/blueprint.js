@@ -5,6 +5,7 @@ import { bpIcon }                          from '../ui/icons.js';
 import { escapeHtml, sanitizeImport }      from '../core/security.js';
 import { showToast }                       from '../ui/toast.js';
 import { _sd, _bd, waitForUserData }       from '../core/data-helpers.js';
+import { BP_AI_MODEL, BP_AI_MODEL_FAST }   from '../core/constants.js';
 
 export async function initBlueprint() {
     if (!window._userData || !window._userData.initialized) {
@@ -306,7 +307,7 @@ async function _fetchCompanyValuesFromAI(companyName) {
         + '- If you don\'t know the company, return primary: ["Innovation", "Integrity", "Collaboration", "Excellence", "Customer Focus"] as reasonable defaults and note in story that values are estimated';
     
     var aiRes = await callAnthropicAPI({
-        model: 'claude-haiku-4-5-20251001',
+        model: BP_AI_MODEL_FAST,
         max_tokens: 512,
         messages: [{ role: 'user', content: prompt }]
     }, null, 'company-values-lookup');
@@ -3131,7 +3132,7 @@ async function generatePurposeAI() {
 
     try {
         var resp = await callAnthropicAPI({
-            model: 'claude-haiku-4-5-20251001',
+            model: BP_AI_MODEL_FAST,
             max_tokens: 200,
             messages: [{ role: 'user', content: prompt }]
         }, null, 'purpose-regen');
@@ -3914,8 +3915,8 @@ export function showReportOverlay(reportData, jobIdx) {
             overlay.appendChild(container);
             document.body.appendChild(overlay);
             
-            overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
-            var escHandler = function(e) { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }};
+            var escHandler = function(e) { if (!overlay.isConnected) { document.removeEventListener('keydown', escHandler); return; } if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }};
+            overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); document.removeEventListener('keydown', escHandler); } });
             document.addEventListener('keydown', escHandler);
         })
         .catch(function(err) {
@@ -5479,7 +5480,6 @@ export function generatePDF(data, targetJob) {
     }
     
     
-    
     // ============================================================
     // PAGE 1: COVER
     // ============================================================
@@ -7000,7 +7000,7 @@ export function buildCoverLetter(jobIdx) {
             + 'Do NOT include placeholder brackets like [Company] or [Name]. Use the actual names provided.';
 
         callAnthropicAPI({
-                model: 'claude-sonnet-4-6',
+                model: BP_AI_MODEL,
                 max_tokens: 1500,
                 messages: [{ role: 'user', content: prompt }]
             }, apiKey, 'cover-letter')
@@ -7191,7 +7191,7 @@ export function buildInterviewPrep(jobIdx) {
             + 'Format with clear section headers. Be specific, not generic.';
 
         callAnthropicAPI({
-                model: 'claude-sonnet-4-6',
+                model: BP_AI_MODEL,
                 max_tokens: 2500,
                 messages: [{ role: 'user', content: prompt }]
             }, apiKey, 'interview-prep')
@@ -7349,7 +7349,7 @@ export function generateLinkedInProfile() {
             + 'Separate each section with a clear header.';
 
         callAnthropicAPI({
-                model: 'claude-sonnet-4-6',
+                model: BP_AI_MODEL,
                 max_tokens: 1500,
                 messages: [{ role: 'user', content: prompt }]
             }, apiKey, 'linkedin-profile')

@@ -1,7 +1,12 @@
 
         // ============================================================
         // BLUEPRINT v4.47.09 - BUILD 20260315-domain-inject-at-parse-time
-        var BP_VERSION = 'v4.48.31';
+        var BP_VERSION = 'v4.48.32';
+        // ===== AI MODEL IDS =====
+        // Keep in sync with src/core/constants.js (single source of truth)
+        var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';
+        var BP_AI_MODEL_FAST = window.BP_AI_MODEL_FAST || 'claude-haiku-4-5-20251001';
+
 
         var BP_PALETTE = {
             blue: '#60a5fa', purple: '#bf5af2', green: '#30d158',
@@ -436,6 +441,10 @@
                             recordApiHealth('anthropic-proxy', 'ok', 'Operational');
                             var jsonData = await proxyRes.json();
                             console.log('[BP API] Proxy success, response type:', jsonData?.type);
+                            if (proxyRes.headers.get('X-BP-Model-Fallback') === '1') {
+                                recordApiHealth('anthropic-proxy', 'degraded', 'AI model retired: server fell back to default model', { model: modelName });
+                                logIncident('critical', 'anthropic-model-retired', 'Requested AI model "' + modelName + '" was rejected by Anthropic (likely retired); server fell back to the default model. Update the model allowlist in api/ai.js.', { model: modelName });
+                            }
                             trackAICall(featureTag);
                             if (featureTag && _aiCacheableFeatures[featureTag]) _aiCacheSet(featureTag, promptText, modelName, jsonData);
                             return jsonData;
@@ -457,6 +466,16 @@
                             var errBody = {}; try { errBody = await proxyRes.json(); } catch(e) {}
                             var errMsg = (errBody.error && typeof errBody.error === 'object' ? errBody.error.message : errBody.error) || 'AI request failed (status ' + proxyRes.status + ')';
                             console.error('AI Proxy ' + proxyRes.status + ':', errMsg, errBody);
+                            var _isModelRetired = proxyRes.status === 404
+                                && errBody.error && typeof errBody.error === 'object'
+                                && errBody.error.type === 'not_found_error'
+                                && /model/i.test(errBody.error.message || '');
+                            if (_isModelRetired) {
+                                recordApiHealth('anthropic-proxy', 'degraded', 'AI model retired: ' + errMsg, { status: 404, error: errMsg });
+                                logIncident('critical', 'anthropic-model-retired', 'Anthropic rejected the requested AI model (likely retired). Raw error: ' + errMsg, { model: modelName });
+                                proxyApiError = new Error('AI model updated, please retry. If this keeps happening, the app needs a model update.');
+                                break;
+                            }
                             var healthStatus = errMsg.includes('credit balance') ? 'down' : 'degraded';
                             var healthMsg = errMsg.includes('credit balance') ? 'Credits depleted' : 'Error: ' + errMsg;
                             recordApiHealth('anthropic-proxy', healthStatus, healthMsg, { status: proxyRes.status, error: errMsg });
@@ -5102,7 +5121,7 @@
                     var probeRes = await fetch(AI_PROXY_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-                        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] })
+                        body: JSON.stringify({ model: BP_AI_MODEL, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] })
                     });
                     if (probeRes.ok) {
                         recordApiHealth('anthropic-proxy', 'ok', 'Operational');
@@ -6352,7 +6371,7 @@
                     + '}';
 
                 var aiRes = await callAnthropicAPI({
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 1024,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'wb-company-research');
@@ -6922,7 +6941,7 @@
             showToast('Generating descriptions for ' + vals.length + ' values...', 'info');
             try {
                 var prompt = 'For the role "' + (_wbw.title || 'this role') + '" at "' + (_wbw.company || 'this company') + '", write a 1-2 sentence professional description for each workplace value below. Return JSON array of objects with "name" and "description" keys.\n\nValues:\n' + vals.map(function(n) { return '- ' + n; }).join('\n');
-                var resp = await callAnthropicAPI({ model: 'claude-haiku-4-5-20251001', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] }, null, 'wb-value-desc-bulk');
+                var resp = await callAnthropicAPI({ model: BP_AI_MODEL_FAST, max_tokens: 1500, messages: [{ role: 'user', content: prompt }] }, null, 'wb-value-desc-bulk');
                 var respText = (resp.content && resp.content[0] && resp.content[0].text) || (typeof resp === 'string' ? resp : JSON.stringify(resp));
                 var parsed = [];
                 try { parsed = JSON.parse(respText.replace(/```json?\n?/g, '').replace(/```/g, '').trim()); } catch(e) { console.warn('[WBW] Value desc JSON parse failed:', e.message); }
@@ -6947,7 +6966,7 @@
             if (descEl) descEl.placeholder = 'Generating...';
             try {
                 var prompt = 'For the role "' + (_wbw.title || 'this role') + '" at "' + (_wbw.company || 'this company') + '", write a 1-2 sentence professional description of the workplace value "' + name + '". Return only the description text, no JSON.';
-                var resp = await callAnthropicAPI({ model: 'claude-haiku-4-5-20251001', max_tokens: 300, messages: [{ role: 'user', content: prompt }] }, null, 'wb-value-desc');
+                var resp = await callAnthropicAPI({ model: BP_AI_MODEL_FAST, max_tokens: 300, messages: [{ role: 'user', content: prompt }] }, null, 'wb-value-desc');
                 var desc = ((resp.content && resp.content[0] && resp.content[0].text) || (typeof resp === 'string' ? resp : '')).replace(/^["']|["']$/g, '').trim();
                 _wbw.valueDescriptions[name] = desc;
                 if (descEl) descEl.value = desc;
@@ -9944,7 +9963,7 @@
                 var roleCtx = (_jdcResult.title || 'professional') + ' at ' + (_jdcResult.company || 'a company');
                 var valueNames = missing.map(function(m) { return m.name; }).join(', ');
                 var requestBody = {
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 1024,
                     messages: [{ role: 'user', content: 'For the role of "' + roleCtx + '", write a concise one-sentence professional description for each of these workplace values. Each description should explain what the value means in this professional context and how it manifests in day-to-day work. Return ONLY a JSON array of objects with "name" and "description" fields, no other text.\n\nValues: ' + valueNames }]
                 };
@@ -9985,7 +10004,7 @@
             try {
                 var roleCtx = (_jdcResult.title || 'professional') + ' at ' + (_jdcResult.company || 'a company');
                 var requestBody = {
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 256,
                     messages: [{ role: 'user', content: 'For the role of "' + roleCtx + '", write a concise one-sentence professional description for this workplace value: "' + name + '". The description should explain what it means in this professional context. Return ONLY the description text, nothing else.' }]
                 };
@@ -10030,7 +10049,7 @@
                 var seniority = _jdcResult.seniority ? ' (seniority: ' + _jdcResult.seniority + ')' : '';
                 var skillNames = missing.map(function(m) { return m.name; }).join(', ');
                 var requestBody = {
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 1500,
                     messages: [{ role: 'user', content: 'For the role of "' + roleCtx + '"' + industry + seniority + ', write a concise one-sentence expected outcome for each of these skills. Each outcome should describe what success looks like when applying this skill in the role, using an action verb (e.g. Execute, Deliver, Manage, Apply, Lead). Return ONLY a JSON array of objects with "name" and "outcome" fields, no other text.\n\nSkills: ' + skillNames }]
                 };
@@ -10073,7 +10092,7 @@
                 var industry = _jdcResult.industry ? ' in the ' + _jdcResult.industry + ' industry' : '';
                 var seniority = _jdcResult.seniority ? ' (seniority: ' + _jdcResult.seniority + ')' : '';
                 var requestBody = {
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 128,
                     messages: [{ role: 'user', content: 'For the role of "' + roleCtx + '"' + industry + seniority + ', write a concise one-sentence expected outcome for this skill: "' + s.name + '". The outcome should describe what success looks like using an action verb (e.g. Execute, Deliver, Manage, Apply). Return ONLY the outcome text, nothing else.' }]
                 };
@@ -10123,7 +10142,7 @@
             showToast('Generating demonstrated experience...', 'info', 6000);
             try {
                 var resp = await callAnthropicAPI({
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 1200,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'wb-demonstrated');
@@ -14078,20 +14097,23 @@
             html += '</div>';
             el.innerHTML = html;
 
-            el.addEventListener('click', function(e) {
-                var btn = e.target.closest('[data-audit-action]');
-                if (!btn) return;
-                e.stopPropagation();
-                var action = btn.getAttribute('data-audit-action');
-                var skill = btn.getAttribute('data-skill');
-                if (!skill) return;
-                if (action === 'approve') {
-                    adminApproveSkill(skill);
-                } else if (action === 'block') {
-                    adminBlockFromAudit(skill);
-                }
-                renderParseAudit(document.getElementById('adminTabContent'));
-            });
+            if (!el._parseAuditClickBound) {
+                el._parseAuditClickBound = true;
+                el.addEventListener('click', function(e) {
+                    var btn = e.target.closest('[data-audit-action]');
+                    if (!btn) return;
+                    e.stopPropagation();
+                    var action = btn.getAttribute('data-audit-action');
+                    var skill = btn.getAttribute('data-skill');
+                    if (!skill) return;
+                    if (action === 'approve') {
+                        adminApproveSkill(skill);
+                    } else if (action === 'block') {
+                        adminBlockFromAudit(skill);
+                    }
+                    renderParseAudit(document.getElementById('adminTabContent'));
+                });
+            }
         }
 
         async function _parseAuditRun() {
@@ -23090,7 +23112,7 @@
 
             try {
                 var response = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-6',
+                    model: BP_AI_MODEL,
                     max_tokens: 500,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'explorer-ai-expand');
@@ -23387,7 +23409,7 @@
 
             try {
                 var response = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-6',
+                    model: BP_AI_MODEL,
                     max_tokens: 3000,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'explorer-skills');
@@ -23557,7 +23579,7 @@
 
             try {
                 var response = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-6',
+                    model: BP_AI_MODEL,
                     max_tokens: 3000,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'explorer-careers');
@@ -25005,7 +25027,7 @@ Extract ALL positions. ALL certifications from sidebar AND body. Values: 4-7 spe
                 var data1;
                 try {
                     data1 = await callAnthropicAPI({
-                        model: 'claude-haiku-4-5-20251001',
+                        model: BP_AI_MODEL_FAST,
                         max_tokens: 5000,
                         system: structPrompt,
                         messages: [
@@ -25057,7 +25079,7 @@ Extract ALL positions. ALL certifications from sidebar AND body. Values: 4-7 spe
                 var data2;
                 try {
                     data2 = await callAnthropicAPI({
-                        model: 'claude-haiku-4-5-20251001',
+                        model: BP_AI_MODEL_FAST,
                         max_tokens: 6000,
                         messages: [{ role: 'user', content: skillPrompt }]
                     }, wizardApiKey, 'resume-parse');
@@ -25939,7 +25961,7 @@ Extract ALL positions. ALL certifications from sidebar AND body. Values: 4-7 spe
             try {
                 var aiKey = safeGet('wbAnthropicKey');
                 var data = await callAnthropicAPI({
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 1500,
                     messages: [{ role: 'user', content: prompt }]
                 }, aiKey, 'skill-market-intel');
@@ -26766,7 +26788,7 @@ Extract ALL positions. ALL certifications from sidebar AND body. Values: 4-7 spe
 
             try {
                 var data = await callAnthropicAPI({
-                        model: 'claude-sonnet-4-6',
+                        model: BP_AI_MODEL,
                         max_tokens: 300,
                         messages: [{
                             role: 'user',
@@ -27290,7 +27312,11 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
                     function dismissDropdown(e) {
                         var d = document.getElementById('jobSelectorDropdown');
                         var p = document.getElementById('jobSelectorPill');
-                        if (d && !d.contains(e.target) && (!p || !p.contains(e.target))) {
+                        if (!d) {
+                            document.removeEventListener('click', dismissDropdown, true);
+                            return;
+                        }
+                        if (!d.contains(e.target) && (!p || !p.contains(e.target))) {
                             jobSelectorExpanded = false;
                             renderJobSelectorWidget();
                             document.removeEventListener('click', dismissDropdown, true);
@@ -28993,17 +29019,39 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
                 panelStartY = rect.top;
                 e.preventDefault();
             });
-            document.addEventListener('mousemove', function(e) {
+            function cleanupDragListeners() {
+                document.removeEventListener('mousemove', onDocMouseMove);
+                document.removeEventListener('mouseup', onDocMouseUp);
+                document.removeEventListener('touchmove', onDocTouchMove);
+                document.removeEventListener('touchend', onDocTouchEnd);
+            }
+            function onDocMouseMove(e) {
+                if (!panel.isConnected) { cleanupDragListeners(); return; }
                 if (!isDragging) return;
                 var dx = e.clientX - startX;
                 var dy = e.clientY - startY;
                 panel.style.left = Math.max(0, Math.min(window.innerWidth - 100, panelStartX + dx)) + 'px';
                 panel.style.top = Math.max(0, Math.min(window.innerHeight - 50, panelStartY + dy)) + 'px';
                 panel.style.bottom = 'auto';
-            });
-            document.addEventListener('mouseup', function() {
+            }
+            function onDocMouseUp() {
+                if (!panel.isConnected) { cleanupDragListeners(); return; }
                 if (isDragging) { isDragging = false; handle.style.cursor = 'grab'; }
-            });
+            }
+            function onDocTouchMove(e) {
+                if (!panel.isConnected) { cleanupDragListeners(); return; }
+                if (!isDragging) return;
+                var touch = e.touches[0];
+                panel.style.left = Math.max(0, panelStartX + touch.clientX - startX) + 'px';
+                panel.style.top = Math.max(0, panelStartY + touch.clientY - startY) + 'px';
+                panel.style.bottom = 'auto';
+            }
+            function onDocTouchEnd() {
+                if (!panel.isConnected) { cleanupDragListeners(); return; }
+                isDragging = false;
+            }
+            document.addEventListener('mousemove', onDocMouseMove);
+            document.addEventListener('mouseup', onDocMouseUp);
             
             // Touch support
             handle.addEventListener('touchstart', function(e) {
@@ -29014,14 +29062,8 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
                 startX = touch.clientX; startY = touch.clientY;
                 panelStartX = rect.left; panelStartY = rect.top;
             }, { passive: true });
-            document.addEventListener('touchmove', function(e) {
-                if (!isDragging) return;
-                var touch = e.touches[0];
-                panel.style.left = Math.max(0, panelStartX + touch.clientX - startX) + 'px';
-                panel.style.top = Math.max(0, panelStartY + touch.clientY - startY) + 'px';
-                panel.style.bottom = 'auto';
-            }, { passive: true });
-            document.addEventListener('touchend', function() { isDragging = false; });
+            document.addEventListener('touchmove', onDocTouchMove, { passive: true });
+            document.addEventListener('touchend', onDocTouchEnd);
         }
         
         function findJobIdx() {
@@ -30047,8 +30089,8 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
             overlay.appendChild(container);
             document.body.appendChild(overlay);
             
-            overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
-            var escHandler = function(e) { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }};
+            var escHandler = function(e) { if (!overlay.isConnected) { document.removeEventListener('keydown', escHandler); return; } if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }};
+            overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); document.removeEventListener('keydown', escHandler); } });
             document.addEventListener('keydown', escHandler);
         }
         window.openDemoScoutingReport = openDemoScoutingReport;
@@ -32509,7 +32551,7 @@ body {
                 + '- If you don\'t know the company, return primary: ["Innovation", "Integrity", "Collaboration", "Excellence", "Customer Focus"] as reasonable defaults and note in story that values are estimated';
             
             var aiRes = await callAnthropicAPI({
-                model: 'claude-haiku-4-5-20251001',
+                model: BP_AI_MODEL_FAST,
                 max_tokens: 512,
                 messages: [{ role: 'user', content: prompt }]
             }, null, 'company-values-lookup');
@@ -33874,7 +33916,7 @@ body {
 
             try {
                 var response = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-6', max_tokens: 2000,
+                    model: BP_AI_MODEL, max_tokens: 2000,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'explorer-people');
                 var text = response.content[0].text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
@@ -33943,7 +33985,7 @@ body {
                 + '{"careerPaths":[{"title":"...","whyFit":"...","salary":"$XX,000-$YY,000","entryValue":45000,"midValue":72000,"seniorValue":110000,"growth":"...","skillsYouHave":["Skill1"],"skillsToLearn":[{"name":"...","valueAdd":8000,"timeToLearn":"2-3 months","how":"..."}],"nextSteps":["Step 1"]}],"values":["Value1","Value2"]}';
             try {
                 var response = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-6', max_tokens: 3000,
+                    model: BP_AI_MODEL, max_tokens: 3000,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'explorer-careers');
                 var text = response.content[0].text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
@@ -36882,7 +36924,7 @@ body {
 
             try {
                 var resp = await callAnthropicAPI({
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 200,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'purpose-regen');
@@ -37822,8 +37864,8 @@ body {
                     overlay.appendChild(container);
                     document.body.appendChild(overlay);
                     
-                    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
-                    var escHandler = function(e) { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }};
+                    var escHandler = function(e) { if (!overlay.isConnected) { document.removeEventListener('keydown', escHandler); return; } if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }};
+                    overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); document.removeEventListener('keydown', escHandler); } });
                     document.addEventListener('keydown', escHandler);
                 })
                 .catch(function(err) {
@@ -40402,7 +40444,6 @@ body {
             }
             
             
-            
             // ============================================================
             // PAGE 1: COVER
             // ============================================================
@@ -41923,7 +41964,7 @@ body {
                     + 'Do NOT include placeholder brackets like [Company] or [Name]. Use the actual names provided.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-6',
+                        model: BP_AI_MODEL,
                         max_tokens: 1500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'cover-letter')
@@ -42116,7 +42157,7 @@ body {
                     + 'Format with clear section headers. Be specific, not generic.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-6',
+                        model: BP_AI_MODEL,
                         max_tokens: 2500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'interview-prep')
@@ -42276,7 +42317,7 @@ body {
                     + 'Separate each section with a clear header.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-6',
+                        model: BP_AI_MODEL,
                         max_tokens: 1500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'linkedin-profile')
@@ -44259,7 +44300,7 @@ body {
                 + '- If no clear title, use "Untitled Position"\n';
             
             var data = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-6',
+                    model: BP_AI_MODEL,
                     max_tokens: 8000,
                     system: systemPrompt,
                     messages: [{ role: 'user', content: userPrompt }]
@@ -49352,10 +49393,7 @@ body {
         // [removed] generatePitch — dead code cleanup v4.22.0
         
         
-        
-        
         // [removed] viewOnNetwork — dead code cleanup v4.22.0
-        
         
         
         // ===== SETTINGS SYSTEM =====
@@ -53169,10 +53207,11 @@ body {
 
             try {
                 var data = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-6',
-                    max_tokens: 1800,
+                    model: BP_AI_MODEL,
+                    max_tokens: 4000,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'negotiation_guide');
+                if (data.stop_reason === 'max_tokens') throw new Error('AI response was cut off (too long). Please try again.');
                 var raw = (data.content || []).map(function(b) { return b.text || ''; }).join('');
                 raw = raw.replace(/```json|```/g, '').trim();
                 var jsonStart = raw.indexOf('{');
@@ -53188,10 +53227,14 @@ body {
         window._buildNegGuideWithAI = _buildNegGuideWithAI;
 
         function _renderNegGuideError(renderFn, errMsg, lastMode, lastRole, lastTv) {
+            var isModelUpdate = errMsg && (errMsg.indexOf('AI model updated') > -1 || (/model/i.test(errMsg) && /not_found|not found|404/i.test(errMsg)));
             var isTransient = errMsg && (errMsg.indexOf('overloaded') > -1 || errMsg.indexOf('temporarily') > -1 || errMsg.indexOf('timed out') > -1 || errMsg.indexOf('Rate limit') > -1);
-            var userMsg = isTransient
+            var userMsg = isModelUpdate
+                ? 'AI model updated, please retry.'
+                : isTransient
                 ? 'The AI service is temporarily busy. This usually resolves within a minute.'
                 : 'Could not generate your guide. Please check your connection and try again.';
+            if (isModelUpdate) errMsg = null; // hide raw API error text
             var retryBtn = (lastMode && lastRole && typeof _buildNegGuideWithAI === 'function')
                 ? '<button onclick="_buildNegGuideWithAI(\'' + (lastMode || 'external') + '\', window._negGuideLastRole, window._negGuideLastTv, function(h){var mc=document.querySelector(\'#exportModal .modal-content\');if(mc)mc.innerHTML=h;})" style="margin-top:12px; padding:10px 24px; background:var(--accent); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:700;">' + bpIcon('refresh-cw',14) + ' Try Again</button>'
                 : '';
@@ -55116,7 +55159,6 @@ body {
         // ===== UNIFIED SKILL MANAGEMENT SYSTEM (v2.4.0) =====
         
 
-
         // Build category dropdown from actual skills in this profile — only show categories that exist
         window.populateCategoryFilter = function populateCategoryFilter() {
             const select = document.getElementById('yourSkillsCategoryFilter');
@@ -55970,6 +56012,7 @@ body {
             
             // Close on Escape
             var escHandler = function(e) {
+                if (!overlay.isConnected) { document.removeEventListener('keydown', escHandler); return; }
                 if (e.key === 'Escape') { closeTeaserModal(); document.removeEventListener('keydown', escHandler); }
             };
             document.addEventListener('keydown', escHandler);
@@ -56107,18 +56150,12 @@ body {
         // [removed] updateBulkModeBar — dead code cleanup v4.22.0
         
         
-        
-        
-        
         // ===== SKILL TEMPLATES =====
-        
-        
         
         
         // ===== SORTING =====
         
         let currentSort = 'category'; // category, proficiency, alphabetical, role, core, recent
-        
         
         
         // Resize handler — preserves active job match mode

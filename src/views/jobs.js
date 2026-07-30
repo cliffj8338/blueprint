@@ -5,6 +5,7 @@ import { bpIcon }                          from '../ui/icons.js';
 import { escapeHtml }                      from '../core/security.js';
 import { showToast }                       from '../ui/toast.js';
 import { _sd, _bd, waitForUserData }       from '../core/data-helpers.js';
+import { BP_AI_MODEL, BP_AI_MODEL_FAST }   from '../core/constants.js';
 
 var _fitForMeExpanded = {};
 var _fitForMeSort = 'score-desc';
@@ -1508,7 +1509,7 @@ async function parseJobWithAPI(jdText, apiKey) {
         + '- If no clear title, use "Untitled Position"\n';
     
     var data = await callAnthropicAPI({
-            model: 'claude-sonnet-4-6',
+            model: BP_AI_MODEL,
             max_tokens: 4000,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }]

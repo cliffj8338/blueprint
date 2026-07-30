@@ -152,7 +152,11 @@ export function renderJobSelectorWidget() {
             function dismissDropdown(e) {
                 var d = document.getElementById('jobSelectorDropdown');
                 var p = document.getElementById('jobSelectorPill');
-                if (d && !d.contains(e.target) && (!p || !p.contains(e.target))) {
+                if (!d) {
+                    document.removeEventListener('click', dismissDropdown, true);
+                    return;
+                }
+                if (!d.contains(e.target) && (!p || !p.contains(e.target))) {
                     jobSelectorExpanded = false;
                     renderJobSelectorWidget();
                     document.removeEventListener('click', dismissDropdown, true);
@@ -1753,17 +1757,39 @@ export function initPanelDrag(panel, handle) {
         panelStartY = rect.top;
         e.preventDefault();
     });
-    document.addEventListener('mousemove', function(e) {
+    function cleanupDragListeners() {
+        document.removeEventListener('mousemove', onDocMouseMove);
+        document.removeEventListener('mouseup', onDocMouseUp);
+        document.removeEventListener('touchmove', onDocTouchMove);
+        document.removeEventListener('touchend', onDocTouchEnd);
+    }
+    function onDocMouseMove(e) {
+        if (!panel.isConnected) { cleanupDragListeners(); return; }
         if (!isDragging) return;
         var dx = e.clientX - startX;
         var dy = e.clientY - startY;
         panel.style.left = Math.max(0, Math.min(window.innerWidth - 100, panelStartX + dx)) + 'px';
         panel.style.top = Math.max(0, Math.min(window.innerHeight - 50, panelStartY + dy)) + 'px';
         panel.style.bottom = 'auto';
-    });
-    document.addEventListener('mouseup', function() {
+    }
+    function onDocMouseUp() {
+        if (!panel.isConnected) { cleanupDragListeners(); return; }
         if (isDragging) { isDragging = false; handle.style.cursor = 'grab'; }
-    });
+    }
+    function onDocTouchMove(e) {
+        if (!panel.isConnected) { cleanupDragListeners(); return; }
+        if (!isDragging) return;
+        var touch = e.touches[0];
+        panel.style.left = Math.max(0, panelStartX + touch.clientX - startX) + 'px';
+        panel.style.top = Math.max(0, panelStartY + touch.clientY - startY) + 'px';
+        panel.style.bottom = 'auto';
+    }
+    function onDocTouchEnd() {
+        if (!panel.isConnected) { cleanupDragListeners(); return; }
+        isDragging = false;
+    }
+    document.addEventListener('mousemove', onDocMouseMove);
+    document.addEventListener('mouseup', onDocMouseUp);
     
     // Touch support
     handle.addEventListener('touchstart', function(e) {
@@ -1774,14 +1800,8 @@ export function initPanelDrag(panel, handle) {
         startX = touch.clientX; startY = touch.clientY;
         panelStartX = rect.left; panelStartY = rect.top;
     }, { passive: true });
-    document.addEventListener('touchmove', function(e) {
-        if (!isDragging) return;
-        var touch = e.touches[0];
-        panel.style.left = Math.max(0, panelStartX + touch.clientX - startX) + 'px';
-        panel.style.top = Math.max(0, panelStartY + touch.clientY - startY) + 'px';
-        panel.style.bottom = 'auto';
-    }, { passive: true });
-    document.addEventListener('touchend', function() { isDragging = false; });
+    document.addEventListener('touchmove', onDocTouchMove, { passive: true });
+    document.addEventListener('touchend', onDocTouchEnd);
 }
 
 export function findJobIdx() {

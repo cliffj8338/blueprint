@@ -5,6 +5,7 @@ import { bpIcon }                                 from '../ui/icons.js';
 import { escapeHtml, sanitizeImport, safeGet }    from '../core/security.js';
 import { showToast }                              from '../ui/toast.js';
 import { _sd, _bd, waitForUserData }              from '../core/data-helpers.js';
+import { BP_AI_MODEL, BP_AI_MODEL_FAST }          from '../core/constants.js';
 
 // ===== WELCOME / LANDING PAGE =====
 export function renderWelcomePage() {
@@ -6289,7 +6290,7 @@ Rules:
         }
 
         var data = await callAnthropicAPI({
-                model: 'claude-sonnet-4-6',
+                model: BP_AI_MODEL,
                 max_tokens: 4000,
                 system: systemPrompt,
                 messages: [{ role: 'user', content: userContent }]
@@ -6966,7 +6967,7 @@ async function wizardRegeneratePurpose() {
 
     try {
         var data = await callAnthropicAPI({
-                model: 'claude-sonnet-4-6',
+                model: BP_AI_MODEL,
                 max_tokens: 300,
                 messages: [{
                     role: 'user',
@@ -7394,7 +7395,7 @@ export async function explorerRunSkillDiscovery() {
 
     try {
         var response = await callAnthropicAPI({
-            model: 'claude-sonnet-4-6',
+            model: BP_AI_MODEL,
             max_tokens: 3000,
             messages: [{ role: 'user', content: prompt }]
         }, null, 'explorer-skills');
@@ -7549,7 +7550,7 @@ export async function explorerSaveSkills() {
 
     try {
         var response = await callAnthropicAPI({
-            model: 'claude-sonnet-4-6',
+            model: BP_AI_MODEL,
             max_tokens: 3000,
             messages: [{ role: 'user', content: prompt }]
         }, null, 'explorer-careers');

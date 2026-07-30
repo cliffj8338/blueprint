@@ -3,7 +3,7 @@
  * MONOLITH LINES: 1723–2066
  */
 
-export var BP_VERSION = 'v4.48.31';
+export var BP_VERSION = 'v4.48.32';
 export var BP_BUILD   = '20260406-design-polish';
 export var JOB_SCHEMA_VERSION = '2.0';
 export var JOB_SKILLS_CAP     = 50;
@@ -14,6 +14,13 @@ export var INCIDENT_MAX       = 50;
 export var AI_INPUT_COST_PER_M  = 3.0;
 export var AI_OUTPUT_COST_PER_M = 15.0;
 export var AI_PROXY_URL       = '/api/ai';
+
+// ===== AI MODEL IDS (single source of truth) =====
+// Change these two lines when migrating models; keep api/ai.js allowlist in sync.
+export var BP_AI_MODEL      = 'claude-sonnet-4-6';            // default (Sonnet)
+export var BP_AI_MODEL_FAST = 'claude-haiku-4-5-20251001';    // fast/cheap (Haiku)
+window.BP_AI_MODEL      = BP_AI_MODEL;
+window.BP_AI_MODEL_FAST = BP_AI_MODEL_FAST;
 
 export var devStats = {
     firstCommit: '2025-12-28', lineCount: 44041, sessionsAI: 49,

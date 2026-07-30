@@ -285,6 +285,7 @@ export function showTeaserModal() {
     
     // Close on Escape
     var escHandler = function(e) {
+        if (!overlay.isConnected) { document.removeEventListener('keydown', escHandler); return; }
         if (e.key === 'Escape') { closeTeaserModal(); document.removeEventListener('keydown', escHandler); }
     };
     document.addEventListener('keydown', escHandler);

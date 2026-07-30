@@ -1,7 +1,12 @@
 
         // ============================================================
         // BLUEPRINT v4.46.90 - BUILD 20260314-security-hardening
-        var BP_VERSION = 'v4.48.31';
+        var BP_VERSION = 'v4.48.32';
+        // ===== AI MODEL IDS =====
+        // Keep in sync with src/core/constants.js (single source of truth)
+        var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';
+        var BP_AI_MODEL_FAST = window.BP_AI_MODEL_FAST || 'claude-haiku-4-5-20251001';
+
         
         // ===== JOB SCHEMA VERSION =====
         // Schema.org + JDX JobSchema+ aligned structured job format
@@ -4317,7 +4322,7 @@
                     var probeRes = await fetch(AI_PROXY_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-                        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] })
+                        body: JSON.stringify({ model: BP_AI_MODEL, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] })
                     });
                     if (probeRes.ok) {
                         recordApiHealth('anthropic-proxy', 'ok', 'Operational');
@@ -5567,7 +5572,7 @@
                     + '}';
 
                 var aiRes = await callAnthropicAPI({
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 1024,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'wb-company-research');
@@ -6137,7 +6142,7 @@
             showToast('Generating descriptions for ' + vals.length + ' values...', 'info');
             try {
                 var prompt = 'For the role "' + (_wbw.title || 'this role') + '" at "' + (_wbw.company || 'this company') + '", write a 1-2 sentence professional description for each workplace value below. Return JSON array of objects with "name" and "description" keys.\n\nValues:\n' + vals.map(function(n) { return '- ' + n; }).join('\n');
-                var resp = await callAnthropicAPI({ model: 'claude-haiku-4-5-20251001', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] }, null, 'wb-value-desc-bulk');
+                var resp = await callAnthropicAPI({ model: BP_AI_MODEL_FAST, max_tokens: 1500, messages: [{ role: 'user', content: prompt }] }, null, 'wb-value-desc-bulk');
                 var respText = (resp.content && resp.content[0] && resp.content[0].text) || (typeof resp === 'string' ? resp : JSON.stringify(resp));
                 var parsed = [];
                 try { parsed = JSON.parse(respText.replace(/```json?\n?/g, '').replace(/```/g, '').trim()); } catch(e) { console.warn('[WBW] Value desc JSON parse failed:', e.message); }
@@ -6162,7 +6167,7 @@
             if (descEl) descEl.placeholder = 'Generating...';
             try {
                 var prompt = 'For the role "' + (_wbw.title || 'this role') + '" at "' + (_wbw.company || 'this company') + '", write a 1-2 sentence professional description of the workplace value "' + name + '". Return only the description text, no JSON.';
-                var resp = await callAnthropicAPI({ model: 'claude-haiku-4-5-20251001', max_tokens: 300, messages: [{ role: 'user', content: prompt }] }, null, 'wb-value-desc');
+                var resp = await callAnthropicAPI({ model: BP_AI_MODEL_FAST, max_tokens: 300, messages: [{ role: 'user', content: prompt }] }, null, 'wb-value-desc');
                 var desc = ((resp.content && resp.content[0] && resp.content[0].text) || (typeof resp === 'string' ? resp : '')).replace(/^["']|["']$/g, '').trim();
                 _wbw.valueDescriptions[name] = desc;
                 if (descEl) descEl.value = desc;
@@ -9041,7 +9046,7 @@
                 var roleCtx = (_jdcResult.title || 'professional') + ' at ' + (_jdcResult.company || 'a company');
                 var valueNames = missing.map(function(m) { return m.name; }).join(', ');
                 var requestBody = {
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 1024,
                     messages: [{ role: 'user', content: 'For the role of "' + roleCtx + '", write a concise one-sentence professional description for each of these workplace values. Each description should explain what the value means in this professional context and how it manifests in day-to-day work. Return ONLY a JSON array of objects with "name" and "description" fields, no other text.\n\nValues: ' + valueNames }]
                 };
@@ -9082,7 +9087,7 @@
             try {
                 var roleCtx = (_jdcResult.title || 'professional') + ' at ' + (_jdcResult.company || 'a company');
                 var requestBody = {
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 256,
                     messages: [{ role: 'user', content: 'For the role of "' + roleCtx + '", write a concise one-sentence professional description for this workplace value: "' + name + '". The description should explain what it means in this professional context. Return ONLY the description text, nothing else.' }]
                 };
@@ -9127,7 +9132,7 @@
                 var seniority = _jdcResult.seniority ? ' (seniority: ' + _jdcResult.seniority + ')' : '';
                 var skillNames = missing.map(function(m) { return m.name; }).join(', ');
                 var requestBody = {
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 1500,
                     messages: [{ role: 'user', content: 'For the role of "' + roleCtx + '"' + industry + seniority + ', write a concise one-sentence expected outcome for each of these skills. Each outcome should describe what success looks like when applying this skill in the role, using an action verb (e.g. Execute, Deliver, Manage, Apply, Lead). Return ONLY a JSON array of objects with "name" and "outcome" fields, no other text.\n\nSkills: ' + skillNames }]
                 };
@@ -9170,7 +9175,7 @@
                 var industry = _jdcResult.industry ? ' in the ' + _jdcResult.industry + ' industry' : '';
                 var seniority = _jdcResult.seniority ? ' (seniority: ' + _jdcResult.seniority + ')' : '';
                 var requestBody = {
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 128,
                     messages: [{ role: 'user', content: 'For the role of "' + roleCtx + '"' + industry + seniority + ', write a concise one-sentence expected outcome for this skill: "' + s.name + '". The outcome should describe what success looks like using an action verb (e.g. Execute, Deliver, Manage, Apply). Return ONLY the outcome text, nothing else.' }]
                 };
@@ -9220,7 +9225,7 @@
             showToast('Generating demonstrated experience...', 'info', 6000);
             try {
                 var resp = await callAnthropicAPI({
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 1200,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'wb-demonstrated');
@@ -21082,7 +21087,7 @@ Rules:
                 }
 
                 var data = await callAnthropicAPI({
-                        model: 'claude-sonnet-4-6',
+                        model: BP_AI_MODEL,
                         max_tokens: 4000,
                         system: systemPrompt,
                         messages: [{ role: 'user', content: userContent }]
@@ -21759,7 +21764,7 @@ Rules:
 
             try {
                 var data = await callAnthropicAPI({
-                        model: 'claude-sonnet-4-6',
+                        model: BP_AI_MODEL,
                         max_tokens: 300,
                         messages: [{
                             role: 'user',
@@ -27083,7 +27088,7 @@ body {
                 + '- If you don\'t know the company, return primary: ["Innovation", "Integrity", "Collaboration", "Excellence", "Customer Focus"] as reasonable defaults and note in story that values are estimated';
             
             var aiRes = await callAnthropicAPI({
-                model: 'claude-haiku-4-5-20251001',
+                model: BP_AI_MODEL_FAST,
                 max_tokens: 512,
                 messages: [{ role: 'user', content: prompt }]
             }, null, 'company-values-lookup');
@@ -30007,7 +30012,7 @@ body {
 
             try {
                 var resp = await callAnthropicAPI({
-                    model: 'claude-haiku-4-5-20251001',
+                    model: BP_AI_MODEL_FAST,
                     max_tokens: 200,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'purpose-regen');
@@ -33934,7 +33939,7 @@ body {
                     + 'Do NOT include placeholder brackets like [Company] or [Name]. Use the actual names provided.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-6',
+                        model: BP_AI_MODEL,
                         max_tokens: 1500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'cover-letter')
@@ -34125,7 +34130,7 @@ body {
                     + 'Format with clear section headers. Be specific, not generic.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-6',
+                        model: BP_AI_MODEL,
                         max_tokens: 2500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'interview-prep')
@@ -34283,7 +34288,7 @@ body {
                     + 'Separate each section with a clear header.';
 
                 callAnthropicAPI({
-                        model: 'claude-sonnet-4-6',
+                        model: BP_AI_MODEL,
                         max_tokens: 1500,
                         messages: [{ role: 'user', content: prompt }]
                     }, apiKey, 'linkedin-profile')
@@ -36119,7 +36124,7 @@ body {
                 + '- If no clear title, use "Untitled Position"\n';
             
             var data = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-6',
+                    model: BP_AI_MODEL,
                     max_tokens: 4000,
                     system: systemPrompt,
                     messages: [{ role: 'user', content: userPrompt }]
@@ -44650,7 +44655,7 @@ body {
 
             try {
                 var data = await callAnthropicAPI({
-                    model: 'claude-sonnet-4-6',
+                    model: BP_AI_MODEL,
                     max_tokens: 1800,
                     messages: [{ role: 'user', content: prompt }]
                 }, null, 'negotiation_guide');

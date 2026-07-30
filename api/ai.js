@@ -7,6 +7,12 @@ import crypto from 'crypto';
 // Firebase project config
 const FIREBASE_PROJECT_ID = 'work-blueprint';
 
+// ===== AI MODEL IDS =====
+// Keep in sync with BP_AI_MODEL / BP_AI_MODEL_FAST in src/core/constants.js
+const BP_AI_MODEL      = 'claude-sonnet-4-6';            // default (Sonnet)
+const BP_AI_MODEL_FAST = 'claude-haiku-4-5-20251001';    // fast/cheap (Haiku)
+const ALLOWED_MODELS   = [BP_AI_MODEL, BP_AI_MODEL_FAST];
+
 // Cache Google's public keys (they rotate, so cache with TTL)
 let cachedCerts = null;
 let certsExpiry = 0;
@@ -139,9 +145,8 @@ export default async function handler(req, res) {
         const body = req.body;
         
         // Enforce model and limits (prevent abuse)
-        const allowedModels = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001'];
-        if (!allowedModels.includes(body.model)) {
-            body.model = 'claude-sonnet-4-6';
+        if (!ALLOWED_MODELS.includes(body.model)) {
+            body.model = BP_AI_MODEL;
         }
         if (!body.max_tokens) {
             body.max_tokens = 4096;
@@ -153,18 +158,45 @@ export default async function handler(req, res) {
         const timeout = setTimeout(() => controller.abort(), 58000);
         
         try {
-            const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
+            const callAnthropic = (payload) => fetch('https://api.anthropic.com/v1/messages', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'x-api-key': anthropicKey,
                     'anthropic-version': '2023-06-01'
                 },
-                body: JSON.stringify(body),
+                body: JSON.stringify(payload),
                 signal: controller.signal
             });
             
-            const data = await anthropicRes.json();
+            let anthropicRes = await callAnthropic(body);
+            let data = await anthropicRes.json();
+            
+            // Detect retired/unknown model: Anthropic returns 404 with type 'not_found_error'
+            // mentioning the model. Retry once with the current default allowlisted model so a
+            // model retirement doesn't silently break every AI feature.
+            const isModelNotFound =
+                anthropicRes.status === 404 &&
+                data && data.error && data.error.type === 'not_found_error' &&
+                /model/i.test(data.error.message || '');
+            
+            if (isModelNotFound && body.model !== BP_AI_MODEL) {
+                console.error(
+                    `MODEL RETIRED: Anthropic rejected model "${body.model}" (not_found_error). ` +
+                    `Retrying once with default model "${BP_AI_MODEL}". ` +
+                    `Update the allowlist in api/ai.js to remove the retired model.`
+                );
+                const retryBody = { ...body, model: BP_AI_MODEL };
+                anthropicRes = await callAnthropic(retryBody);
+                data = await anthropicRes.json();
+                if (anthropicRes.ok) {
+                    console.warn(`Model fallback succeeded: "${body.model}" -> "${BP_AI_MODEL}"`);
+                    res.setHeader('X-BP-Model-Fallback', '1');
+                    res.setHeader('Access-Control-Expose-Headers', 'X-BP-Model-Fallback');
+                } else {
+                    console.error(`Model fallback to "${BP_AI_MODEL}" also failed with status ${anthropicRes.status}`);
+                }
+            }
             
             res.setHeader('Access-Control-Allow-Origin', 'https://myblueprint.work');
             

@@ -299,8 +299,8 @@ export function openDemoScoutingReport(filePath, name, isMismatch) {
     overlay.appendChild(container);
     document.body.appendChild(overlay);
     
-    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
-    var escHandler = function(e) { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }};
+    var escHandler = function(e) { if (!overlay.isConnected) { document.removeEventListener('keydown', escHandler); return; } if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); }};
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); document.removeEventListener('keydown', escHandler); } });
     document.addEventListener('keydown', escHandler);
 }
 // Demo sample report viewer — maps current profile to one of the 4 sample HTML reports
