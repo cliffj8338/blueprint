@@ -1,7 +1,7 @@
 
         // ============================================================
         // BLUEPRINT v4.47.09 - BUILD 20260315-domain-inject-at-parse-time
-        var BP_VERSION = 'v4.48.35';
+        var BP_VERSION = 'v4.48.36';
         // ===== AI MODEL IDS =====
         // Keep in sync with src/core/constants.js (single source of truth)
         var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';
@@ -53498,7 +53498,11 @@ body {
                 + '<h2 class="modal-title">' + bpIcon('target',18) + ' Negotiation Guide</h2>'
                 + '<p style="color:var(--c-muted); margin-top:4px; font-size:0.83em;">' + pill(modeLabel, modeColor) + (g.roleTitle ? escapeHtml(g.roleTitle) : '') + '</p>'
                 + '</div>'
+                + '<div style="display:flex; align-items:center; gap:8px;">'
+                + '<button onclick="saveCurrentNegGuide(this)" style="padding:7px 12px; background:rgba(36,138,61,0.12); border:1px solid rgba(36,138,61,0.3); border-radius:8px; color:var(--success); font-size:0.78em; font-weight:700; cursor:pointer; white-space:nowrap;">' + bpIcon('save',12) + ' Save Guide</button>'
+                + '<button onclick="exportNegGuidePDF()" style="padding:7px 12px; background:rgba(0,113,227,0.1); border:1px solid rgba(0,113,227,0.25); border-radius:8px; color:var(--accent); font-size:0.78em; font-weight:700; cursor:pointer; white-space:nowrap;">' + bpIcon('download',12) + ' Save as PDF</button>'
                 + '<button class="modal-close" onclick="closeExportModal()">×</button>'
+                + '</div>'
                 + '</div>'
                 + '<div class="modal-body" style="padding:20px 24px; max-height:74vh; overflow-y:auto;">';
 
