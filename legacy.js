@@ -1,7 +1,7 @@
 
         // ============================================================
-        // BLUEPRINT v4.46.90 - BUILD 20260314-security-hardening
-        var BP_VERSION = 'v4.48.36';
+        // BLUEPRINT v4.48.38 - BUILD 20261105-human-agent-work-model
+        var BP_VERSION = 'v4.48.38';
         // ===== AI MODEL IDS =====
         // Keep in sync with src/core/constants.js (single source of truth)
         var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';
@@ -5916,7 +5916,7 @@
         var _wbwCertLibrary = null;
         function _wbwLoadCertLibrary() {
             if (_wbwCertLibrary) return Promise.resolve(_wbwCertLibrary);
-            return fetch('certification_library.json').then(function(r) { return r.json(); }).then(function(data) {
+            return fetch('certification_library.json?v=4.48.36').then(function(r) { return r.json(); }).then(function(data) {
                 _wbwCertLibrary = (data.credentials || []).map(function(c) { return { name: c.name, abbr: c.abbr || '', category: c.category || '', type: c.type || '' }; });
                 return _wbwCertLibrary;
             }).catch(function() { _wbwCertLibrary = []; return []; });
@@ -16432,15 +16432,15 @@
             // Load data libraries in parallel
             try {
                 var libResults = await Promise.allSettled([
-                    fetch('onet-skills-library.json').then(r => r.json()),
-                    fetch('onet-abilities-library.json').then(r => r.json()),
-                    fetch('onet-workstyles-library.json').then(r => r.json()),
-                    fetch('onet-knowledge-library.json').then(r => r.json()),
-                    fetch('onet-work-activities-library.json').then(r => r.json()),
-                    fetch('trades-creative-library.json').then(r => r.json()),
-                    fetch('values-library.json').then(r => r.json()),
-                    fetch('bls-wages.json').then(r => r.json()),
-                    fetch('companies.json').then(r => r.json())
+                    fetch('onet-skills-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('onet-abilities-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('onet-workstyles-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('onet-knowledge-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('onet-work-activities-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('trades-creative-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('values-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('bls-wages.json?v=4.48.36').then(r => r.json()),
+                    fetch('companies.json?v=4.48.36').then(r => r.json())
                 ]);
                 
                 var libNames = ['onetSkillsLibrary','onetAbilitiesLibrary','onetWorkstylesLibrary',
@@ -16938,13 +16938,13 @@
         // Load skill valuations from JSON
         var certLibrary = { credentials: [], tiers: {} };
         
-        fetch('certification_library.json')
+        fetch('certification_library.json?v=4.48.36')
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 certLibrary = data;
                 console.log('\u2705 Certification library loaded: ' + data.totalCredentials + ' credentials');
                 // Chain: load Lightcast certifications if available
-                return fetch('certifications/lightcast-certs.json').then(function(r2) { return r2.json(); }).then(function(lcData) {
+                return fetch('certifications/lightcast-certs.json?v=4.48.36').then(function(r2) { return r2.json(); }).then(function(lcData) {
                     if (lcData && lcData.credentials && lcData.credentials.length > 0) {
                         // Deduplicate: only add certs not already in the base library
                         var existingNames = new Set(certLibrary.credentials.map(function(c) { return c.name.toLowerCase(); }));
@@ -17032,7 +17032,7 @@
         window.getCertSkillAssociations = getCertSkillAssociations;
         window.getCertFloorLevel = getCertFloorLevel;
         
-        fetch('skill_valuations.json')
+        fetch('skill_valuations.json?v=4.48.36')
             .then(response => response.json())
             .then(data => {
                 skillValuations = data;
@@ -18745,7 +18745,7 @@
             console.log('  → userData.skills[0] has evidence:', userData.skills[0].evidence ? `YES (${userData.skills[0].evidence.length} items)` : 'NO');
             
             // Load skill evidence if it exists
-            fetch('skill_evidence.json')
+            fetch('skill_evidence.json?v=4.48.36')
                 .then(response => response.json())
                 .then(data => {
                     userData.skillDetails = data;
@@ -18775,7 +18775,7 @@
 
         function _loadCrosswalkDeferred() {
             if (window.onetCrosswalk) return;
-            fetch('onet-crosswalk.json').then(function(r) { return r.json(); }).then(function(data) {
+            fetch('onet-crosswalk.json?v=4.48.36').then(function(r) { return r.json(); }).then(function(data) {
                 window.onetCrosswalk = data;
                 // Inject custom aliases missing from O*NET — modern job titles not in the 2019 SOC system.
                 var customAliases = {
@@ -18848,15 +18848,15 @@
             })();
 
             var librariesPromise = Promise.allSettled([
-                fetch('onet-skills-library.json').then(r => r.json()),
-                fetch('onet-abilities-library.json').then(r => r.json()),
-                fetch('onet-workstyles-library.json').then(r => r.json()),
-                fetch('onet-knowledge-library.json').then(r => r.json()),
-                fetch('onet-work-activities-library.json').then(r => r.json()),
-                fetch('trades-creative-library.json').then(r => r.json()),
-                fetch('values-library.json').then(r => r.json()),
-                fetch('bls-wages.json').then(r => r.json()),
-                fetch('companies.json').then(r => r.json())
+                fetch('onet-skills-library.json?v=4.48.36').then(r => r.json()),
+                fetch('onet-abilities-library.json?v=4.48.36').then(r => r.json()),
+                fetch('onet-workstyles-library.json?v=4.48.36').then(r => r.json()),
+                fetch('onet-knowledge-library.json?v=4.48.36').then(r => r.json()),
+                fetch('onet-work-activities-library.json?v=4.48.36').then(r => r.json()),
+                fetch('trades-creative-library.json?v=4.48.36').then(r => r.json()),
+                fetch('values-library.json?v=4.48.36').then(r => r.json()),
+                fetch('bls-wages.json?v=4.48.36').then(r => r.json()),
+                fetch('companies.json?v=4.48.36').then(r => r.json())
             ]);
 
             await Promise.all([profilesPromise, librariesPromise]);
@@ -22117,7 +22117,7 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
         // ===== END v2.0 USER DATA MANAGEMENT =====
         
         // Load skill evidence dynamically
-        fetch('skill_evidence.json')
+        fetch('skill_evidence.json?v=4.48.36')
             .then(response => response.json())
             .then(data => {
                 skillsData.skillDetails = data;
@@ -32418,7 +32418,6 @@ body {
             }
             
             
-            
             // ============================================================
             // PAGE 1: COVER
             // ============================================================
@@ -41157,10 +41156,7 @@ body {
         // [removed] generatePitch — dead code cleanup v4.22.0
         
         
-        
-        
         // [removed] viewOnNetwork — dead code cleanup v4.22.0
-        
         
         
         // ===== SETTINGS SYSTEM =====
@@ -44774,7 +44770,7 @@ body {
         
         async function loadImpactRatings() {
             try {
-                const response = await fetch('onet-impact-ratings.json');
+                const response = await fetch('onet-impact-ratings.json?v=4.48.36');
                 impactRatings = await response.json();
                 console.log('✓ Impact ratings loaded');
             } catch (e) {
@@ -46475,7 +46471,6 @@ body {
         // ===== UNIFIED SKILL MANAGEMENT SYSTEM (v2.4.0) =====
         
 
-
         // Build category dropdown from actual skills in this profile — only show categories that exist
         window.populateCategoryFilter = function populateCategoryFilter() {
             const select = document.getElementById('yourSkillsCategoryFilter');
@@ -47495,18 +47490,12 @@ body {
         // [removed] updateBulkModeBar — dead code cleanup v4.22.0
         
         
-        
-        
-        
         // ===== SKILL TEMPLATES =====
-        
-        
         
         
         // ===== SORTING =====
         
         let currentSort = 'category'; // category, proficiency, alphabetical, role, core, recent
-        
         
         
         // Resize handler — preserves active job match mode

@@ -1804,15 +1804,15 @@ async function initShowcaseMode() {
     // Load data libraries in parallel
     try {
         var libResults = await Promise.allSettled([
-            fetch('onet-skills-library.json').then(r => r.json()),
-            fetch('onet-abilities-library.json').then(r => r.json()),
-            fetch('onet-workstyles-library.json').then(r => r.json()),
-            fetch('onet-knowledge-library.json').then(r => r.json()),
-            fetch('onet-work-activities-library.json').then(r => r.json()),
-            fetch('trades-creative-library.json').then(r => r.json()),
-            fetch('values-library.json').then(r => r.json()),
-            fetch('bls-wages.json').then(r => r.json()),
-            fetch('companies.json').then(r => r.json())
+            fetch('onet-skills-library.json?v=4.48.36').then(r => r.json()),
+            fetch('onet-abilities-library.json?v=4.48.36').then(r => r.json()),
+            fetch('onet-workstyles-library.json?v=4.48.36').then(r => r.json()),
+            fetch('onet-knowledge-library.json?v=4.48.36').then(r => r.json()),
+            fetch('onet-work-activities-library.json?v=4.48.36').then(r => r.json()),
+            fetch('trades-creative-library.json?v=4.48.36').then(r => r.json()),
+            fetch('values-library.json?v=4.48.36').then(r => r.json()),
+            fetch('bls-wages.json?v=4.48.36').then(r => r.json()),
+            fetch('companies.json?v=4.48.36').then(r => r.json())
         ]);
         
         var libNames = ['onetSkillsLibrary','onetAbilitiesLibrary','onetWorkstylesLibrary',
@@ -2293,13 +2293,13 @@ let skillValuations = {
 // Load skill valuations from JSON
 var certLibrary = { credentials: [], tiers: {} };
 
-fetch('certification_library.json')
+fetch('certification_library.json?v=4.48.36')
     .then(function(r) { return r.json(); })
     .then(function(data) {
         certLibrary = data;
         console.log('\u2705 Certification library loaded: ' + data.totalCredentials + ' credentials');
         // Chain: load Lightcast certifications if available
-        return fetch('certifications/lightcast-certs.json').then(function(r2) { return r2.json(); }).then(function(lcData) {
+        return fetch('certifications/lightcast-certs.json?v=4.48.36').then(function(r2) { return r2.json(); }).then(function(lcData) {
             if (lcData && lcData.credentials && lcData.credentials.length > 0) {
                 // Deduplicate: only add certs not already in the base library
                 var existingNames = new Set(certLibrary.credentials.map(function(c) { return c.name.toLowerCase(); }));
@@ -2374,7 +2374,7 @@ if (!window.findCertInLibrary) window.findCertInLibrary = findCertInLibrary;
 if (!window.getCertSkillAssociations) window.getCertSkillAssociations = getCertSkillAssociations;
 if (!window.getCertFloorLevel) window.getCertFloorLevel = getCertFloorLevel;
 
-fetch('skill_valuations.json')
+fetch('skill_valuations.json?v=4.48.36')
     .then(response => response.json())
     .then(data => {
         skillValuations = data;
@@ -3926,7 +3926,7 @@ export function loadTemplate(templateId) {
     console.log('  → window._userData.skills[0] has evidence:', window._userData.skills[0].evidence ? `YES (${window._userData.skills[0].evidence.length} items)` : 'NO');
     
     // Load skill evidence if it exists
-    fetch('skill_evidence.json')
+    fetch('skill_evidence.json?v=4.48.36')
         .then(response => response.json())
         .then(data => {
             window._userData.skillDetails = data;
@@ -3948,7 +3948,7 @@ export function loadTemplate(templateId) {
 
 function _loadCrosswalkDeferred() {
     if (window.onetCrosswalk) return;
-    fetch('onet-crosswalk.json').then(function(r) { return r.json(); }).then(function(data) {
+    fetch('onet-crosswalk.json?v=4.48.36').then(function(r) { return r.json(); }).then(function(data) {
         window.onetCrosswalk = data;
         var occCount = Object.keys(data.occupations || {}).length;
         var aliasCount = Object.keys(data.aliases || {}).length;
@@ -4000,15 +4000,15 @@ async function initializeApp() {
     })();
 
     var librariesPromise = Promise.allSettled([
-        fetch('onet-skills-library.json').then(r => r.json()),
-        fetch('onet-abilities-library.json').then(r => r.json()),
-        fetch('onet-workstyles-library.json').then(r => r.json()),
-        fetch('onet-knowledge-library.json').then(r => r.json()),
-        fetch('onet-work-activities-library.json').then(r => r.json()),
-        fetch('trades-creative-library.json').then(r => r.json()),
-        fetch('values-library.json').then(r => r.json()),
-        fetch('bls-wages.json').then(r => r.json()),
-        fetch('companies.json').then(r => r.json())
+        fetch('onet-skills-library.json?v=4.48.36').then(r => r.json()),
+        fetch('onet-abilities-library.json?v=4.48.36').then(r => r.json()),
+        fetch('onet-workstyles-library.json?v=4.48.36').then(r => r.json()),
+        fetch('onet-knowledge-library.json?v=4.48.36').then(r => r.json()),
+        fetch('onet-work-activities-library.json?v=4.48.36').then(r => r.json()),
+        fetch('trades-creative-library.json?v=4.48.36').then(r => r.json()),
+        fetch('values-library.json?v=4.48.36').then(r => r.json()),
+        fetch('bls-wages.json?v=4.48.36').then(r => r.json()),
+        fetch('companies.json?v=4.48.36').then(r => r.json())
     ]);
 
     await Promise.all([profilesPromise, librariesPromise]);
@@ -7975,7 +7975,7 @@ if (!window.renderFilterChips) window.renderFilterChips = renderFilterChips;
 // ===== END v2.0 USER DATA MANAGEMENT =====
 
 // Load skill evidence dynamically
-fetch('skill_evidence.json')
+fetch('skill_evidence.json?v=4.48.36')
     .then(response => response.json())
     .then(data => {
         _sd().skillDetails = data;

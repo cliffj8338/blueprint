@@ -1,7 +1,7 @@
 
         // ============================================================
-        // BLUEPRINT v4.47.09 - BUILD 20260315-domain-inject-at-parse-time
-        var BP_VERSION = 'v4.48.36';
+        // BLUEPRINT v4.48.38 - BUILD 20261105-human-agent-work-model
+        var BP_VERSION = 'v4.48.38';
         // ===== AI MODEL IDS =====
         // Keep in sync with src/core/constants.js (single source of truth)
         var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';
@@ -14,6 +14,59 @@
             yellow: '#ffd60a', sky: '#38bdf8', coral: '#ff6961'
         };
         
+        // ===== LAZY VENDOR SCRIPT LOADER (task #25) =====
+        // jsPDF, JSZip, PapaParse are no longer loaded in index.html at first paint.
+        // Each is loaded on demand with a memoized promise (no duplicate fetches).
+        var _vendorScriptPromises = {};
+        var VENDOR_SCRIPTS = {
+            jspdf: {
+                src: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+                integrity: 'sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk',
+                loaded: function() { return typeof window.jspdf !== 'undefined'; }
+            },
+            jszip: {
+                src: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+                integrity: 'sha512-XMVd28F1oH/O71fzwBnV7HucLxVwtxf26XV8P4wPk26EDxuGZ91N8bsOttmnomcCD3CS5ZMRL50H0GgOHvegtg==',
+                loaded: function() { return typeof window.JSZip !== 'undefined'; }
+            },
+            papaparse: {
+                src: 'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
+                integrity: 'sha512-dfX5uYVXzyU8+KHqj8bjo7UkOdg18PaOtpa48djpNbZHwExddghZ+ZmzWT06R5v6NSk3ZUfsH6FNEDepLx9hPQ==',
+                loaded: function() { return typeof window.Papa !== 'undefined'; }
+            },
+            html2canvas: {
+                src: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+                integrity: 'sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==',
+                loaded: function() { return typeof window.html2canvas !== 'undefined'; }
+            }
+        };
+        function loadVendorScript(name) {
+            var spec = VENDOR_SCRIPTS[name];
+            if (!spec) return Promise.reject(new Error('Unknown vendor script: ' + name));
+            if (spec.loaded()) return Promise.resolve(true);
+            if (_vendorScriptPromises[name]) return _vendorScriptPromises[name];
+            _vendorScriptPromises[name] = new Promise(function(resolve, reject) {
+                var s = document.createElement('script');
+                s.src = spec.src;
+                if (spec.integrity) s.integrity = spec.integrity;
+                s.crossOrigin = 'anonymous';
+                s.onload = function() { resolve(true); };
+                s.onerror = function() {
+                    _vendorScriptPromises[name] = null; // allow retry
+                    reject(new Error('Failed to load ' + name));
+                };
+                document.head.appendChild(s);
+            });
+            return _vendorScriptPromises[name];
+        }
+        function ensureJsPDF() { return loadVendorScript('jspdf'); }
+        function ensureZipParser() {
+            return Promise.all([loadVendorScript('jszip'), loadVendorScript('papaparse')]);
+        }
+        window.loadVendorScript = loadVendorScript;
+        window.ensureJsPDF = ensureJsPDF;
+        window.ensureZipParser = ensureZipParser;
+
         // ===== JOB SCHEMA VERSION =====
         // Schema.org + JDX JobSchema+ aligned structured job format
         // See blueprint-job-schema-v2.md for full specification
@@ -1691,30 +1744,44 @@
         }
 
         var _saveBackupKey = 'bp_save_backup';
-        function _backupToLocalStorage(data) {
+        function _backupToLocalStorage(data, seq) {
             try {
                 var backup = JSON.parse(JSON.stringify(data));
                 delete backup.updatedAt;
                 // Trim heavy fields if payload is large to avoid localStorage quota errors
-                var payload = { ts: Date.now(), data: backup };
+                var payload = { ts: Date.now(), seq: seq || 0, data: backup };
                 var serialized = JSON.stringify(payload);
                 if (serialized.length > 800000) {
                     // Drop large optional arrays to get under limit
                     delete backup.verifications;
                     delete backup.outcomes;
-                    serialized = JSON.stringify({ ts: Date.now(), data: backup });
+                    serialized = JSON.stringify({ ts: Date.now(), seq: seq || 0, data: backup });
                 }
                 if (serialized.length > 1500000) {
                     // Trim skills and work history as last resort
                     if (backup.skills) backup.skills = backup.skills.slice(0, 100);
                     if (backup.workHistory) backup.workHistory = backup.workHistory.slice(0, 20);
-                    serialized = JSON.stringify({ ts: Date.now(), data: backup });
+                    serialized = JSON.stringify({ ts: Date.now(), seq: seq || 0, data: backup });
                 }
                 localStorage.setItem(_saveBackupKey, serialized);
             } catch(e) { console.warn('localStorage backup failed:', e.message); }
         }
-        function _clearSaveBackup() {
-            try { localStorage.removeItem(_saveBackupKey); } catch(e) {}
+        function _clearSaveBackup(seq) {
+            // Only clear the backup if it does not belong to a NEWER save snapshot.
+            // A stale save succeeding must never wipe the backup of newer, unsaved data.
+            try {
+                if (seq != null) {
+                    var raw = localStorage.getItem(_saveBackupKey);
+                    if (raw) {
+                        var parsed = JSON.parse(raw);
+                        if (parsed && parsed.seq && parsed.seq > seq) {
+                            console.log('[Save] Keeping local backup (seq ' + parsed.seq + ' > completed save ' + seq + ')');
+                            return;
+                        }
+                    }
+                }
+                localStorage.removeItem(_saveBackupKey);
+            } catch(e) {}
         }
         function getSaveBackup() {
             try {
@@ -1732,12 +1799,36 @@
         var _SAVE_CIRCUIT_THRESHOLD = 2;
         var _SAVE_CIRCUIT_COOLDOWN = 120000;
 
+        // Save concurrency control: saves are single-flight and sequence-checked
+        // so an older snapshot can never complete after (and clobber) a newer one.
+        // The sequence is initialized from any persisted backup so it stays
+        // monotonic across page reloads — otherwise a prior session's backup
+        // (higher seq) could never be cleared by this session's newer saves.
+        var _saveSeq = 0;              // increments per save snapshot
+        try {
+            var _priorBackup = JSON.parse(localStorage.getItem(_saveBackupKey));
+            if (_priorBackup && typeof _priorBackup.seq === 'number' && _priorBackup.seq > 0) {
+                _saveSeq = _priorBackup.seq;
+            }
+        } catch(e) {}
+        var _lastAppliedSaveSeq = _saveSeq;   // highest seq whose success we applied
+        var _saveInFlight = false;
+        var _savePendingOpts = null;   // set when a save was requested mid-flight
+
         function saveToFirestore(opts) {
             opts = opts || {};
             if (showcaseMode) return Promise.resolve(false);
             if (!fbDb || !fbUser) return Promise.resolve(false);
             
             if (appContext.mode === 'demo') return Promise.resolve(false);
+            
+            // Running on a partial local-backup restore: block auto-saves so a
+            // merge save cannot permanently drop fields missing from the backup.
+            // A successful full Firestore load clears this flag.
+            if (window._partialRestoreActive && !opts.force) {
+                console.warn('[Save] Blocked: app is running on a local-backup restore. Auto-save is paused until a full cloud load succeeds (refresh when back online).');
+                return Promise.resolve(false);
+            }
             
             if (_saveCircuitOpen && !opts.force) {
                 var elapsed = Date.now() - _saveCircuitOpenedAt;
@@ -1778,7 +1869,21 @@
             
             window._dataDirty = true;
             var uid = fbUser.uid;
+
+            // SINGLE-FLIGHT: only one save in flight at a time. If a save is
+            // requested mid-flight, queue a follow-up that rebuilds fresh data
+            // after the current save completes — this preserves ordering and
+            // guarantees the newest snapshot always writes last.
+            if (_saveInFlight) {
+                _savePendingOpts = _savePendingOpts || {};
+                if (opts.force) _savePendingOpts.force = true;
+                console.log('[Save] Save already in flight — queued follow-up with latest data');
+                return Promise.resolve(false);
+            }
+            _saveInFlight = true;
+
             var data = _buildFirestoreData();
+            var mySeq = ++_saveSeq;
 
             console.log('[Save] role: (omitted from payload) profileType:', data.profileType,
                 'keys:', Object.keys(data).length,
@@ -1787,7 +1892,7 @@
                 'values:', (data.values || []).length,
                 'roles:', (data.roles || []).length);
             
-            _backupToLocalStorage(data);
+            _backupToLocalStorage(data, mySeq);
             
             var maxRetries = 3;
             function attemptSave(attempt) {
@@ -1796,15 +1901,31 @@
                         console.log('☁ Saved to Firestore' + (attempt > 1 ? ' (retry ' + (attempt - 1) + ')' : ''));
                         _saveFailCount = 0;
                         _saveCircuitOpen = false;
-                        window._dataDirty = false;
                         recordApiHealth('firebase-db', 'ok', 'Operational');
-                        _clearSaveBackup();
-                        window._lastSavedAt = new Date();
-                        var si = document.getElementById('saveIndicator');
-                        if (si) { si.innerHTML = bpIcon('check',12) + ' Saved'; si.style.opacity = '1'; si.style.color = '#1e7e34'; setTimeout(function() { updateLastSavedDisplay(); }, 2500); }
+                        // SEQUENCE CHECK: only the newest snapshot may update
+                        // bookkeeping. A stale save completing late must not mark
+                        // newer edits as saved or clear their local backup.
+                        if (mySeq > _lastAppliedSaveSeq) {
+                            _lastAppliedSaveSeq = mySeq;
+                            if (mySeq === _saveSeq && !_savePendingOpts) {
+                                window._dataDirty = false;
+                            }
+                            window._lastSavedAt = new Date();
+                            _clearSaveBackup(mySeq);
+                            var si = document.getElementById('saveIndicator');
+                            if (si) { si.innerHTML = bpIcon('check',12) + ' Saved'; si.style.opacity = '1'; si.style.color = '#1e7e34'; setTimeout(function() { updateLastSavedDisplay(); }, 2500); }
+                        } else {
+                            console.warn('[Save] Stale save #' + mySeq + ' completed after a newer save — bookkeeping skipped');
+                        }
                         return true;
                     })
                     .catch(function(err) {
+                        // Abandon retries for a stale snapshot: a newer save is
+                        // queued and will carry the latest data anyway.
+                        if (_savePendingOpts) {
+                            console.warn('[Save] Save #' + mySeq + ' failed but a newer save is queued — abandoning retries:', err.message);
+                            return false;
+                        }
                         if (attempt < maxRetries) {
                             var delay = Math.pow(2, attempt) * 500;
                             console.warn('Firestore save attempt ' + attempt + ' failed, retrying in ' + delay + 'ms:', err.message);
@@ -1830,7 +1951,16 @@
                         return false;
                     });
             }
-            return attemptSave(1);
+            function _finishSave(result) {
+                _saveInFlight = false;
+                if (_savePendingOpts) {
+                    var pending = _savePendingOpts;
+                    _savePendingOpts = null;
+                    setTimeout(function() { saveToFirestore(Object.assign({ force: true }, pending)); }, 0);
+                }
+                return result;
+            }
+            return attemptSave(1).then(_finishSave, function(err) { _finishSave(); throw err; });
         }
         window.saveToFirestore = saveToFirestore;
 
@@ -2189,6 +2319,8 @@
                     recordApiHealth('firebase-db', 'ok', 'Operational');
                     recordApiHealth('firebase-auth', 'ok', 'Authenticated');
                     window._lastSavedAt = new Date();
+                    // Full cloud load succeeded — lift the partial-restore save block
+                    window._partialRestoreActive = false;
                     
                     // If empty profile, prompt to build
                     if (skillCount === 0) {
@@ -2219,6 +2351,23 @@
                         userData.certifications = d.certifications || [];
                         userData.profileType = d.profileType || (d.explorerData ? 'explorer' : userData.profileType || 'standard');
                         if (d.explorerData) userData.explorerData = d.explorerData;
+                        // Restore ALL remaining persisted fields present in the backup
+                        // so a later save cannot silently drop them.
+                        userData.verifications = d.verifications || [];
+                        userData.preferences = d.preferences || userData.preferences;
+                        userData.applications = d.applications || [];
+                        if (d.linkedinContent) userData.linkedinContent = d.linkedinContent;
+                        if (d.contentVisibility) userData.contentVisibility = d.contentVisibility;
+                        if (d.companyTenures) userData.companyTenures = d.companyTenures;
+                        if (d.importStats) userData.importStats = d.importStats;
+                        if (d.blindDefaults) userData.blindDefaults = d.blindDefaults;
+                        if (d.activities) userData.activities = d.activities;
+                        userData.growthSkills = d.growthSkills || [];
+                        if (d.privacyLog) userData.privacyLog = d.privacyLog;
+                        // Backup may still be a subset (heavy fields are trimmed under
+                        // localStorage pressure) — block auto-save until a full cloud
+                        // load succeeds so a merge save can't drop missing fields.
+                        window._partialRestoreActive = true;
                         userData.templateId = fbUser ? 'firestore-' + fbUser.uid : userData.templateId;
                         if (typeof skillsData !== 'undefined') {
                             skillsData.skills = d.skills || [];
@@ -2231,7 +2380,7 @@
                         }
                         userData.outcomes = d.outcomes || [];
                         try { if (typeof initializeMainApp === 'function') initializeMainApp(); } catch(e) { console.warn('Backup restore re-init error:', e.message); }
-                        showToast('Loaded from local backup. Your latest changes may appear once connection restores.', 'info', 6000);
+                        showToast('Loaded from local backup. Auto-save is paused until your cloud profile loads — refresh once you\u2019re back online.', 'info', 8000);
                     }
                     return false;
                 });
@@ -6852,7 +7001,7 @@
         var _wbwCertLibrary = null;
         function _wbwLoadCertLibrary() {
             if (_wbwCertLibrary) return Promise.resolve(_wbwCertLibrary);
-            return fetch('certification_library.json').then(function(r) { return r.json(); }).then(function(data) {
+            return fetch('certification_library.json?v=4.48.36').then(function(r) { return r.json(); }).then(function(data) {
                 _wbwCertLibrary = (data.credentials || []).map(function(c) { return { name: c.name, abbr: c.abbr || '', category: c.category || '', type: c.type || '' }; });
                 return _wbwCertLibrary;
             }).catch(function() { _wbwCertLibrary = []; return []; });
@@ -7482,7 +7631,7 @@
                 + '<div style="font-family:Outfit,sans-serif; font-size:1.4em; font-weight:700; color:var(--c-heading-bold); margin-bottom:6px;">'
                 + bpIcon('wand',20) + ' JD \u2192 Work Blueprint Converter</div>'
                 + '<div style="font-size:0.9em; color:var(--c-muted); line-height:1.6;">'
-                + 'Convert traditional job descriptions into structured Work Blueprints. Paste, fetch from URL, or bulk process multiple JDs at once.</div>'
+                + 'Turn job descriptions into a two-part Work Blueprint: the human contribution, the agent-supported work, and how they combine to deliver outcomes. Paste, fetch from URL, or bulk process multiple JDs.</div>'
                 + '</div>';
 
             var modes = [
@@ -7587,13 +7736,85 @@
         // ===== ASYNC JDC WRAPPER — AI skill extraction (Phase 3) =====
         // Uses parseJobWithAPI for skill extraction when user is signed in.
         // Falls back to convertJDToBlueprint (local regex) if AI unavailable or fails.
+        function _jdcDefaultWorkTasks(responsibilities, skills) {
+            var tasks = (responsibilities || []).slice(0, 12).map(function(item) {
+                var task = typeof item === 'string' ? item : (item && (item.task || item.text || item.description)) || '';
+                task = String(task).trim();
+                if (!task) return null;
+                return {
+                    task: task,
+                    outcome: task,
+                    owner: 'human',
+                    humanSkills: [],
+                    agentCapabilities: [],
+                    humanReview: '',
+                    rationale: 'Task ownership defaults to Human until reviewed.'
+                };
+            }).filter(Boolean);
+            if (tasks.length) return tasks;
+            return (skills || []).slice(0, 12).map(function(skill) {
+                if (!skill || !skill.name) return null;
+                return {
+                    task: 'Apply ' + skill.name,
+                    outcome: skill.outcome || ('Deliver role outcomes using ' + skill.name + '.'),
+                    owner: 'human',
+                    humanSkills: [{ name: skill.name, proficiency: skill.blueprintLevel || skill.level || 'Proficient' }],
+                    agentCapabilities: [],
+                    humanReview: '',
+                    rationale: 'Derived from this Blueprint skill; review whether agent support is appropriate.'
+                };
+            }).filter(Boolean);
+        }
+
+        function _jdcNormalizeWorkTasks(raw, blueprint) {
+            var validOwners = ['human', 'shared', 'agent'];
+            var levels = ['Awareness', 'Foundational', 'Proficient', 'Advanced', 'Expert', 'Mastery'];
+            if (!Array.isArray(raw) || !raw.length) return _jdcDefaultWorkTasks(
+                blueprint && blueprint.keyResponsibilities,
+                blueprint && blueprint.skills
+            );
+
+            function normalizeSkillList(items, isAgent) {
+                if (!Array.isArray(items)) return [];
+                return items.slice(0, 8).map(function(item) {
+                    var obj = typeof item === 'string' ? { name: item } : (item || {});
+                    var name = String(obj.name || obj.capability || '').trim().slice(0, 120);
+                    if (!name) return null;
+                    var proficiency = String(obj.proficiency || obj.level || 'Proficient');
+                    if (levels.indexOf(proficiency) === -1) proficiency = 'Proficient';
+                    return {
+                        name: name,
+                        proficiency: proficiency,
+                        relatedHumanSkill: isAgent ? String(obj.relatedHumanSkill || '').trim().slice(0, 120) : ''
+                    };
+                }).filter(Boolean);
+            }
+
+            return raw.slice(0, 12).map(function(item) {
+                item = item || {};
+                var task = String(item.task || item.title || item.description || '').trim().slice(0, 300);
+                if (!task) return null;
+                var owner = String(item.owner || 'human').toLowerCase();
+                if (validOwners.indexOf(owner) === -1) owner = 'human';
+                return {
+                    task: task,
+                    outcome: String(item.outcome || task).trim().slice(0, 400),
+                    owner: owner,
+                    humanSkills: normalizeSkillList(item.humanSkills, false),
+                    agentCapabilities: normalizeSkillList(item.agentCapabilities, true),
+                    humanReview: String(item.humanReview || '').trim().slice(0, 300),
+                    rationale: String(item.rationale || '').trim().slice(0, 300)
+                };
+            }).filter(Boolean);
+        }
+
         async function convertJDToBlueprintAsync(jdText) {
             var hasProxy = !!(typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
             var local = convertJDToBlueprint(jdText);
             if (!hasProxy) return local;
 
             try {
-                var apiParsed = await parseJobWithAPI(jdText, null);
+                var apiParsed = await parseJobWithAPI(jdText, null, { includeWorkAllocation: true });
                 var tierImportance = { 'required': 80, 'preferred': 65, 'nice-to-have': 50 };
                 var apiSkills = (apiParsed.skills || []).map(function(s) {
                     var importance = (tierImportance[s.tier] || 60) - (s.source === 'inferred' ? 10 : 0);
@@ -7629,6 +7850,9 @@
                 }
 
                 local.skills = apiSkills;
+                local.workTasks = _jdcNormalizeWorkTasks(apiParsed.workTasks, local);
+                local.workAllocationSource = Array.isArray(apiParsed.workTasks) && apiParsed.workTasks.length
+                    ? 'ai-suggested' : 'local';
                 // Use AI-extracted title/summary when better than local extraction
                 var badTitles = /^(what you'?ll do|about the role|about us|qualifications|responsibilities|requirements|job description|overview|summary|working conditions|benefits|experience will be|core competencies)/i;
                 if (apiParsed.title && !badTitles.test(apiParsed.title) && apiParsed.title !== 'Untitled Position') {
@@ -8115,6 +8339,8 @@
                 summary: summary,
                 keyResponsibilities: keyResponsibilities,
                 skills: skills,
+                workTasks: _jdcDefaultWorkTasks(keyResponsibilities, skills),
+                workAllocationSource: 'local',
                 bls: bls,
                 compContext: compContext,
                 values: values,
@@ -9033,6 +9259,115 @@
         window.jdcCloseBlueprint = jdcCloseBlueprint;
 
 
+        function _jdcNormalizeSkillName(name) {
+            return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+        }
+
+        function _jdcFindProfileSkill(name) {
+            var target = _jdcNormalizeSkillName(name);
+            if (!target) return null;
+            var profileSkills = (skillsData && skillsData.skills) || [];
+            var exact = profileSkills.find(function(s) { return _jdcNormalizeSkillName(s.name) === target; });
+            if (exact) return exact;
+
+            // Use the shared synonym map only for an explicit synonym relationship.
+            if (typeof SKILL_SYNONYMS !== 'undefined') {
+                var synonyms = SKILL_SYNONYMS;
+                var canonicalNames = Object.keys(synonyms);
+                for (var i = 0; i < canonicalNames.length; i++) {
+                    var canonical = canonicalNames[i];
+                    var canonicalNorm = _jdcNormalizeSkillName(canonical);
+                    var aliases = (synonyms[canonical] || []).map(_jdcNormalizeSkillName);
+                    var targetMatches = target === canonicalNorm || aliases.indexOf(target) !== -1;
+                    if (!targetMatches) continue;
+                    var match = profileSkills.find(function(s) {
+                        var profileName = _jdcNormalizeSkillName(s.name);
+                        return profileName === canonicalNorm || aliases.indexOf(profileName) !== -1;
+                    });
+                    if (match) return match;
+                }
+            }
+            return null;
+        }
+
+        function _jdcRenderWorkModel(data) {
+            var tasks = _jdcNormalizeWorkTasks(data.workTasks, data);
+            if (!Array.isArray(data.workTasks) || !data.workTasks.length) {
+                data.workTasks = tasks;
+                data.workAllocationSource = data.workAllocationSource || 'local';
+            }
+            var ownerLabels = { human: 'Human-led', shared: 'Human + Agent', agent: 'Agent-supported' };
+            var ownerColors = { human: 'var(--accent)', shared: 'var(--c-purple)', agent: 'var(--success)' };
+            var humanCount = tasks.filter(function(t) { return t.owner === 'human'; }).length;
+            var sharedCount = tasks.filter(function(t) { return t.owner === 'shared'; }).length;
+            var agentCount = tasks.filter(function(t) { return t.owner === 'agent'; }).length;
+            var sourceNote = data.workAllocationSource === 'ai-suggested'
+                ? 'AI-suggested split — review ownership and human checkpoints before using.'
+                : data.workAllocationSource === 'reviewed'
+                    ? 'Reviewed and adjusted for this role.'
+                    : 'Responsibilities extracted from the posting. Ownership defaults to Human until reviewed.';
+            var html = '<div style="background:var(--c-surface-1); border:1px solid var(--c-surface-5); border-radius:12px; padding:22px 24px; margin-bottom:20px;">'
+                + '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:6px;">'
+                + '<div><div style="font-family:Outfit,sans-serif; font-weight:700; font-size:1.08em; color:var(--c-heading-bold);">' + bpIcon('users',18) + ' Human + Agent Work Model</div>'
+                + '<div style="font-size:0.78em; color:var(--c-muted); margin-top:5px;">Tasks, outcomes, required human skills, and suggested agent capabilities</div></div>'
+                + '<div style="display:flex; gap:6px; flex-wrap:wrap;">'
+                + '<span style="padding:4px 8px; border-radius:12px; background:rgba(0,113,227,.1); color:var(--accent); font-size:.72em; font-weight:700;">' + humanCount + ' Human-led</span>'
+                + '<span style="padding:4px 8px; border-radius:12px; background:rgba(155,89,182,.12); color:var(--c-purple); font-size:.72em; font-weight:700;">' + sharedCount + ' Shared</span>'
+                + '<span style="padding:4px 8px; border-radius:12px; background:rgba(36,138,61,.1); color:var(--success); font-size:.72em; font-weight:700;">' + agentCount + ' Agent-supported</span>'
+                + '</div></div>'
+                + '<div style="font-size:.72em; color:var(--c-muted); margin:0 0 14px;">' + escapeHtml(sourceNote) + ' Capability levels describe role requirements, not an assessment of a specific agent.</div>';
+
+            if (!tasks.length) {
+                html += '<div style="padding:16px; border-radius:8px; background:var(--c-surface-2); color:var(--c-muted); font-size:.85em;">No distinct responsibilities were extracted. Add tasks in Edit Blueprint to define the human and agent contributions.</div>';
+            }
+
+            tasks.forEach(function(task, idx) {
+                var owner = ownerLabels[task.owner] ? task.owner : 'human';
+                var ownerColor = ownerColors[owner];
+                var humanSkills = Array.isArray(task.humanSkills) ? task.humanSkills : [];
+                var agentCaps = Array.isArray(task.agentCapabilities) ? task.agentCapabilities : [];
+                html += '<div style="padding:15px; margin-top:10px; border:1px solid var(--c-surface-5); border-radius:10px; background:var(--c-surface-2);">'
+                    + '<div style="display:flex; align-items:flex-start; gap:10px; justify-content:space-between; flex-wrap:wrap;">'
+                    + '<div style="font-weight:700; color:var(--c-heading-bold); line-height:1.45; flex:1; min-width:220px;">' + (idx + 1) + '. ' + escapeHtml(task.task || '') + '</div>'
+                    + '<span style="white-space:nowrap; padding:4px 9px; border-radius:12px; background:' + ownerColor + '18; color:' + ownerColor + '; border:1px solid ' + ownerColor + '44; font-size:.72em; font-weight:700;">' + ownerLabels[owner] + '</span></div>'
+                    + '<div style="font-size:.82em; color:var(--text-secondary); margin:8px 0 12px;"><strong style="color:var(--c-heading);">Outcome:</strong> ' + escapeHtml(task.outcome || 'Not specified') + '</div>'
+                    + '<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px;">'
+                    + '<div style="padding:10px 12px; background:var(--c-surface-1); border-radius:8px;">'
+                    + '<div style="font-size:.7em; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); font-weight:700; margin-bottom:7px;">Human skills required</div>';
+                if (!humanSkills.length) {
+                    html += '<div style="font-size:.78em; color:var(--c-faint);">No task-specific human skills identified.</div>';
+                } else {
+                    humanSkills.forEach(function(skill) {
+                        var profileSkill = _jdcFindProfileSkill(skill.name);
+                        var skillLevel = escapeHtml(skill.proficiency || 'Proficient');
+                        html += '<div style="display:flex; justify-content:space-between; gap:8px; align-items:center; margin:5px 0; font-size:.78em;">'
+                            + '<span style="color:var(--c-heading);">' + escapeHtml(skill.name) + ' <span style="color:var(--c-muted);">· ' + skillLevel + ' required</span></span>'
+                            + '<span style="color:' + (profileSkill ? 'var(--success)' : 'var(--c-faint)') + '; white-space:nowrap;">' + (profileSkill ? 'In your map · ' + escapeHtml(profileSkill.level || 'Mapped') : 'Not in your map') + '</span></div>';
+                    });
+                }
+                html += '</div><div style="padding:10px 12px; background:var(--c-surface-1); border-radius:8px;">'
+                    + '<div style="font-size:.7em; text-transform:uppercase; letter-spacing:.06em; color:var(--success); font-weight:700; margin-bottom:7px;">Agent capabilities needed</div>';
+                if (!agentCaps.length) {
+                    html += '<div style="font-size:.78em; color:var(--c-faint);">No agent capability assigned.</div>';
+                } else {
+                    agentCaps.forEach(function(capability) {
+                        var related = capability.relatedHumanSkill ? _jdcFindProfileSkill(capability.relatedHumanSkill) : null;
+                        var relatedName = related ? related.name : '';
+                        html += '<div style="margin:5px 0; font-size:.78em; color:var(--c-heading);">'
+                            + escapeHtml(capability.name) + ' <span style="color:var(--c-muted);">· ' + escapeHtml(capability.proficiency || 'Proficient') + ' required</span>'
+                            + (relatedName ? '<div style="font-size:.9em; color:var(--success); margin-top:2px;">Supports your ontology skill: ' + escapeHtml(relatedName) + ' · ' + escapeHtml(related.level || 'Mapped') + '</div>' : '<div style="font-size:.9em; color:var(--c-faint); margin-top:2px;">No direct match to your current skill map</div>')
+                            + '</div>';
+                    });
+                }
+                html += '</div></div>';
+                if (task.humanReview) html += '<div style="font-size:.77em; color:var(--c-orange); margin-top:10px;"><strong>Human review:</strong> ' + escapeHtml(task.humanReview) + '</div>';
+                if (task.rationale) html += '<div style="font-size:.73em; color:var(--c-faint); margin-top:5px;">' + escapeHtml(task.rationale) + '</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+            return html;
+        }
+
         function renderWorkBlueprint(data, showComp, opts) {
             opts = opts || {};
             var html = '';
@@ -9159,6 +9494,8 @@
 
             html += '<div style="margin-top:14px; font-size:0.9em; color:var(--text-secondary); line-height:1.7;"><strong style="color:' + headingColor + ';">Work Summary:</strong> ' + escapeHtml(data.summary) + '</div>'
                 + '</div>';
+
+            html += _jdcRenderWorkModel(data);
 
             html += '<div style="background:' + cardBg + '; border:1px solid ' + borderColor + '; border-radius:12px; padding:24px; margin-bottom:20px;">'
                 + '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:16px; flex-wrap:wrap;">'
@@ -9545,14 +9882,14 @@
         }
         window.copyWorkBlueprintJSON = copyWorkBlueprintJSON;
 
-        function exportWorkBlueprintPDF() {
+        async function exportWorkBlueprintPDF() {
             if (!_jdcResult) { showToast('No Work Blueprint to export.', 'warning'); return; }
             var d = _jdcResult;
-            if (typeof jspdf === 'undefined' && typeof window.jspdf === 'undefined') {
-                showToast('PDF library not available. Try again in a moment.', 'warning');
+            try { await ensureJsPDF(); } catch (e) {
+                showToast('PDF library failed to load. Check your connection and try again.', 'error');
                 return;
             }
-            var jsPDF = (window.jspdf || jspdf).jsPDF;
+            var jsPDF = window.jspdf.jsPDF;
             var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
             var W = 210, M = 18, MR = W - M, CW = MR - M, y = 0;
             var ACCENT = [59, 130, 246], DARK = [15, 23, 42], MID = [51, 65, 85], MUTED = [100, 116, 139];
@@ -10036,6 +10373,35 @@
                 if (sLevel) d.skills[si].blueprintLevel = sLevel;
             }
             d.skills = d.skills.filter(function(s) { return s.name && s.name.trim(); });
+            function parseWorkSkillLines(raw, includeRelatedSkill) {
+                return String(raw || '').split(/\r?\n/).map(function(line) {
+                    var parts = line.split('|').map(function(part) { return part.trim(); });
+                    var name = parts[0] || '';
+                    if (!name) return null;
+                    var allowedLevels = ['Awareness', 'Foundational', 'Proficient', 'Advanced', 'Expert', 'Mastery'];
+                    var level = allowedLevels.indexOf(parts[1]) !== -1 ? parts[1] : 'Proficient';
+                    var item = { name: name.slice(0, 120), proficiency: level };
+                    if (includeRelatedSkill) item.relatedHumanSkill = (parts[2] || '').slice(0, 120);
+                    return item;
+                }).filter(Boolean).slice(0, 8);
+            }
+            var syncWorkTasks = [];
+            for (var wi = 0; wi < 20; wi++) {
+                var taskText = g('jdcEditWorkTask' + wi);
+                if (taskText === null || !String(taskText).trim()) continue;
+                var taskOwner = g('jdcEditWorkOwner' + wi);
+                if (['human', 'shared', 'agent'].indexOf(taskOwner) === -1) taskOwner = 'human';
+                syncWorkTasks.push({
+                    task: String(taskText).trim().slice(0, 300),
+                    outcome: String(g('jdcEditWorkOutcome' + wi) || '').trim().slice(0, 400),
+                    owner: taskOwner,
+                    humanSkills: parseWorkSkillLines(g('jdcEditWorkHumanSkills' + wi), false),
+                    agentCapabilities: parseWorkSkillLines(g('jdcEditWorkAgentCaps' + wi), true),
+                    humanReview: String(g('jdcEditWorkReview' + wi) || '').trim().slice(0, 300)
+                });
+            }
+            d.workTasks = syncWorkTasks;
+            d.workAllocationSource = 'reviewed';
             d.values = [];
             for (var vi = 0; vi < 30; vi++) {
                 var vName = g('jdcEditValName' + vi);
@@ -10505,6 +10871,45 @@
             html += '<button onclick="_jdcSyncFormToState();_jdcResult.qualifications=_jdcResult.qualifications||[];_jdcResult.qualifications.push(\'\');' + refreshEsc + ';" style="padding:3px 10px; background:var(--c-surface-3); color:var(--c-muted); border:1px solid ' + borderColor + '; border-radius:6px; cursor:pointer; font-size:0.75em; margin-top:4px;">' + bpIcon('plus',10) + ' Add</button></div>';
 
             html += '</div>';
+
+            var editWorkTasks = _jdcNormalizeWorkTasks(data.workTasks, data);
+            html += '<div style="background:' + cardBg + '; border:1px solid ' + borderColor + '; border-radius:12px; padding:20px 24px; margin-bottom:20px;">'
+                + '<div style="font-family:Outfit,sans-serif; font-weight:700; font-size:1.05em; color:var(--c-heading-bold); margin-bottom:5px;">' + bpIcon('users',18) + ' Human + Agent Work Model</div>'
+                + '<div style="font-size:.76em; color:var(--c-muted); margin-bottom:14px;">Review task ownership. Enter one skill or capability per line as <strong>Name | Required proficiency</strong>. For an agent capability, you may add <strong>| Related human skill</strong> as a third field. These are requirements, not an inventory of available agents.</div>';
+            if (!editWorkTasks.length) {
+                html += '<div style="font-size:.82em; color:var(--c-muted); margin-bottom:12px;">No tasks yet. Add responsibilities and assign the human and agent contributions.</div>';
+            }
+            editWorkTasks.forEach(function(task, wi) {
+                var humanLines = (task.humanSkills || []).map(function(s) {
+                    return (typeof s === 'string' ? s : s.name) + (typeof s === 'object' && s.proficiency ? ' | ' + s.proficiency : '');
+                }).join('\n');
+                var agentLines = (task.agentCapabilities || []).map(function(s) {
+                    return (typeof s === 'string' ? s : s.name)
+                        + (typeof s === 'object' && s.proficiency ? ' | ' + s.proficiency : '')
+                        + (typeof s === 'object' && s.relatedHumanSkill ? ' | ' + s.relatedHumanSkill : '');
+                }).join('\n');
+                html += '<div style="padding:14px; margin-bottom:10px; border:1px solid ' + borderColor + '; border-radius:9px; background:var(--c-surface-2);">'
+                    + '<div style="display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">'
+                    + '<input id="jdcEditWorkTask' + wi + '" value="' + escapeAttr(task.task || '') + '" placeholder="Responsibility or task" style="' + fieldStyle + ' flex:1; min-width:220px; font-weight:600;" />'
+                    + '<select id="jdcEditWorkOwner' + wi + '" style="' + fieldStyle + ' width:auto; min-width:150px;">'
+                    + '<option value="human"' + (task.owner === 'human' ? ' selected' : '') + '>Human-led</option>'
+                    + '<option value="shared"' + (task.owner === 'shared' ? ' selected' : '') + '>Human + Agent</option>'
+                    + '<option value="agent"' + (task.owner === 'agent' ? ' selected' : '') + '>Agent-supported</option>'
+                    + '</select>'
+                    + '<button onclick="_jdcSyncFormToState();_jdcResult.workTasks.splice(' + wi + ',1);' + refreshEsc + ';" style="padding:6px 10px; border:1px solid rgba(215,0,21,.25); border-radius:7px; background:rgba(215,0,21,.06); color:var(--danger); cursor:pointer;" aria-label="Remove task">Remove</button>'
+                    + '</div>'
+                    + '<label style="' + labelStyle + '">Outcome</label>'
+                    + '<input id="jdcEditWorkOutcome' + wi + '" value="' + escapeAttr(task.outcome || '') + '" placeholder="What result should this work produce?" style="' + fieldStyle + ' margin-bottom:10px;" />'
+                    + '<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:10px;">'
+                    + '<div><label style="' + labelStyle + '">Human skills needed</label><textarea id="jdcEditWorkHumanSkills' + wi + '" placeholder="Stakeholder communication | Advanced" style="' + fieldStyle + ' min-height:74px; resize:vertical;">' + escapeHtml(humanLines) + '</textarea></div>'
+                    + '<div><label style="' + labelStyle + '">Agent capabilities needed</label><textarea id="jdcEditWorkAgentCaps' + wi + '" placeholder="Summarize research | Proficient | Market Research" style="' + fieldStyle + ' min-height:74px; resize:vertical;">' + escapeHtml(agentLines) + '</textarea></div>'
+                    + '</div>'
+                    + '<label style="' + labelStyle + ' margin-top:10px;">Human review or approval checkpoint</label>'
+                    + '<input id="jdcEditWorkReview' + wi + '" value="' + escapeAttr(task.humanReview || '') + '" placeholder="e.g. Human approves recommendations before they reach a client" style="' + fieldStyle + '" />'
+                    + '</div>';
+            });
+            html += '<button onclick="_jdcSyncFormToState();_jdcResult.workTasks=_jdcResult.workTasks||[];_jdcResult.workTasks.push({task:\'\',outcome:\'\',owner:\'human\',humanSkills:[],agentCapabilities:[],humanReview:\'\'});' + refreshEsc + ';" style="padding:6px 12px; background:var(--c-surface-3); color:var(--c-muted); border:1px solid ' + borderColor + '; border-radius:7px; cursor:pointer; font-size:.78em;">' + bpIcon('plus',11) + ' Add task</button>'
+                + '</div>';
 
             html += '<div style="background:' + cardBg + '; border:1px solid ' + borderColor + '; border-radius:12px; padding:24px; margin-bottom:20px;">'
                 + '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">'
@@ -13265,36 +13670,12 @@
         function _wbCompBuildPDF(wb, rawResult, structResult, candidate, theme) {
             showToast('Generating PDF...', 'info', 5000);
             
-            // Load html2canvas if not present
-            var needsH2C = typeof html2canvas === 'undefined';
-            var needsJsPDF = typeof window.jspdf === 'undefined';
-            var loaded = 0;
-            var total = (needsH2C ? 1 : 0) + (needsJsPDF ? 1 : 0);
-            
-            function tryRender() {
-                loaded++;
-                if (loaded >= total) _wbCompRenderPDF(wb, rawResult, structResult, candidate, theme);
-            }
-            
-            if (total === 0) {
+            // Load html2canvas + jsPDF on demand via the shared vendor loader
+            Promise.all([loadVendorScript('html2canvas'), ensureJsPDF()]).then(function() {
                 _wbCompRenderPDF(wb, rawResult, structResult, candidate, theme);
-                return;
-            }
-            
-            if (needsH2C) {
-                var s1 = document.createElement('script');
-                s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-                s1.onload = tryRender;
-                s1.onerror = function() { showToast('Failed to load PDF library.', 'error'); };
-                document.head.appendChild(s1);
-            }
-            if (needsJsPDF) {
-                var s2 = document.createElement('script');
-                s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-                s2.onload = tryRender;
-                s2.onerror = function() { showToast('Failed to load PDF library.', 'error'); };
-                document.head.appendChild(s2);
-            }
+            }).catch(function() {
+                showToast('Failed to load PDF library.', 'error');
+            });
         }
         
         function _wbCompRenderPDF(wb, rawResult, structResult, candidate, theme) {
@@ -13887,14 +14268,14 @@
         }
         window.renderAdminWBAbout = renderAdminWBAbout;
 
-        function wbAboutExportPDF() {
+        async function wbAboutExportPDF() {
             try {
                 var el = document.getElementById('wbAboutPanel');
                 if (!el) return;
-                if (typeof jsPDF === 'undefined' && typeof window.jspdf === 'undefined') {
-                    showToast('PDF library not loaded yet — try again in a moment.', 'warning'); return;
+                try { await ensureJsPDF(); } catch (eLoad) {
+                    showToast('PDF library failed to load. Check your connection and try again.', 'error'); return;
                 }
-                var jspdf = window.jspdf || window.jsPDF;
+                var jspdf = window.jspdf;
                 var doc = new jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
                 var M = 18, W = 210, CW = W - M * 2;
@@ -16391,6 +16772,9 @@
             appContext.mode = 'demo';
             appContext.demoTemplateId = targetTemplate;
             
+            // Task #30: warm heavy skills data (memoized; no-op if already loading)
+            prefetchHeavySkillsData();
+            
             // Load demo profile using existing infrastructure
             loadTemplate(targetTemplate);
             
@@ -18662,15 +19046,15 @@
             // Load data libraries in parallel
             try {
                 var libResults = await Promise.allSettled([
-                    fetch('onet-skills-library.json').then(r => r.json()),
-                    fetch('onet-abilities-library.json').then(r => r.json()),
-                    fetch('onet-workstyles-library.json').then(r => r.json()),
-                    fetch('onet-knowledge-library.json').then(r => r.json()),
-                    fetch('onet-work-activities-library.json').then(r => r.json()),
-                    fetch('trades-creative-library.json').then(r => r.json()),
-                    fetch('values-library.json').then(r => r.json()),
-                    fetch('bls-wages.json').then(r => r.json()),
-                    fetch('companies.json').then(r => r.json())
+                    fetch('onet-skills-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('onet-abilities-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('onet-workstyles-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('onet-knowledge-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('onet-work-activities-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('trades-creative-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('values-library.json?v=4.48.36').then(r => r.json()),
+                    fetch('bls-wages.json?v=4.48.36').then(r => r.json()),
+                    fetch('companies.json?v=4.48.36').then(r => r.json())
                 ]);
                 
                 var libNames = ['onetSkillsLibrary','onetAbilitiesLibrary','onetWorkstylesLibrary',
@@ -18680,7 +19064,7 @@
                     if (r.status === 'fulfilled') window[libNames[i]] = r.value;
                 });
                 console.log('✓ Data libraries loaded for showcase');
-                setTimeout(_loadCrosswalkDeferred, 100);
+                // Crosswalk (~6 MB) now lazy-loads on first view/parse that needs it (task #25)
             } catch(e) {
                 console.warn('⚠ Library load error:', e);
             }
@@ -19242,13 +19626,13 @@
         // Load skill valuations from JSON
         var certLibrary = { credentials: [], tiers: {} };
         
-        fetch('certification_library.json')
+        fetch('certification_library.json?v=4.48.36')
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 certLibrary = data;
                 console.log('\u2705 Certification library loaded: ' + data.totalCredentials + ' credentials');
                 // Chain: load Lightcast certifications if available
-                return fetch('certifications/lightcast-certs.json').then(function(r2) { return r2.json(); }).then(function(lcData) {
+                return fetch('certifications/lightcast-certs.json?v=4.48.36').then(function(r2) { return r2.json(); }).then(function(lcData) {
                     if (lcData && lcData.credentials && lcData.credentials.length > 0) {
                         // Deduplicate: only add certs not already in the base library
                         var existingNames = new Set(certLibrary.credentials.map(function(c) { return c.name.toLowerCase(); }));
@@ -19336,7 +19720,7 @@
         window.getCertSkillAssociations = getCertSkillAssociations;
         window.getCertFloorLevel = getCertFloorLevel;
         
-        fetch('skill_valuations.json')
+        fetch('skill_valuations.json?v=4.48.36')
             .then(response => response.json())
             .then(data => {
                 skillValuations = data;
@@ -19743,6 +20127,7 @@
         // Returns immediately if already loaded, otherwise waits up to 8s
         async function ensureSkillLibrary() {
             if (skillLibraryIndex && skillLibraryIndex.index && skillLibraryIndex.index.length > 0) return true;
+            if (!_skillLibraryPromise && typeof startSkillLibraryLoad === 'function') startSkillLibraryLoad();
             if (_skillLibraryPromise) {
                 try { await Promise.race([_skillLibraryPromise, new Promise(function(_, rej) { setTimeout(function() { rej('timeout'); }, 8000); })]); }
                 catch(e) { console.warn('ensureSkillLibrary: ' + e); }
@@ -20833,10 +21218,19 @@
         }
         window.confirmSkillCapTriage = confirmSkillCapTriage;
 
-        // Load library on page load
+        // Kick off the skill-library fetch on demand (memoized — safe to call repeatedly).
+        function startSkillLibraryLoad() {
+            if (!_skillLibraryPromise) {
+                _skillLibraryPromise = loadSkillLibraryIndex();
+                loadExternalSynonyms();
+            }
+            return _skillLibraryPromise;
+        }
+        window.startSkillLibraryLoad = startSkillLibraryLoad;
+
+        // Task #25: the ~5.7 MB skill library index is no longer fetched at page load;
+        // it loads on first use (skills views, add-skills search, job parsing).
         window.addEventListener('DOMContentLoaded', () => {
-            _skillLibraryPromise = loadSkillLibraryIndex();
-            loadExternalSynonyms();
             var cy = document.getElementById('copyrightYear');
             if (cy) cy.textContent = new Date().getFullYear();
         });
@@ -21501,7 +21895,7 @@
             console.log('  → userData.skills[0] has evidence:', userData.skills[0].evidence ? `YES (${userData.skills[0].evidence.length} items)` : 'NO');
             
             // Load skill evidence if it exists
-            fetch('skill_evidence.json')
+            fetch('skill_evidence.json?v=4.48.36')
                 .then(response => response.json())
                 .then(data => {
                     userData.skillDetails = data;
@@ -21568,9 +21962,14 @@
             });
         }
 
-        function _loadCrosswalkDeferred() {
-            if (window.onetCrosswalk) return;
-            fetch('onet-crosswalk.json').then(function(r) { return r.json(); }).then(function(data) {
+        // Lazy crosswalk loader (task #25): ~6 MB file, loaded on demand with a
+        // memoized promise instead of eagerly at startup.
+        var _crosswalkPromise = null;
+        function _loadCrosswalkDeferred() { return ensureCrosswalk(); }
+        function ensureCrosswalk() {
+            if (window.onetCrosswalk) return Promise.resolve(window.onetCrosswalk);
+            if (_crosswalkPromise) return _crosswalkPromise;
+            _crosswalkPromise = fetch('onet-crosswalk.json?v=4.48.36').then(function(r) { return r.json(); }).then(function(data) {
                 window.onetCrosswalk = data;
                 // Inject custom aliases missing from O*NET — modern job titles not in the 2019 SOC system.
                 // Format: alias → [SOC code]. SOC must exist in data.occupations.
@@ -21617,12 +22016,54 @@
                 var aliasCount = Object.keys(data.aliases || {}).length;
                 console.log('✅ O*NET Crosswalk loaded (deferred): ' + occCount + ' occupations, ' + aliasCount + ' aliases');
                 recordApiHealth('onet-crosswalk', 'ok', occCount + ' occupations, ' + aliasCount + ' aliases');
+                return data;
             }).catch(function(e) {
                 window.onetCrosswalk = null;
+                _crosswalkPromise = null; // allow retry
                 console.warn('⚠ onet-crosswalk.json failed to load:', e.message);
                 recordApiHealth('onet-crosswalk', 'down', 'Failed to load');
+                return null;
             });
+            return _crosswalkPromise;
         }
+        window.ensureCrosswalk = ensureCrosswalk;
+
+        // ===== IDLE PREFETCH OF HEAVY SKILLS DATA (task #30) =====
+        // Task #25 made the ~6 MB crosswalk and ~5.7 MB skill index load on demand,
+        // so the first click into Map/Blueprint paid the download. For signed-in or
+        // demo-entering sessions we warm both during browser idle time after first
+        // paint, keeping first-paint transfer unchanged AND the first view switch
+        // instant. Skipped on Save-Data or 2g-class connections.
+        var _heavyDataPrefetchStarted = false;
+        function _connectionAllowsPrefetch() {
+            var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            if (!conn) return true; // no Network Information API — assume ok
+            if (conn.saveData) return false;
+            var et = conn.effectiveType || '';
+            if (et === 'slow-2g' || et === '2g') return false;
+            return true;
+        }
+        function prefetchHeavySkillsData() {
+            if (_heavyDataPrefetchStarted) return;
+            _heavyDataPrefetchStarted = true;
+            if (!_connectionAllowsPrefetch()) {
+                console.log('ℹ️ Heavy-data prefetch skipped (Save-Data or slow connection)');
+                return;
+            }
+            var run = function() {
+                // Both are memoized — if a view switch already triggered them,
+                // these are no-ops.
+                try { ensureCrosswalk(); } catch (e) {}
+                try { if (typeof startSkillLibraryLoad === 'function') startSkillLibraryLoad(); } catch (e) {}
+                console.log('⏳ Idle prefetch started: crosswalk + skill library');
+            };
+            if (typeof window.requestIdleCallback === 'function') {
+                window.requestIdleCallback(run, { timeout: 8000 });
+            } else {
+                setTimeout(run, 3000);
+            }
+        }
+        window.prefetchHeavySkillsData = prefetchHeavySkillsData;
 
         async function initializeApp() {
             initTheme();
@@ -21663,15 +22104,15 @@
             })();
 
             var librariesPromise = Promise.allSettled([
-                fetch('onet-skills-library.json').then(r => r.json()),
-                fetch('onet-abilities-library.json').then(r => r.json()),
-                fetch('onet-workstyles-library.json').then(r => r.json()),
-                fetch('onet-knowledge-library.json').then(r => r.json()),
-                fetch('onet-work-activities-library.json').then(r => r.json()),
-                fetch('trades-creative-library.json').then(r => r.json()),
-                fetch('values-library.json').then(r => r.json()),
-                fetch('bls-wages.json').then(r => r.json()),
-                fetch('companies.json').then(r => r.json())
+                fetch('onet-skills-library.json?v=4.48.36').then(r => r.json()),
+                fetch('onet-abilities-library.json?v=4.48.36').then(r => r.json()),
+                fetch('onet-workstyles-library.json?v=4.48.36').then(r => r.json()),
+                fetch('onet-knowledge-library.json?v=4.48.36').then(r => r.json()),
+                fetch('onet-work-activities-library.json?v=4.48.36').then(r => r.json()),
+                fetch('trades-creative-library.json?v=4.48.36').then(r => r.json()),
+                fetch('values-library.json?v=4.48.36').then(r => r.json()),
+                fetch('bls-wages.json?v=4.48.36').then(r => r.json()),
+                fetch('companies.json?v=4.48.36').then(r => r.json())
             ]);
 
             await Promise.all([profilesPromise, librariesPromise]);
@@ -21690,7 +22131,7 @@
             if (libResults[8].status === 'fulfilled') { window.companyDataLoaded = libResults[8].value; console.log('✅ Company values loaded: ' + Object.keys(libResults[8].value).length + ' companies'); }
             else { window.companyDataLoaded = {}; console.warn('⚠ companies.json failed to load — using JD inference fallback'); }
 
-            setTimeout(_loadCrosswalkDeferred, 100);
+            // Crosswalk (~6 MB) now lazy-loads on first view/parse that needs it (task #25)
             
             // ===== PROFILE DECISION FLOW =====
             const currentProfile = safeGet('currentProfile');
@@ -22057,6 +22498,9 @@
         // ═══════════════════════════════════════════════════════════
         
         async function parseLinkedInZipContents(file) {
+            try { await ensureZipParser(); } catch (e) {
+                throw new Error('Archive parser failed to load. Check your connection and try again.');
+            }
             if (typeof JSZip === 'undefined') throw new Error('JSZip library not loaded.');
             if (typeof Papa === 'undefined') throw new Error('PapaParse library not loaded.');
             
@@ -24351,6 +24795,9 @@ Include: job titles, companies, dates, responsibilities, achievements, metrics, 
                 setMsg('Reading archive...');
                 logAnalyticsEvent('linkedin_zip_import', {});
 
+                try { await ensureZipParser(); } catch (eLoad) {
+                    throw new Error('Archive parser failed to load. Check your connection and try again.');
+                }
                 if (typeof JSZip === 'undefined') {
                     throw new Error('JSZip library not loaded. Please refresh and try again.');
                 }
@@ -27284,7 +27731,7 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
         // ===== END v2.0 USER DATA MANAGEMENT =====
         
         // Load skill evidence dynamically
-        fetch('skill_evidence.json')
+        fetch('skill_evidence.json?v=4.48.36')
             .then(response => response.json())
             .then(data => {
                 skillsData.skillDetails = data;
@@ -29535,6 +29982,10 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
                 }, 300);
             }
             
+            // Task #30: signed-in sessions warm the heavy skills data during idle
+            // time after first paint so the first Map/Blueprint switch is instant.
+            if (fbUser) prefetchHeavySkillsData();
+            
             // First-visit teaser modal (after splash clears) — skip for invited/active users
             setTimeout(function() {
                 if (!safeGet('bp_teaser_seen') && appMode !== 'invited' && appMode !== 'active') {
@@ -30304,6 +30755,13 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
             
             currentView = view;
             window.scrollTo(0, 0);
+
+            // Task #25: kick off heavy data-library loads only when a view that
+            // needs them is opened (memoized — repeat calls are no-ops).
+            if (view === 'network' || view === 'blueprint' || view === 'opportunities') {
+                if (typeof ensureCrosswalk === 'function') ensureCrosswalk();
+                if (typeof startSkillLibraryLoad === 'function') startSkillLibraryLoad();
+            }
 
             // Stop the global D3 network simulation when leaving the map view
             if (view !== 'network' && typeof simulation !== 'undefined' && simulation) {
@@ -38450,8 +38908,12 @@ body {
         // SCOUTING REPORT PDF — Matches HTML report layout/data
         // Uses buildReportData() for identical data to HTML reports
         // ============================================================
-        function generateScoutingReportPDF(R) {
+        async function generateScoutingReportPDF(R) {
             if (showcaseExportGuard()) return;
+            try { await ensureJsPDF(); } catch (e) {
+                showToast('PDF library failed to load. Check your connection and try again.', 'error');
+                return;
+            }
             var jsPDF = window.jspdf.jsPDF;
             var doc = new jsPDF({ unit: 'mm', format: 'a4' });
             var W = 210, H = 297, M = 14, MW = W - M * 2, y = 0, pg = 0;
@@ -39889,8 +40351,12 @@ body {
         }
         window.executePdfExport = executePdfExport;
 
-        function generateExecutivePDF(data, sections, compOverrides) {
+        async function generateExecutivePDF(data, sections, compOverrides) {
             if (showcaseExportGuard()) return;
+            try { await ensureJsPDF(); } catch (e) {
+                showToast('PDF library failed to load. Check your connection and try again.', 'error');
+                return;
+            }
             var jsPDF = window.jspdf.jsPDF;
             var doc = new jsPDF({ unit: 'mm', format: 'a4' });
             var pw = doc.internal.pageSize.getWidth();
@@ -40489,8 +40955,12 @@ body {
             }
         }
         
-        function generatePDF(data, targetJob) {
+        async function generatePDF(data, targetJob) {
             if (showcaseExportGuard()) return;
+            try { await ensureJsPDF(); } catch (e) {
+                showToast('PDF library failed to load. Check your connection and try again.', 'error');
+                return;
+            }
             var jsPDF = window.jspdf.jsPDF;
             var doc = new jsPDF({ unit: 'mm', format: 'a4' });
             
@@ -44363,7 +44833,8 @@ body {
         
         // ===== CLAUDE API PARSING =====
         
-        async function parseJobWithAPI(jdText, apiKey) {
+        async function parseJobWithAPI(jdText, apiKey, options) {
+            options = options || {};
             logAnalyticsEvent('job_analysis', {});
             var userSkillNames = (skillsData.skills || []).map(function(s) { return s.name; });
             
@@ -44459,10 +44930,21 @@ body {
                 + '- NEVER use a section heading (What you\'ll do, About the role, Qualifications, Responsibilities)\n'
                 + '- If the title appears multiple times, use the first/most prominent occurrence\n'
                 + '- If no clear title, use "Untitled Position"\n';
+
+            if (options.includeWorkAllocation) {
+                var profileSkillNames = (skillsData.skills || []).map(function(s) { return s.name; }).filter(Boolean).slice(0, 80);
+                userPrompt += '\n\nDUAL HUMAN + AGENT WORK MODEL:\n'
+                    + 'Also return "workTasks" in the JSON. Create 4-8 concrete tasks from the responsibilities in the posting; do not invent duties unrelated to the JD.\n'
+                    + 'Each item must use this shape: {"task":"short task","outcome":"observable result","owner":"human|shared|agent","humanSkills":[{"name":"skill","proficiency":"Novice|Competent|Proficient|Advanced|Expert|Mastery"}],"agentCapabilities":[{"name":"operational capability","proficiency":"Novice|Competent|Proficient|Advanced|Expert|Mastery","relatedHumanSkill":"exact matching skill from the supplied person skill map, or empty string"}],"humanReview":"required review or approval, or empty string","rationale":"brief reason for the suggested split"}.\n'
+                    + 'Ownership guidance: default to human-led where judgment, relationship, accountability, or physical action matters; use shared when an agent can research, draft, analyze, or prepare work but a person contributes judgment; use agent only for bounded, repeatable, low-risk digital work, and specify a human review/checkpoint. These are recommendations, not claims that an agent or tool is already available.\n'
+                    + 'List the human skills needed to perform the human part, and agent capabilities as concrete work abilities (e.g. classify records, compare documents, draft a first-pass summary), not generic "AI" or tool names. Set relatedHumanSkill only to an exact name from this person skill map when genuinely related; otherwise use an empty string. Do not imply that an agent has the human proficiency level; proficiency here means the level the role requires.\n'
+                    + 'Person skill map: ' + (profileSkillNames.join(', ') || 'Not available') + '\n'
+                    + 'Keep task descriptions, outcomes, and rationales concise. Human accountability must remain explicit for sensitive decisions.\n';
+            }
             
             var data = await callAnthropicAPI({
                     model: BP_AI_MODEL,
-                    max_tokens: 8000,
+                    max_tokens: options.includeWorkAllocation ? 10000 : 8000,
                     system: systemPrompt,
                     messages: [{ role: 'user', content: userPrompt }]
                 }, apiKey, 'jd-analysis');
@@ -53680,10 +54162,11 @@ body {
         window.deleteSavedNegGuide = deleteSavedNegGuide;
 
         // ── PDF export of the current guide (jsPDF text flow) ─────────────
-        function exportNegGuidePDF() {
+        async function exportNegGuidePDF() {
             var cur = window._negGuideCurrent;
             if (!cur || !cur.guide) { showToast('No guide to export', 'error'); return; }
             if (typeof showcaseExportGuard === 'function' && showcaseExportGuard()) return;
+            try { await ensureJsPDF(); } catch (e) { showToast('PDF library failed to load. Check your connection and try again.', 'error'); return; }
             if (!window.jspdf || !window.jspdf.jsPDF) { showToast('PDF library not loaded', 'error'); return; }
             var g = cur.guide, tv = cur.tv || {};
             var doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
@@ -53795,7 +54278,7 @@ body {
         
         async function loadImpactRatings() {
             try {
-                const response = await fetch('onet-impact-ratings.json');
+                const response = await fetch('onet-impact-ratings.json?v=4.48.36');
                 impactRatings = await response.json();
                 console.log('✓ Impact ratings loaded');
             } catch (e) {

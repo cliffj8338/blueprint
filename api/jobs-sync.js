@@ -415,6 +415,85 @@ async function fetchMuse(category, page) {
     }
 }
 
+// ============================================================
+// RULES-SYNC HEARTBEAT WATCHDOG (task #19)
+// ============================================================
+// api/rules-sync.js writes meta/rules_sync { lastRunAt } on every run. If that
+// cron dies silently, the only signal used to be the admin Status tab — which
+// requires someone to open it. This watchdog runs on every jobs-sync (also a
+// 6-hourly cron) and raises a CRITICAL system_incidents entry when the
+// heartbeat is older than ~13h (two missed 6-hourly runs).
+//
+// Spam control: meta/rules_sync.staleAlertedFor records which heartbeat value
+// ('never' if the doc/field is missing) has already been alerted on. One stale
+// episode → one alert; a new alert only fires after the heartbeat recovers and
+// goes stale again (different lastRunAt value).
+const RULES_SYNC_STALE_MS = 13 * 60 * 60 * 1000;
+
+async function checkRulesSyncHeartbeat() {
+  try {
+    const ref = db.collection('meta').doc('rules_sync');
+    const doc = await ref.get();
+    const data = doc.exists ? (doc.data() || {}) : {};
+    const lastRunAt = data.lastRunAt || null;
+    const ageMs = lastRunAt ? Date.now() - new Date(lastRunAt).getTime() : Infinity;
+
+    if (ageMs <= RULES_SYNC_STALE_MS) {
+      // Fresh again — auto-resolve any open heartbeat incidents so the admin
+      // panel reflects reality. The 30-day cleanup of resolved incidents
+      // (Phase 7b) then purges them naturally.
+      let resolvedCount = 0;
+      try {
+        const openSnap = await db.collection('system_incidents')
+          .where('feature', '==', 'rules-sync-heartbeat')
+          .where('resolved', '==', false)
+          .get();
+        if (!openSnap.empty) {
+          const batch = db.batch();
+          const resolvedAt = new Date().toISOString();
+          openSnap.docs.forEach(d => batch.update(d.ref, { resolved: true, resolvedAt }));
+          await batch.commit();
+          resolvedCount = openSnap.size;
+          console.log('[jobs-sync] rules-sync heartbeat recovered — auto-resolved ' + resolvedCount + ' open incident(s)');
+        }
+      } catch (e) {
+        console.error('[jobs-sync] failed to auto-resolve rules-sync-heartbeat incidents:', e.message);
+      }
+      return { stale: false, lastRunAt, resolvedCount };
+    }
+
+    // Stale. Dedupe: one alert per stale episode (keyed by the heartbeat value).
+    const episodeKey = lastRunAt || 'never';
+    if (data.staleAlertedFor === episodeKey) {
+      return { stale: true, lastRunAt, alerted: false };
+    }
+
+    const ageHours = lastRunAt ? Math.round(ageMs / 3600000) : null;
+    const message = lastRunAt
+      ? 'Rules-sync safety check appears DEAD: its heartbeat (meta/rules_sync.lastRunAt) is ' +
+        ageHours + 'h old (last run ' + lastRunAt + '; expected every 6h). ' +
+        'Firestore rules drift would currently go undetected. Check the /api/rules-sync Vercel cron and its logs.'
+      : 'Rules-sync safety check has NEVER recorded a heartbeat (meta/rules_sync missing). ' +
+        'The /api/rules-sync cron may have never run successfully. Firestore rules drift would go undetected.';
+
+    const docId = 'rshb-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    await db.collection('system_incidents').doc(docId).set({
+      severity: 'critical',
+      feature: 'rules-sync-heartbeat',
+      message: message.slice(0, 1000),
+      model: 'n/a',
+      timestamp: new Date().toISOString(),
+      resolved: false
+    });
+    await ref.set({ staleAlertedFor: episodeKey }, { merge: true });
+    console.warn('[jobs-sync] rules-sync heartbeat STALE — critical incident raised:', message);
+    return { stale: true, lastRunAt, alerted: true };
+  } catch (e) {
+    console.error('[jobs-sync] rules-sync heartbeat check failed:', e.message);
+    return { stale: null, error: e.message };
+  }
+}
+
 // Safe Firestore doc ID (no slashes, max 200 chars)
 function safeDocId(id) {
   return id.replace(/[\/\.\#\$\[\]]/g, '_').substring(0, 200);
@@ -457,6 +536,11 @@ export default async function handler(req, res) {
   } catch (e) {
     // Default to A if can't read meta
   }
+
+  // Watchdog: alert if the rules-sync cron's heartbeat has gone stale.
+  // Runs FIRST (cheap, one read) so it completes even if the sync later
+  // hits the time budget or throws.
+  const rulesSyncWatch = await checkRulesSyncHeartbeat();
 
   const jsearchQueries = syncGroup === 'A' ? JSEARCH_GROUP_A : JSEARCH_GROUP_B;
   const JSEARCH_PAGES = 5; // 5 pages × ~10 results = ~50 jobs per query
@@ -657,6 +741,7 @@ export default async function handler(req, res) {
     freeQueries: FREE_SOURCE_QUERIES.length,
     usajobsQueries: usajobsQueries.length,
     errors: errors.slice(0, 20),
+    rulesSyncHeartbeat: rulesSyncWatch,
     cleaned,
     incidentsCleaned,
     duration: Date.now() - startTime
@@ -674,6 +759,7 @@ export default async function handler(req, res) {
     sourceCounts,
     jsearchApiCalls,
     errors: errors.slice(0, 10),
+    rulesSyncHeartbeat: rulesSyncWatch,
     cleaned,
     duration: meta.duration
   }));

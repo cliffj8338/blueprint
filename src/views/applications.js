@@ -1185,7 +1185,7 @@ let impactRatings = null;
 
 async function loadImpactRatings() {
     try {
-        const response = await fetch('onet-impact-ratings.json');
+        const response = await fetch('onet-impact-ratings.json?v=4.48.36');
         impactRatings = await response.json();
         console.log('✓ Impact ratings loaded');
     } catch (e) {

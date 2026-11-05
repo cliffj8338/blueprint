@@ -12,13 +12,13 @@ export var certLibrary = { credentials: [], tiers: {} };
 // ─── Loader ───────────────────────────────────────────────────────────────────
 
 export function loadCertificationLibrary() {
-    return fetch('certification_library.json')
+    return fetch('certification_library.json?v=4.48.36')
         .then(function(r) { return r.json(); })
         .then(function(data) {
             certLibrary = data;
             console.log('\u2705 Certification library loaded: ' + data.totalCredentials + ' credentials');
             // Chain: merge Lightcast certs if available
-            return fetch('certifications/lightcast-certs.json')
+            return fetch('certifications/lightcast-certs.json?v=4.48.36')
                 .then(function(r2) { return r2.json(); })
                 .then(function(lcData) {
                     if (!lcData || !lcData.credentials || lcData.credentials.length === 0) return;

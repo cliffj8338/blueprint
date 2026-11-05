@@ -13,7 +13,7 @@ import { recordApiHealth } from '../core/constants.js';
 
 export function loadCrosswalkDeferred() {
     if (window.onetCrosswalk) return;
-    fetch('onet-crosswalk.json')
+    fetch('onet-crosswalk.json?v=4.48.36')
         .then(function(r) { return r.json(); })
         .then(function(data) {
             window.onetCrosswalk = data;
