@@ -1,7 +1,7 @@
 
         // ============================================================
-        // BLUEPRINT v4.48.38 - BUILD 20261105-human-agent-work-model
-        var BP_VERSION = 'v4.48.38';
+        // BLUEPRINT v4.48.39 - BUILD 20261105-agent-readiness
+        var BP_VERSION = 'v4.48.39';
         // ===== AI MODEL IDS =====
         // Keep in sync with src/core/constants.js (single source of truth)
         var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';
@@ -1718,6 +1718,7 @@
                         sample: j.sample || false };
                 }),
                 savedNegotiationGuides: (_ud.savedNegotiationGuides || []).slice(0, 5),
+                agentReadiness: _ud.agentReadiness || {},
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
             data.profileType = _ud.profileType || (_ud.explorerData ? 'explorer' : 'standard');
@@ -2182,6 +2183,7 @@
                     userData.applications = data.applications || [];
                     userData.savedJobs = data.savedJobs || [];
                     userData.savedNegotiationGuides = data.savedNegotiationGuides || [];
+                    userData.agentReadiness = data.agentReadiness || {};
                     userData.workHistory = data.workHistory || [];
                     userData.education = data.education || [];
                     userData.certifications = data.certifications || [];
@@ -2346,6 +2348,7 @@
                         userData.roles = d.roles || [];
                         userData.savedJobs = d.savedJobs || [];
                         userData.savedNegotiationGuides = d.savedNegotiationGuides || [];
+                        userData.agentReadiness = d.agentReadiness || {};
                         userData.workHistory = d.workHistory || [];
                         userData.education = d.education || [];
                         userData.certifications = d.certifications || [];
@@ -28355,6 +28358,7 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
             fitNetworkToViewport(svg, networkContainer, width, height, nodes);
 
             window.networkData = { nodes, links, svg, link, node };
+            if (window.BPAgentReadinessIntegration) window.BPAgentReadinessIntegration.refreshMap();
             setTimeout(applyLabelToggles, 100);
             
             // Labels always on (toggle removed in v4.27.3.3)
@@ -32018,6 +32022,11 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
                 + '</div>';
             } // end !isReadOnlyProfile
             body.innerHTML += actionsHtml;
+            if (window.BPAgentReadinessUI) {
+                body.innerHTML += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">'
+                    + window.BPAgentReadinessUI.badgeHTML(skillName)
+                    + '<p style="font-size:.8em;color:var(--c-muted);margin:8px 0;">Build your agent-partner playbook. Readiness is separate from your proficiency and salary estimate.</p></div>';
+            }
             
             history.pushState({ modal: true }, ''); modal.classList.add('active');
         }
@@ -35539,6 +35548,7 @@ body {
             }
             
             // Group skills by impact-based rarity
+            if (window.BPAgentReadinessUI) html += window.BPAgentReadinessUI.summaryHTML(skills);
             var impactToRarity = { critical: 'rare', high: 'rare', moderate: 'uncommon', standard: 'common', supplementary: 'common' };
             var tierMeta = {
                 rare: { label: 'Rare', desc: 'Market differentiators', icon: 'flame', bg: 'rgba(196,93,0,0.08)', border: 'rgba(196,93,0,0.3)', accent: 'var(--c-orange)', pillBg: 'rgba(196,93,0,0.12)', pillText: '#7a3800' },
@@ -35672,6 +35682,7 @@ body {
                         html += '<div style="font-size:0.68em; color:var(--c-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + roleNames.join(' \u00B7 ') + '</div>';
                     }
 
+                    if (window.BPAgentReadinessUI) html += '<div style="margin-top:10px;">' + window.BPAgentReadinessUI.badgeHTML(s.name) + '</div>';
                     html += '</div>';
                 });
 

@@ -1,7 +1,7 @@
 
         // ============================================================
-        // BLUEPRINT v4.48.38 - BUILD 20261105-human-agent-work-model
-        var BP_VERSION = 'v4.48.38';
+        // BLUEPRINT v4.48.39 - BUILD 20261105-agent-readiness
+        var BP_VERSION = 'v4.48.39';
         // ===== AI MODEL IDS =====
         // Keep in sync with src/core/constants.js (single source of truth)
         var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';

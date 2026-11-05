@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent readiness component tests — synthetic data</title>
+<link rel="stylesheet" href="/blueprint.css">
+<link rel="stylesheet" href="/agent-readiness.css">
+<body style="padding:24px">
+<h1>Agent readiness component test</h1>
+<p>Synthetic profile only. This is not a signed-in account or an authentication bypass.</p>
+<div id="summary"></div>
+<div id="skill-card" style="padding:16px;border:1px solid #ccc;border-radius:10px;max-width:500px">
+  <h2>Market Research</h2><p>Human proficiency: Mastery</p><div id="badge"></div>
+</div>
+<pre id="results">Browser tests starting…</pre>
+<script src="/agent-readiness.js"></script>
+<script src="/agent-readiness-ui.js"></script>
+<script>
+(async function () {
+    const api = BPAgentReadiness;
+    const ui = BPAgentReadinessUI;
+    let records = {};
+    let owner = 'synthetic-user';
+    let editable = true;
+    let cardClicks = 0;
+    let saves = 0;
+    let sourceFailure = false;
+    let copied = '';
+    const assertions = [];
+    window.confirm = () => true;
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText: async text => { copied = text; } }, configurable: true });
+    const sources = [{
+        title: 'Researcher — synthetic example',
+        workTasks: [{
+            task: 'Compare three approved public competitor sources',
+            owner: 'shared',
+            outcome: 'A source-linked comparison with all uncertain claims flagged',
+            humanSkills: [{ name: 'Market Research' }],
+            agentCapabilities: [{ name: 'Extract facts with source references', relatedHumanSkill: 'Market Research' }],
+            humanReview: 'Human checks every source before using the result'
+        }]
+    }];
+    const adapter = {
+        owner: () => owner, canEdit: () => editable,
+        skills: () => [{ name: 'Market Research', level: 'Mastery' }, { name: 'Skill "quoted" <safe> 100%', level: 'Expert' }],
+        records: () => records,
+        persist: async value => { saves++; records = value; return true; },
+        loadBlueprints: async () => { if (sourceFailure) throw new Error('Synthetic offline failure'); return sources; }
+    };
+    api.configure(adapter);
+    const paint = () => {
+        document.getElementById('summary').innerHTML = ui.summaryHTML(adapter.skills());
+        document.getElementById('badge').innerHTML = ui.badgeHTML('Market Research');
+    };
+    adapter.onChange = paint;
+    paint();
+    document.getElementById('skill-card').addEventListener('click', () => { cardClicks++; });
+    document.getElementById('skill-card').addEventListener('keydown', e => { if (e.key === 'Enter') cardClicks++; });
+    const assert = (condition, message) => { if (!condition) throw new Error(message); assertions.push(message); };
+    const settle = async () => { await new Promise(resolve => setTimeout(resolve, 15)); };
+    const field = name => document.querySelector('.bp-readiness-form [name="' + name + '"]');
+    const action = name => document.querySelector('[data-action="' + name + '"]');
+    const feedback = () => document.querySelector('[data-feedback]').textContent;
+    const set = (name, value) => { field(name).value = value; field(name).dispatchEvent(new Event('input', { bubbles: true })); };
+    const submit = async () => { document.querySelector('.bp-readiness-form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); await settle(); };
+    try {
+        if (new URLSearchParams(location.search).has('preview')) {
+            await api.save('Market Research', {
+                stage: 'opportunity', task: sources[0].workTasks[0].task,
+                humanContribution: 'Set the research question, judge source credibility and decide the strategic implications.',
+                agentTask: 'Gather facts from approved public sources and draft a comparison with citations.',
+                review: 'Review each source and approve all recommendations.',
+                criteria: 'Every factual claim is traceable; uncertainty is explicit.'
+            });
+            ui.open('Market Research');
+            document.getElementById('results').textContent = 'Preview fixture — synthetic data';
+            return;
+        }
+        document.querySelector('[data-bp-readiness-open]').click();
+        await settle();
+        assert(!!document.querySelector('[role="dialog"]'), 'Badge opens the playbook');
+        assert(cardClicks === 0, 'Badge click does not open the underlying skill editor');
+        assert(document.querySelector('.bp-readiness-subtitle').textContent.includes('Mastery'), 'Human proficiency remains explicit');
+        assert(document.querySelectorAll('[name="stage"] option').length === 5, 'All readiness stages are available');
+        assert(document.querySelectorAll('[data-source-select] option').length === 2, 'Only skill-matched source tasks are offered');
+        action('apply-source').click();
+        assert(feedback().includes('Choose a saved'), 'Source placeholder cannot apply the first source accidentally');
+        action('apply-template').click();
+        assert(field('instructions').value.includes('allowed tools'), 'Planning template fills useful agent instructions');
+        assert(field('stage').value === 'unassessed', 'Planning template does not advance readiness');
+        document.querySelector('[data-source-select]').value = '0';
+        action('apply-source').click();
+        assert(field('task').value === sources[0].workTasks[0].task, 'Selected source fills the actual task');
+        assert(field('criteria').value === sources[0].workTasks[0].outcome, 'Expected outcome becomes success criteria');
+        assert(field('result').value === '', 'Expected outcome is never copied as an achieved result');
+        set('stage', 'evidenced');
+        await submit();
+        assert(saves === 0 && feedback().includes('actual agent'), 'Unsupported readiness claim cannot be saved');
+        set('stage', 'active');
+        set('agentName', 'Approved research assistant');
+        set('tools', 'Read-only approved public web sources');
+        await submit();
+        assert(saves === 1 && api.status('Market Research').stage === 'active', 'Valid operational record persists');
+        assert(feedback().includes('synced'), 'Confirmed persistence is distinguished from pending sync');
+        action('copy-brief').click();
+        await settle();
+        assert(copied.includes('AGENT PARTNER BRIEF') && copied.includes('Human review'), 'Partner brief can be copied into an approved tool');
+        ui.close();
+        document.querySelector('[data-bp-readiness-open]').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        assert(cardClicks === 0, 'Keyboard activation does not trigger the parent editor');
+        ui.open('Market Research');
+        await settle();
+        assert(field('agentName').value === 'Approved research assistant', 'Saved workflow is restored when reopened');
+        set('stage', 'evidenced');
+        await submit();
+        assert(feedback().includes('actual result'), 'Documented outcome requires an actual result');
+        set('result', 'Synthetic test: checked source accuracy and compared review effort against the manual baseline.');
+        await submit();
+        assert(api.get('Market Research').assessmentType === 'self-reported', 'Documented results remain self-reported');
+        action('remove').click();
+        await settle();
+        assert(api.get('Market Research') === null && field('task').value === '', 'Removing the playbook clears the record without removing the skill');
+        ui.close();
+        for (let i = 0; i < 8; i++) { ui.open('Market Research'); await settle(); ui.close(); }
+        assert(document.querySelectorAll('.bp-readiness-layer').length === 0, 'Repeated opens do not accumulate modal roots');
+        ui.open('Skill "quoted" <safe> 100%');
+        assert(document.querySelector('#bp-readiness-title').textContent === 'Skill "quoted" <safe> 100%', 'Skill names are escaped rather than interpreted as markup');
+        ui.close();
+        editable = false;
+        ui.open('Market Research');
+        await settle();
+        assert(field('task').disabled && action('save').disabled, 'Read-only profiles cannot edit or save');
+        ui.close();
+        editable = true;
+        sourceFailure = true;
+        api.configure(adapter);
+        ui.open('Market Research');
+        await settle();
+        assert(document.querySelector('[data-source-status]').textContent.includes('Synthetic offline failure'), 'Source-load errors are visible');
+        assert(!field('task').disabled, 'Manual editing stays available after source-load failure');
+        ui.close();
+        sourceFailure = false;
+        api.configure(adapter);
+        ui.open('Market Research');
+        await settle();
+        set('task', 'Draft task');
+        set('agentTask', 'Bounded support');
+        set('stage', 'opportunity');
+        owner = 'another-synthetic-user';
+        await submit();
+        assert(feedback().includes('profile changed'), 'A stale modal cannot save to another account');
+        ui.close();
+        // Integration adapter tests use synthetic app globals, not an auth bypass.
+        window.userData = { initialized: true, agentReadiness: {} };
+        window._userData = window.userData;
+        window.skillsData = { skills: [{ name: 'Market Research', level: 'Mastery' }] };
+        window.fbUser = { uid: 'integration-synthetic-user' };
+        window.appContext = { mode: 'personal' };
+        window.isReadOnlyProfile = false;
+        window.showcaseMode = false;
+        window._partialRestoreActive = false;
+        let cloudCalls = 0;
+        window.saveToFirestore = async function () { cloudCalls++; return true; };
+        const chain = {
+            collection: () => chain, doc: () => chain, orderBy: () => chain, limit: () => chain,
+            get: async () => ({ docs: sources.map(value => ({ data: () => value })) })
+        };
+        window.fbDb = chain;
+        const map = document.createElement('div');
+        map.innerHTML = '<svg id="networkView"><g class="node skill" transform="translate(40,50)"><circle r="8" fill="#258349"></circle></g></svg>';
+        document.body.appendChild(map);
+        const node = map.querySelector('g');
+        node.__data__ = { type: 'skill', name: 'Market Research' };
+        await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = '/agent-readiness-integration.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.body.appendChild(script);
+        });
+        assert(api.status('Market Research').stage === 'unassessed', 'Integration starts from the current profile, not stale test records');
+        await api.save('Market Research', { stage: 'opportunity', task: 'Bounded research task', agentTask: 'Collect source-linked facts' });
+        assert(cloudCalls === 1 && window.userData.agentReadiness[api.key('Market Research')].stage === 'opportunity', 'Adapter uses the existing profile save pipeline');
+        assert(node.querySelectorAll('.bp-readiness-marker').length === 1, 'Assessed skill receives a readiness marker on the map');
+        assert(node.querySelector('circle').getAttribute('fill') === '#258349', 'Map marker leaves human proficiency color unchanged');
+        node.setAttribute('transform', 'translate(100,130)');
+        BPAgentReadinessIntegration.refreshMap();
+        assert(node.querySelectorAll('.bp-readiness-marker').length === 1 && node.querySelector('.bp-readiness-marker').parentNode === node, 'Marker remains attached through node movement without duplicates');
+        assert(document.querySelectorAll('#bpAgentReadinessLegend').length === 1, 'Readiness legend does not accumulate');
+        const identity = document.querySelector('[data-bp-readiness-open]');
+        BPAgentReadinessIntegration.refresh();
+        assert(identity === document.querySelector('[data-bp-readiness-open]'), 'Refreshing badges preserves their focusable DOM identity');
+        window.isReadOnlyProfile = true;
+        BPAgentReadinessIntegration.refreshMap();
+        assert(api.get('Market Research') === null && !node.querySelector('.bp-readiness-marker'), 'Personal readiness does not leak into read-only samples');
+        window.isReadOnlyProfile = false;
+        window._partialRestoreActive = true;
+        await api.save('Market Research', { stage: 'opportunity', task: 'Task', agentTask: 'Support' }).then(
+            () => { throw new Error('Partial restore was allowed to write'); },
+            () => assert(cloudCalls === 1, 'Partial profile restores cannot overwrite cloud readiness')
+        );
+        document.getElementById('results').textContent = 'PASS: ' + assertions.length + ' browser assertions\n' + assertions.join('\n');
+        document.body.dataset.testResult = 'pass';
+    } catch (error) {
+        document.getElementById('results').textContent = 'FAIL after ' + assertions.length + ' assertions: ' + error.message + '\n' + error.stack;
+        document.body.dataset.testResult = 'fail';
+    }
+})();
+</script>
+</body>
+</html>
