@@ -78,6 +78,9 @@
     }
   ],
   "functions": {
+    "api/invitation-resend.js": {
+      "maxDuration": 60
+    },
     "api/rules-sync.js": {
       "includeFiles": "firestore.rules"
     },

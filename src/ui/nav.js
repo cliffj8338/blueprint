@@ -362,6 +362,7 @@ if (!window.updateDemoToggleUI) window.updateDemoToggleUI = updateDemoToggleUI;
 // ─── switchView ───────────────────────────────────────────────────────────────
 
 export function switchView(view, event) {
+    if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
     // Aliases
     if (view === 'skills') view = 'network';
     if (view === 'jobs')   view = 'opportunities';

@@ -1,7 +1,7 @@
 
         // ============================================================
-        // BLUEPRINT v4.48.39 - BUILD 20261105-agent-readiness
-        var BP_VERSION = 'v4.48.39';
+        // BLUEPRINT v4.48.40 - BUILD 20261111-invitation-resends
+        var BP_VERSION = 'v4.48.40';
         // ===== AI MODEL IDS =====
         // Keep in sync with src/core/constants.js (single source of truth)
         var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';
@@ -516,7 +516,9 @@
             return total;
         }
 
-        async function callAnthropicAPI(requestBody, userApiKey, featureTag) {
+        async function callAnthropicAPI(requestBody, userApiKey, featureTag, requestOptions) {
+            var requestSignal = requestOptions && requestOptions.signal;
+            if (requestSignal) requestSignal.throwIfAborted();
             var promptText = '';
             var modelName = (requestBody && requestBody.model) || '';
             if (requestBody && requestBody.messages && requestBody.messages.length > 0) {
@@ -525,6 +527,7 @@
 
             if (featureTag && _aiCacheableFeatures[featureTag]) {
                 var cached = await _aiCacheGet(featureTag, promptText, modelName);
+                if (requestSignal) requestSignal.throwIfAborted();
                 if (cached) return cached;
             }
 
@@ -536,6 +539,7 @@
             if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
                 try { idToken = await firebase.auth().currentUser.getIdToken(); } catch (e) { console.warn('Failed to get Firebase ID token:', e.message); }
             }
+            if (requestSignal) requestSignal.throwIfAborted();
             console.log('[BP API] idToken:', idToken ? 'obtained' : 'none', 'proxyAvailable:', AI_PROXY_AVAILABLE, 'directKey:', !!userApiKey);
             if (idToken && AI_PROXY_AVAILABLE !== false && Date.now() > _aiProxyCooldownUntil) {
                 var proxyApiError = null;
@@ -548,13 +552,14 @@
                         console.log('[BP API] Retry attempt ' + _attempt + '/' + _maxRetries + ' after ' + _delay + 'ms...');
                         await new Promise(function(r) { setTimeout(r, _delay); });
                     }
+                    if (requestSignal) requestSignal.throwIfAborted();
                     try {
                         console.log('[BP API] Fetching proxy:', AI_PROXY_URL, _attempt > 0 ? '(retry ' + _attempt + ')' : '');
                         var proxyRes = await fetch(AI_PROXY_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
                             body: JSON.stringify(requestBody),
-                            signal: AbortSignal.timeout(90000)
+                            signal: requestSignal ? AbortSignal.any([requestSignal, AbortSignal.timeout(90000)]) : AbortSignal.timeout(90000)
                         });
                         console.log('[BP API] Proxy response:', proxyRes.status, proxyRes.statusText);
                         if (proxyRes.ok) {
@@ -619,6 +624,7 @@
                             }
                         }
                     } catch (e) {
+                        if (requestSignal && requestSignal.aborted) throw e;
                         console.error('[BP API] Proxy fetch error:', e.name, e.message);
                         if (e.message.includes('Rate limit') || e.message.includes('temporarily overloaded')) throw e;
                         if (e.name === 'TimeoutError' || e.message.includes('timed out') || e.message.includes('aborted')) {
@@ -647,7 +653,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-api-key': userApiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
                 body: JSON.stringify(requestBody),
-                signal: AbortSignal.timeout(120000)
+                signal: requestSignal ? AbortSignal.any([requestSignal, AbortSignal.timeout(120000)]) : AbortSignal.timeout(120000)
             });
             if (!directRes.ok) {
                 var errData = {}; try { errData = await directRes.json(); } catch(e) {}
@@ -1238,6 +1244,7 @@
         
         if (fbAuth) {
             fbAuth.onAuthStateChanged(function(user) {
+                if (window.bpAgentSupportData) window.bpAgentSupportData.reset();
                 // v4.44.36: Showcase mode manages its own auth state — skip Firebase overrides
                 if (showcaseMode) { authReadyResolve(null); return; }
                 fbUser = user;
@@ -4012,7 +4019,7 @@
                     html += '<h3 style="font-family:Outfit,sans-serif; font-weight:700; color:var(--text-primary); margin:0 0 12px; font-size:1em;">Invited (' + invited.length + ')</h3>';
                     html += '<div style="display:grid; gap:6px;">';
                     invited.forEach(function(user) {
-                        html += '<div style="padding:12px 16px; background:var(--c-green-bg-1b); '
+                        html += '<div data-bp-invited-id="' + escapeHtml(user._id) + '" style="padding:12px 16px; background:var(--c-green-bg-1b); '
                             + 'border:1px solid var(--c-green-bg-5b); border-radius:8px; display:flex; justify-content:space-between; align-items:center;">'
                             + '<div>'
                             + '<strong style="color:var(--text-primary);">' + escapeHtml(user.name || 'Anonymous') + '</strong>'
@@ -4028,6 +4035,8 @@
                 }
                 
                 el.innerHTML = html;
+                if (window.BPDirectInviteUI) window.BPDirectInviteUI.mount(el);
+                if (window.BPInviteResend) window.BPInviteResend.mount(el, invited);
             }).catch(function(err) {
                 el.innerHTML = '<div style="color:var(--danger);">Error: ' + escapeHtml(err.message) + '</div>';
             });
@@ -6446,6 +6455,7 @@
         var _jdcInputMode = 'paste';
         var _jdcBulkResults = [];
         var _jdcBulkViewIdx = -1;
+        var _jdcBulkJob = null;
 
         var _wbw = { step: 1, company: '', title: '', seniority: 'mid', location: '', department: '', reportsTo: '', employmentType: 'Full-time', schedule: '', travel: '', industry: '', compensationRange: '', companyResearch: null, researchLoading: false, socResult: null, skills: [], bls: null, yearsRequired: [], education: [], certifications: [], qualifications: [], selectedValues: [], valueDescriptions: {}, summary: '', keyResponsibilities: [], demonstrated: null, customFields: [] };
         var _wbwEditMode = false;
@@ -7628,7 +7638,7 @@
         window._wbwSaveCurrentStep = _wbwSaveCurrentStep;
 
         function renderAdminJDConverter(el) {
-            var html = '<div style="max-width:1200px; margin:0 auto;">';
+            var html = '<div id="jdcConverter" style="max-width:1200px; margin:0 auto;">';
 
             html += '<div style="margin-bottom:24px;">'
                 + '<div style="font-family:Outfit,sans-serif; font-size:1.4em; font-weight:700; color:var(--c-heading-bold); margin-bottom:6px;">'
@@ -7643,15 +7653,15 @@
                 { id: 'bulk', icon: 'list', label: 'Bulk' },
                 { id: 'repo', icon: 'folder', label: 'Repository', onclick: "adminSubTab='wbrepo'; renderAdminTabContent();" }
             ];
-            html += '<div style="display:flex; gap:2px; background:var(--c-surface-2); border-radius:10px; padding:3px; margin-bottom:20px; max-width:400px;">';
+            html += '<div id="jdcModeTabs" style="display:flex; gap:2px; background:var(--c-surface-2); border-radius:10px; padding:3px; margin-bottom:20px; max-width:400px;">';
             modes.forEach(function(m) {
                 var active = _jdcInputMode === m.id;
                 if (m.onclick) {
-                    html += '<button onclick="' + m.onclick + '" style="flex:1; padding:8px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.82em; display:flex; align-items:center; justify-content:center; gap:5px; '
+                    html += '<button ' + (_jdcBulkJob && _jdcBulkJob.running ? 'disabled ' : '') + 'onclick="' + m.onclick + '" style="flex:1; padding:8px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.82em; display:flex; align-items:center; justify-content:center; gap:5px; '
                         + (active || adminSubTab === 'wbrepo' && m.id === 'repo' ? 'background:var(--accent); color:#fff;' : 'background:transparent; color:var(--text-secondary);') + '">'
                         + bpIcon(m.icon, 14) + ' ' + m.label + '</button>';
                 } else {
-                    html += '<button onclick="_jdcInputMode=\'' + m.id + '\'; _jdcResult=null; _jdcBulkResults=[]; _jdcBulkViewIdx=-1; _jdcFromRepo=false; _jdcEditMode=false; renderAdminJDConverter(document.getElementById(\'adminTabContent\'));" style="flex:1; padding:8px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.82em; display:flex; align-items:center; justify-content:center; gap:5px; '
+                    html += '<button ' + (_jdcBulkJob && _jdcBulkJob.running ? 'disabled ' : '') + 'onclick="_jdcInputMode=\'' + m.id + '\'; _jdcResult=null; _jdcBulkResults=[]; _jdcBulkViewIdx=-1; _jdcBulkJob=null; _jdcFromRepo=false; _jdcEditMode=false; renderAdminJDConverter(document.getElementById(\'adminTabContent\'));" style="flex:1; padding:8px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.82em; display:flex; align-items:center; justify-content:center; gap:5px; '
                         + (active ? 'background:var(--accent); color:#fff;' : 'background:transparent; color:var(--text-secondary);') + '">'
                         + bpIcon(m.icon, 14) + ' ' + m.label + '</button>';
                 }
@@ -7692,10 +7702,14 @@
                     + '<div style="font-size:0.78em; color:var(--c-faint); margin-top:4px;">Accepts .txt (--- separated), .json (array of strings or objects with "description" field), or .csv</div>'
                     + '</div></div>'
                     + '<div style="display:flex; gap:12px; margin-top:12px; align-items:center; flex-wrap:wrap;">'
-                    + '<button onclick="runJDConverterBulk()" style="padding:10px 24px; background:var(--accent); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9em;">'
+                    + '<button id="jdcBulkConvertBtn" onclick="runJDConverterBulk()" style="padding:10px 24px; background:var(--accent); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:0.9em;">'
                     + bpIcon('zap',14) + ' Convert All</button>'
                     + '<span style="font-size:0.78em; color:var(--c-faint);">Separate multiple JDs with --- (three dashes on their own line).</span>'
-                    + '</div></div>';
+                    + '</div>'
+                    + '<label style="display:block; margin-top:12px; font-size:0.85em;"><input id="jdcBulkLocalOnly" type="checkbox"> Use local parser only (no AI requests)</label>'
+                    + '<div style="margin-top:8px; font-size:0.78em; color:var(--c-muted);">Up to 100 descriptions, processed one at a time. AI requires sign-in. If unavailable, each item falls back to the local parser: human-led defaults, not an AI human–agent split.</div>'
+                    + '<div id="jdcBulkProgress" role="status" aria-live="polite" style="margin-top:12px;"></div>'
+                    + '</div>';
             }
 
             if (_jdcBulkResults.length > 0) {
@@ -7734,6 +7748,7 @@
 
             html += '</div>';
             el.innerHTML = html;
+            if (_jdcInputMode === 'bulk') _jdcUpdateBulkProgress();
         }
 
         // ===== ASYNC JDC WRAPPER — AI skill extraction (Phase 3) =====
@@ -7811,13 +7826,21 @@
             }).filter(Boolean);
         }
 
-        async function convertJDToBlueprintAsync(jdText) {
+        async function convertJDToBlueprintAsync(jdText, options) {
+            options = options || {};
+            if (options.signal) options.signal.throwIfAborted();
             var hasProxy = !!(typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser);
             var local = convertJDToBlueprint(jdText);
-            if (!hasProxy) return local;
+            local._extractionMethod = 'local';
+            if (options.localOnly || !hasProxy) {
+                local._extractionWarning = options.localOnly ? 'Local parser selected; no AI split inferred.' : 'Sign-in required for AI; local human-led defaults used.';
+                return local;
+            }
 
             try {
-                var apiParsed = await parseJobWithAPI(jdText, null, { includeWorkAllocation: true });
+                var apiParsed = await parseJobWithAPI(jdText, null, { includeWorkAllocation: true, signal: options.signal });
+                if (options.signal) options.signal.throwIfAborted();
+                if (!apiParsed || !Array.isArray(apiParsed.skills)) throw new Error('AI response did not contain a valid skills list.');
                 var tierImportance = { 'required': 80, 'preferred': 65, 'nice-to-have': 50 };
                 var apiSkills = (apiParsed.skills || []).map(function(s) {
                     var importance = (tierImportance[s.tier] || 60) - (s.source === 'inferred' ? 10 : 0);
@@ -7856,6 +7879,7 @@
                 local.workTasks = _jdcNormalizeWorkTasks(apiParsed.workTasks, local);
                 local.workAllocationSource = Array.isArray(apiParsed.workTasks) && apiParsed.workTasks.length
                     ? 'ai-suggested' : 'local';
+                if (local.workAllocationSource === 'local') local._extractionWarning = 'AI returned no work split; local human-led tasks used.';
                 // Use AI-extracted title/summary when better than local extraction
                 var badTitles = /^(what you'?ll do|about the role|about us|qualifications|responsibilities|requirements|job description|overview|summary|working conditions|benefits|experience will be|core competencies)/i;
                 if (apiParsed.title && !badTitles.test(apiParsed.title) && apiParsed.title !== 'Untitled Position') {
@@ -7864,8 +7888,10 @@
                 local._extractionMethod = 'api';
                 return local;
             } catch(e) {
+                if (options.signal && options.signal.aborted) throw e;
                 console.warn('[JDC] AI extraction failed, using local parser:', e.message);
                 local._extractionMethod = 'local';
+                local._extractionWarning = 'AI failed: ' + e.message + ' Local human-led defaults used.';
                 return local;
             }
         }
@@ -8077,7 +8103,110 @@
             return (h1TitleHint ? 'Job Title: ' + h1TitleHint + '\n' : '') + lines.join('.\n');
         }
 
-        function runJDConverterBulk() {
+        function _jdcUpdateBulkProgress() {
+            var job = _jdcBulkJob;
+            var panel = document.getElementById('jdcBulkProgress');
+            if (!panel) return;
+            var busy = !!(job && job.running);
+            ['jdcBulkConvertBtn', 'jdcFileInput', 'jdcBulkInput', 'jdcBulkLocalOnly'].forEach(function(id) {
+                var control = document.getElementById(id);
+                if (control) control.disabled = busy;
+            });
+            document.querySelectorAll('#jdcModeTabs button').forEach(function(button) { button.disabled = busy; });
+            if (!job) { panel.innerHTML = ''; return; }
+            var paste = document.getElementById('jdcBulkInput');
+            if (paste && !paste.value) paste.value = job.paste;
+            var localOnly = document.getElementById('jdcBulkLocalOnly');
+            if (localOnly) localOnly.checked = job.localOnly;
+            var done = job.items.filter(function(item) { return /^(AI converted|Local parser|Failed)$/.test(item.status); }).length;
+            var summary = job.reading ? 'Reading file…' : (busy ? 'Converting' : job.cancelled ? 'Cancelled' : 'Complete')
+                + ': ' + done + ' of ' + job.items.length + ' processed; ' + _jdcBulkResults.length + ' blueprints available.';
+            if (job.error) summary = job.error;
+            panel.innerHTML = '<div>' + escapeHtml(summary) + '</div>'
+                + (busy ? '<button onclick="cancelJDCBulk()" style="margin-top:8px;">Cancel conversion</button>' : '')
+                + (job.items.length ? '<progress max="' + job.items.length + '" value="' + done + '" aria-label="Job descriptions processed"></progress>' : '')
+                + (job.limitNote ? '<div>' + escapeHtml(job.limitNote) + '</div>' : '')
+                + '<ol style="max-height:240px; overflow:auto; font-size:0.82em;">'
+                + job.items.map(function(item) {
+                    return '<li>' + escapeHtml(item.label) + ' — ' + escapeHtml(item.status)
+                        + (item.message ? ': ' + escapeHtml(item.message) : '') + '</li>';
+                }).join('') + '</ol>';
+        }
+
+        function _jdcCreateBulkJob() {
+            _jdcBulkResults = [];
+            _jdcResult = null;
+            _jdcBulkViewIdx = -1;
+            _jdcEditMode = false;
+            _jdcFromRepo = false;
+            return {
+                running: true, reading: false, cancelled: false, items: [],
+                controller: new AbortController(),
+                paste: (document.getElementById('jdcBulkInput') || {}).value || '',
+                localOnly: !!(document.getElementById('jdcBulkLocalOnly') || {}).checked
+            };
+        }
+
+        function cancelJDCBulk() {
+            var job = _jdcBulkJob;
+            if (!job || !job.running) return;
+            job.cancelled = true;
+            job.controller.abort();
+            _jdcUpdateBulkProgress();
+        }
+        window.cancelJDCBulk = cancelJDCBulk;
+
+        async function _jdcRunBulk(jds, source, job) {
+            job = job || _jdcCreateBulkJob();
+            _jdcBulkJob = job;
+            job.reading = false;
+            job.items = jds.slice(0, 100).map(function(jd, index) {
+                return { label: 'JD ' + (index + 1) + ' — ' + jd.split('\n')[0].slice(0, 90), status: 'Queued', message: '' };
+            });
+            if (jds.length > 100) job.limitNote = 'Limit: only the first 100 of ' + jds.length + ' descriptions will be processed.';
+            if (document.getElementById('jdcBulkProgress')) renderAdminJDConverter(document.getElementById('adminTabContent'));
+            try {
+                // Sequential by design: never fan out a file into simultaneous AI calls.
+                for (var i = 0; i < job.items.length; i++) {
+                    if (job.cancelled) break;
+                    var item = job.items[i];
+                    item.status = 'Converting';
+                    _jdcUpdateBulkProgress();
+                    // Yield for local-only batches too, so Cancel and progress remain usable.
+                    await new Promise(function(resolve) { setTimeout(resolve, 0); });
+                    if (job.cancelled) { item.status = 'Cancelled'; break; }
+                    try {
+                        var bp = await convertJDToBlueprintAsync(jds[i], { signal: job.controller.signal, localOnly: job.localOnly });
+                        if (job.cancelled) { item.status = 'Cancelled'; break; }
+                        _jdcBulkResults.push(bp);
+                        item.status = bp._extractionMethod === 'api' ? 'AI converted' : 'Local parser';
+                        item.message = bp._extractionWarning || '';
+                    } catch (err) {
+                        if (job.cancelled) { item.status = 'Cancelled'; break; }
+                        item.status = 'Failed';
+                        item.message = err.message || 'Unable to convert this description.';
+                    }
+                    _jdcUpdateBulkProgress();
+                }
+            } finally {
+                job.running = false;
+                job.items.forEach(function(item) {
+                    if (item.status === 'Queued' || item.status === 'Converting') item.status = 'Not processed (cancelled)';
+                });
+                _jdcResult = _jdcBulkResults[0] || null;
+                _jdcBulkViewIdx = _jdcResult ? 0 : -1;
+                _jdcCompMode = 'without';
+                if (_jdcBulkResults.length) logAnalyticsEvent('wb_converted', { count: _jdcBulkResults.length, source: source });
+                // Do not replace another admin tab if the user navigated away.
+                if (document.getElementById('jdcBulkProgress')) renderAdminJDConverter(document.getElementById('adminTabContent'));
+                var hasIssues = job.items.some(function(item) { return item.status !== 'AI converted' || item.message; });
+                showToast((job.cancelled ? 'Cancelled. ' : 'Bulk conversion complete. ') + _jdcBulkResults.length
+                    + ' of ' + job.items.length + ' blueprints available. See per-item status for local fallbacks or failures.', hasIssues ? 'warning' : 'success');
+            }
+        }
+
+        async function runJDConverterBulk() {
+            if (_jdcBulkJob && _jdcBulkJob.running) return;
             var raw = (document.getElementById('jdcBulkInput') || {}).value || '';
             if (!raw || raw.trim().length < 50) {
                 showToast('Paste at least one job description.', 'warning');
@@ -8088,35 +8217,22 @@
                 showToast('No valid job descriptions found. Separate multiple JDs with --- on its own line.', 'warning');
                 return;
             }
-            _jdcBulkResults = [];
-            _jdcBulkViewIdx = 0;
-            jds.forEach(function(jd) {
-                if (_jdcBulkResults.length >= 100) return;
-                try {
-                    _jdcBulkResults.push(convertJDToBlueprint(jd));
-                } catch(e) {
-                    console.warn('JDC bulk conversion error:', e);
-                }
-            });
-            if (_jdcBulkResults.length >= 100) showToast('Bulk limit: first 100 job descriptions processed.', 'info');
-            if (_jdcBulkResults.length > 0) {
-                _jdcResult = _jdcBulkResults[0];
-                _jdcCompMode = 'without';
-                logAnalyticsEvent('wb_converted', { count: _jdcBulkResults.length, source: 'bulk_paste' });
-            }
-            renderAdminJDConverter(document.getElementById('adminTabContent'));
-            showToast('Bulk conversion complete: ' + _jdcBulkResults.length + ' of ' + jds.length + ' job descriptions converted.', 'success');
+            await _jdcRunBulk(jds, 'bulk_paste');
         }
         window.runJDConverterBulk = runJDConverterBulk;
 
-        function handleJDCFileUpload(input) {
+        async function handleJDCFileUpload(input) {
+            if (_jdcBulkJob && _jdcBulkJob.running) return;
             if (!input.files || !input.files[0]) return;
             var file = input.files[0];
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var content = e.target.result;
+            var job = _jdcBulkJob = _jdcCreateBulkJob();
+            job.reading = true;
+            if (document.getElementById('jdcBulkProgress')) renderAdminJDConverter(document.getElementById('adminTabContent'));
+            try {
+                var content = await file.text();
+                if (job.cancelled) return;
                 var jds = [];
-                if (file.name.endsWith('.json')) {
+                if (file.name.toLowerCase().endsWith('.json')) {
                     try {
                         var parsed = JSON.parse(content);
                         if (Array.isArray(parsed)) {
@@ -8124,15 +8240,16 @@
                                 if (typeof item === 'string' && item.length >= 50) jds.push(item);
                                 else if (item && typeof item === 'object') {
                                     var text = item.description || item.text || item.jd || item.content || item.body || '';
-                                    if (text.length >= 50) jds.push(text);
+                                    if (typeof text === 'string' && text.length >= 50) jds.push(text);
                                 }
                             });
                         }
                     } catch(err) {
-                        showToast('Invalid JSON file. Expected an array of strings or objects.', 'error');
+                        job.error = 'Invalid JSON file. Expected an array of strings or objects.';
+                        showToast(job.error, 'error');
                         return;
                     }
-                } else if (file.name.endsWith('.csv')) {
+                } else if (file.name.toLowerCase().endsWith('.csv')) {
                     var csvLines = content.split('\n');
                     var header = (csvLines[0] || '').toLowerCase();
                     var descIdx = -1;
@@ -8152,30 +8269,21 @@
                 }
 
                 if (jds.length === 0) {
-                    showToast('No valid job descriptions found in file.', 'warning');
+                    job.error = 'No valid job descriptions found in file.';
+                    showToast(job.error, 'warning');
                     return;
                 }
 
-                _jdcBulkResults = [];
-                _jdcBulkViewIdx = 0;
-                jds.forEach(function(jd) {
-                    try {
-                        if (_jdcBulkResults.length < 100) {
-                            _jdcBulkResults.push(convertJDToBlueprint(jd));
-                        }
-                    } catch(err) {
-                        console.warn('JDC file conversion error:', err);
-                    }
-                });
-                if (_jdcBulkResults.length > 0) {
-                    _jdcResult = _jdcBulkResults[0];
-                    _jdcCompMode = 'without';
-                    logAnalyticsEvent('wb_converted', { count: _jdcBulkResults.length, source: 'file_upload' });
-                }
-                renderAdminJDConverter(document.getElementById('adminTabContent'));
-                showToast('File processed: ' + _jdcBulkResults.length + ' blueprints from ' + jds.length + ' descriptions.', 'success');
-            };
-            reader.readAsText(file);
+                await _jdcRunBulk(jds, 'file_upload', job);
+            } catch (err) {
+                job.error = 'File could not be processed: ' + err.message;
+                showToast(job.error, 'error');
+            } finally {
+                job.reading = false;
+                job.running = false;
+                input.value = '';
+                _jdcUpdateBulkProgress();
+            }
         }
         window.handleJDCFileUpload = handleJDCFileUpload;
 
@@ -16436,7 +16544,7 @@
                     html += '<div style="font-weight:700; color:var(--c-text); margin-bottom:10px;">Invited (' + invited.length + ')</div>';
                     html += '<div style="display:grid; gap:6px;">';
                     invited.forEach(function(user) {
-                        html += '<div style="padding:10px 14px; background:var(--c-green-bg-1b); '
+                        html += '<div data-bp-invited-id="' + escapeHtml(user._id) + '" style="padding:10px 14px; background:var(--c-green-bg-1b); '
                             + 'border:1px solid var(--c-green-bg-5b); border-radius:8px; display:flex; justify-content:space-between; align-items:center;">'
                             + '<div>'
                             + '<strong style="color:var(--c-text);">' + escapeHtml(user.name || 'Anonymous') + '</strong>'
@@ -16452,6 +16560,8 @@
                 }
                 
                 container.innerHTML = html;
+                if (window.BPDirectInviteUI) window.BPDirectInviteUI.mount(container);
+                if (window.BPInviteResend) window.BPInviteResend.mount(container, invited);
             }).catch(function(err) {
                 container.innerHTML = '<div style="color:var(--danger);">Error: ' + escapeHtml(err.message) + '</div>';
             });
@@ -20122,7 +20232,10 @@
                 }
             }
             
-            skillLibraryIndex = { totalSkills: 0, index: [] };
+            // Mark failure distinctly from a successfully loaded empty index and
+            // clear the shared promise so a later attempt can retry (task #33).
+            skillLibraryIndex = { totalSkills: 0, index: [], loadFailed: true };
+            _skillLibraryPromise = null;
             console.warn('⚠ Skill library not found — Add Skills search will be empty. Other features unaffected.');
         }
         
@@ -28026,6 +28139,7 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
         window.initNetworkDebounced = initNetworkDebounced;
 
         function initNetwork() {
+            if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
             // Empty state: no skills and signed in (not viewing a sample)
             var hasSkills = skillsData.skills && skillsData.skills.length > 0;
             var hasRoles = skillsData.roles && skillsData.roles.length > 0;
@@ -28359,6 +28473,7 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
 
             window.networkData = { nodes, links, svg, link, node };
             if (window.BPAgentReadinessIntegration) window.BPAgentReadinessIntegration.refreshMap();
+            if (window.bpAgentSupportData) window.bpAgentSupportData.mount({ svg, node, link });
             setTimeout(applyLabelToggles, 100);
             
             // Labels always on (toggle removed in v4.27.3.3)
@@ -28532,6 +28647,7 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
         // ===== JOB-ONLY NETWORK =====
         
         function initJobNetwork(job) {
+            if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
             var jobSkillsArr = getJobSkills(job);
             if (!job || !jobSkillsArr.length) return;
             
@@ -28704,6 +28820,7 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
         // ===== MATCH OVERLAY NETWORK =====
         
         function initMatchNetwork(job) {
+            if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
             if (!job || !job.matchData) return;
             
             var svgParent = document.getElementById('networkView') && document.getElementById('networkView').parentElement;
@@ -29162,6 +29279,7 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
         // ===== VALUES ALIGNMENT NETWORK =====
         
         function initValuesNetwork(job) {
+            if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
             if (!job) { showToast('Select a job first to compare values.', 'info'); return; }
             
             // Lazy-compute companyValues if missing (jobs loaded before v4.27)
@@ -29666,6 +29784,7 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
         window.findJobIdx = findJobIdx;
 
         function initCardView() {
+            if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
             const cardView = document.getElementById('cardView');
             
             // Safety: if no skills data, show empty state
@@ -30746,6 +30865,7 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
 
 
         function switchView(view, event) {
+            if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
             // Map new view names to existing views
             if (view === 'skills') view = 'network';
             if (view === 'jobs') view = 'opportunities';
@@ -44958,7 +45078,7 @@ body {
                     max_tokens: options.includeWorkAllocation ? 10000 : 8000,
                     system: systemPrompt,
                     messages: [{ role: 'user', content: userPrompt }]
-                }, apiKey, 'jd-analysis');
+                }, apiKey, 'jd-analysis', { signal: options.signal });
             
             var text = data.content.map(function(c) { return c.text || ''; }).join('');
             
@@ -56277,7 +56397,7 @@ body {
                 const query = inputEl.value;
                 console.log('Search triggered for:', query);
                 
-                if (!skillLibraryIndex || !skillLibraryIndex.index) {
+                if (!skillLibraryIndex || !skillLibraryIndex.index || skillLibraryIndex.loadFailed) {
                     console.error('Skill library not loaded!');
                     showToast('Skill library is still loading. Please wait a moment.', 'info');
                     const container = document.getElementById('addSkillsResults');
@@ -56289,10 +56409,21 @@ body {
                             <div style="font-size: 0.9em; margin-top: 10px;">Please wait</div>
                         </div>
                     `;
-                    // Force reload
-                    _skillLibraryPromise = loadSkillLibraryIndex().then(() => {
-                        console.log('Library loaded, retrying search');
-                        handleAddSkillsSearch();
+                    // Await the in-flight load instead of starting a duplicate
+                    // ~5.7 MB fetch (task #33). Only start a new load when no
+                    // promise exists (e.g. a previous attempt failed), so a
+                    // genuine failed load can still be retried.
+                    if (!_skillLibraryPromise) {
+                        _skillLibraryPromise = loadSkillLibraryIndex();
+                    }
+                    _skillLibraryPromise.then(() => {
+                        // Only auto-retry the search after a successful load;
+                        // on failure the loader clears the promise so the
+                        // user's next keystroke starts a fresh attempt.
+                        if (skillLibraryIndex && skillLibraryIndex.index && !skillLibraryIndex.loadFailed) {
+                            console.log('Library loaded, retrying search');
+                            handleAddSkillsSearch();
+                        }
                     });
                     return;
                 }

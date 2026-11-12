@@ -3100,7 +3100,7 @@ export function handleAddSkillsSearch() {
         const query = inputEl.value;
         console.log('Search triggered for:', query);
         
-        if (!skillLibraryIndex || !skillLibraryIndex.index) {
+        if (!skillLibraryIndex || !skillLibraryIndex.index || skillLibraryIndex.loadFailed) {
             console.error('Skill library not loaded!');
             showToast('Skill library is still loading. Please wait a moment.', 'info');
             const container = document.getElementById('addSkillsResults');
@@ -3112,10 +3112,21 @@ export function handleAddSkillsSearch() {
                     <div style="font-size: 0.9em; margin-top: 10px;">Please wait</div>
                 </div>
             `;
-            // Force reload
-            _skillLibraryPromise = loadSkillLibraryIndex().then(() => {
-                console.log('Library loaded, retrying search');
-                handleAddSkillsSearch();
+            // Await the in-flight load instead of starting a duplicate
+            // ~5.7 MB fetch (task #33). Only start a new load when no
+            // promise exists (e.g. a previous attempt failed), so a
+            // genuine failed load can still be retried.
+            if (!_skillLibraryPromise) {
+                _skillLibraryPromise = loadSkillLibraryIndex();
+            }
+            _skillLibraryPromise.then(() => {
+                // Only auto-retry the search after a successful load;
+                // on failure the loader clears the promise so the
+                // user's next keystroke starts a fresh attempt.
+                if (skillLibraryIndex && skillLibraryIndex.index && !skillLibraryIndex.loadFailed) {
+                    console.log('Library loaded, retrying search');
+                    handleAddSkillsSearch();
+                }
             });
             return;
         }

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import fs from 'fs';
+import { invitationResendDev } from './scripts/invitation-resend-dev.js';
 
 function cleanUrlPlugin() {
   return {
@@ -24,7 +25,7 @@ export default defineConfig({
   root: '.',
   base: '/',
 
-  plugins: [cleanUrlPlugin()],
+  plugins: [cleanUrlPlugin(), invitationResendDev()],
 
   build: {
     outDir: 'dist',
