@@ -2713,7 +2713,10 @@ async function loadSkillLibraryIndex() {
         }
     }
     
-    skillLibraryIndex = { totalSkills: 0, index: [] };
+    // Mark failure distinctly from a successfully loaded empty index and
+    // clear the shared promise so a later attempt can retry (task #33).
+    skillLibraryIndex = { totalSkills: 0, index: [], loadFailed: true };
+    _skillLibraryPromise = null;
     console.warn('⚠ Skill library not found — Add Skills search will be empty. Other features unaffected.');
 }
 

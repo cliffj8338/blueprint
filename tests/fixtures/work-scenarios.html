@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Work scenario component checks</title>
+<link rel="stylesheet" href="/work-scenarios.css?v=1">
+<style>
+:root{--accent:#0071e3;--text-primary:#1d1d1f;--text-secondary:#6e6e73;--bg-surface:#fff;--bg-elevated:#f5f7f9;--border:#d1d5db}
+body{margin:24px;font:15px/1.5 system-ui;color:var(--text-primary);background:#fafbfc}
+#app{max-width:1250px;margin:auto}#skills{display:flex;gap:12px;margin:20px 0;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<main id="app">
+<h1>Skills · Work scenarios</h1>
+<p>Synthetic component preview. No accounts, agent-history forms, cloud writes or AI requests.</p>
+<div id="summary"></div><div id="skills"></div>
+<div id="graph"><svg id="networkView"><g class="node skill"><circle r="7" fill="#10b981"></circle><path class="bp-readiness-marker"></path></g></svg></div>
+<pre id="results"></pre>
+</main>
+<script>
+var skillsData={skills:[{name:'Financial Modeling',level:'Mastery'},{name:'Charismatic Leadership',level:'Expert'},{name:'Piloting',level:'Mastery'},{name:'Salesforce',level:'Advanced'},{name:'Unfamiliar Specialty',level:'Proficient'}]};
+var userData={initialized:false};var fbUser=null;
+</script>
+<script src="/agent-readiness.js"></script>
+<script src="/work-scenarios.js?v=1"></script>
+<script src="/work-scenarios-ui.js?v=1"></script>
+<script src="/agent-readiness-integration.js"></script>
+<script>
+document.getElementById('summary').innerHTML=BPWorkScenariosUI.summaryHTML(skillsData.skills);
+document.getElementById('skills').innerHTML=skillsData.skills.map(s=>BPWorkScenariosUI.badgeHTML(s.name)).join('');
+var checks=0;
+function check(value,message){if(!value)throw new Error(message);checks++;}
+try{
+ check(document.getElementById('bpWorkScenariosLegend').textContent.includes('conditional estimates'),'scenario map guidance');
+ check(!document.querySelector('.bp-readiness-marker'),'old readiness diamonds removed');
+ BPAgentReadinessIntegration.refreshMap();
+ check(document.querySelectorAll('#bpWorkScenariosLegend').length===1,'no duplicate map legends');
+ check(document.querySelector('#networkView circle').getAttribute('fill')==='#10b981','human proficiency color unchanged');
+ const button=document.querySelector('#skills button');
+ let parentClick=0;document.getElementById('skills').addEventListener('click',()=>parentClick++);
+ button.focus();button.click();
+ check(parentClick===0,'badge click must not open the parent card');
+ check(document.querySelectorAll('.bp-scenario-card').length===3,'three scenarios');
+ check(document.querySelector('.bp-scenario-proficiency strong').textContent==='Mastery','actual human proficiency');
+ check(!document.querySelector('.bp-scenario-layer input'),'no input questionnaire');
+ check(document.getElementById('app').inert,'background inert while modal is open');
+ check(document.body.style.overflow==='hidden','scroll lock');
+ document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+ check(!document.querySelector('.bp-scenario-layer'),'Escape closes');
+ check(!document.getElementById('app').inert,'inert restored');
+ check(document.activeElement===button,'focus restored');
+ for(let n=0;n<12;n++){BPWorkScenariosUI.open('Piloting');BPWorkScenariosUI.close();}
+ check(!document.querySelector('.bp-scenario-layer'),'no detached modal roots after repeat use');
+ BPWorkScenariosUI.open('<img src=x onerror=alert(1)>');
+ check(!document.querySelector('.bp-scenario-layer img'),'skill names escaped');
+ BPWorkScenariosUI.close();
+ BPWorkScenariosUI.open('Unfamiliar Specialty');
+ check(document.querySelector('.bp-scenario-match').textContent.includes('Low'),'unmatched skill confidence disclosed');
+ BPWorkScenariosUI.close();
+ document.getElementById('results').textContent=checks+' browser checks passed.';
+ document.body.dataset.testResult='pass';
+ if(new URLSearchParams(location.search).has('preview'))BPWorkScenariosUI.open(new URLSearchParams(location.search).get('skill')||'Financial Modeling');
+}catch(error){document.body.dataset.testResult='fail';document.getElementById('results').textContent=error.stack;}
+</script>
+</body>
+</html>
