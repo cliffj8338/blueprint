@@ -1,7 +1,7 @@
 
         // ============================================================
-        // BLUEPRINT v4.48.40 - BUILD 20261111-invitation-resends
-        var BP_VERSION = 'v4.48.40';
+        // BLUEPRINT v4.48.41 - BUILD 20261112-work-scenarios
+        var BP_VERSION = 'v4.48.41';
         // ===== AI MODEL IDS =====
         // Keep in sync with src/core/constants.js (single source of truth)
         var BP_AI_MODEL      = window.BP_AI_MODEL      || 'claude-sonnet-4-6';
@@ -9416,7 +9416,7 @@
                 ? 'AI-suggested split — review ownership and human checkpoints before using.'
                 : data.workAllocationSource === 'reviewed'
                     ? 'Reviewed and adjusted for this role.'
-                    : 'Responsibilities extracted from the posting. Ownership defaults to Human until reviewed.';
+                    : 'Basic role template, not completed agent analysis. Human-led is a default, not a finding that agents cannot help. Explore work scenarios for each skill below.';
             var html = '<div style="background:var(--c-surface-1); border:1px solid var(--c-surface-5); border-radius:12px; padding:22px 24px; margin-bottom:20px;">'
                 + '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:6px;">'
                 + '<div><div style="font-family:Outfit,sans-serif; font-weight:700; font-size:1.08em; color:var(--c-heading-bold);">' + bpIcon('users',18) + ' Human + Agent Work Model</div>'
@@ -9454,12 +9454,13 @@
                         html += '<div style="display:flex; justify-content:space-between; gap:8px; align-items:center; margin:5px 0; font-size:.78em;">'
                             + '<span style="color:var(--c-heading);">' + escapeHtml(skill.name) + ' <span style="color:var(--c-muted);">· ' + skillLevel + ' required</span></span>'
                             + '<span style="color:' + (profileSkill ? 'var(--success)' : 'var(--c-faint)') + '; white-space:nowrap;">' + (profileSkill ? 'In your map · ' + escapeHtml(profileSkill.level || 'Mapped') : 'Not in your map') + '</span></div>';
+                        if (window.BPWorkScenariosUI) html += window.BPWorkScenariosUI.badgeHTML(skill.name);
                     });
                 }
                 html += '</div><div style="padding:10px 12px; background:var(--c-surface-1); border-radius:8px;">'
                     + '<div style="font-size:.7em; text-transform:uppercase; letter-spacing:.06em; color:var(--success); font-weight:700; margin-bottom:7px;">Agent capabilities needed</div>';
                 if (!agentCaps.length) {
-                    html += '<div style="font-size:.78em; color:var(--c-faint);">No agent capability assigned.</div>';
+                    html += '<div style="font-size:.78em; color:var(--c-faint);">No role-specific agent allocation saved. Explore the skill scenarios to see plausible agent contributions; those estimates do not overwrite this role.</div>';
                 } else {
                     agentCaps.forEach(function(capability) {
                         var related = capability.relatedHumanSkill ? _jdcFindProfileSkill(capability.relatedHumanSkill) : null;
@@ -32142,10 +32143,10 @@ Selected outcomes: ${wizardState.skills.flatMap(s=>s.evidence||[]).slice(0,5).ma
                 + '</div>';
             } // end !isReadOnlyProfile
             body.innerHTML += actionsHtml;
-            if (window.BPAgentReadinessUI) {
+            if (window.BPWorkScenariosUI) {
                 body.innerHTML += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">'
-                    + window.BPAgentReadinessUI.badgeHTML(skillName)
-                    + '<p style="font-size:.8em;color:var(--c-muted);margin:8px 0;">Build your agent-partner playbook. Readiness is separate from your proficiency and salary estimate.</p></div>';
+                    + window.BPWorkScenariosUI.badgeHTML(skillName)
+                    + '<p style="font-size:.8em;color:var(--c-muted);margin:8px 0;">Explore human-led, agent-augmented and agent-performed task scenarios. No agent history or assessment required.</p></div>';
             }
             
             history.pushState({ modal: true }, ''); modal.classList.add('active');
@@ -35668,7 +35669,7 @@ body {
             }
             
             // Group skills by impact-based rarity
-            if (window.BPAgentReadinessUI) html += window.BPAgentReadinessUI.summaryHTML(skills);
+            if (window.BPWorkScenariosUI) html += window.BPWorkScenariosUI.summaryHTML(skills);
             var impactToRarity = { critical: 'rare', high: 'rare', moderate: 'uncommon', standard: 'common', supplementary: 'common' };
             var tierMeta = {
                 rare: { label: 'Rare', desc: 'Market differentiators', icon: 'flame', bg: 'rgba(196,93,0,0.08)', border: 'rgba(196,93,0,0.3)', accent: 'var(--c-orange)', pillBg: 'rgba(196,93,0,0.12)', pillText: '#7a3800' },
@@ -35802,7 +35803,7 @@ body {
                         html += '<div style="font-size:0.68em; color:var(--c-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + roleNames.join(' \u00B7 ') + '</div>';
                     }
 
-                    if (window.BPAgentReadinessUI) html += '<div style="margin-top:10px;">' + window.BPAgentReadinessUI.badgeHTML(s.name) + '</div>';
+                    if (window.BPWorkScenariosUI) html += '<div style="margin-top:10px;">' + window.BPWorkScenariosUI.badgeHTML(s.name) + '</div>';
                     html += '</div>';
                 });
 

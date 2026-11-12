@@ -3,11 +3,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
-function dataHarness() {
+function dataHarness(storage = new Map()) {
     const calls = [];
     const renders = [];
     let clears = 0;
     const window = {
+        localStorage: {
+            getItem(key) { return storage.get(key) ?? null; },
+            setItem(key, value) { storage.set(key, value); }
+        },
         fbUser: { uid: 'person-a' },
         fbDb: { collection(name) {
             assert.equal(name, 'users');
@@ -30,7 +34,7 @@ function dataHarness() {
         window, console: { warn() {} }
     });
     return {
-        window, calls, renders,
+        window, calls, renders, storage,
         controller: window.bpAgentSupportData,
         get clears() { return clears; },
         last() { return renders.at(-1); },
@@ -195,4 +199,102 @@ test('production and module personal renderers mount support and clear it in oth
             assert.match(fn.slice(0, 180), /bpAgentSupportData\.clear\(\)/);
         }
     }
+});
+
+test('selection starts empty, is account scoped and persists without fetching on remount', async () => {
+    const h = dataHarness();
+    h.controller.mount({});
+    assert.deepEqual(Array.from(h.last().selectedBlueprintIds), []);
+    const load = h.last().onLoad();
+    h.resolve(0, [{ id: 'one' }, { id: 'two' }]);
+    await load;
+    h.last().onSelectionChange(['one', 'one', 'unknown']);
+    assert.deepEqual(Array.from(h.last().selectedBlueprintIds), ['one']);
+    assert.equal(h.calls.length, 1);
+    h.controller.clear();
+    h.controller.mount({});
+    assert.deepEqual(Array.from(h.last().selectedBlueprintIds), ['one']);
+    const staleChange = h.last().onSelectionChange;
+    const staleLoad = h.last().onLoad;
+    h.window.fbUser = { uid: 'person-b' };
+    h.controller.mount({});
+    staleChange(['two']);
+    staleLoad();
+    assert.equal(h.calls.length, 1, 'old controls cannot load another account');
+    assert.deepEqual(Array.from(h.last().selectedBlueprintIds), []);
+    h.window.fbUser = { uid: 'person-a' };
+    h.controller.mount({});
+    assert.equal(h.last().status, 'idle', 'remembered selection does not bypass opt-in loading');
+    assert.deepEqual(Array.from(h.last().selectedBlueprintIds), ['one']);
+    const reopened = dataHarness(h.storage);
+    reopened.controller.mount({});
+    assert.deepEqual(Array.from(reopened.last().selectedBlueprintIds), ['one']);
+    assert.equal(reopened.calls.length, 0);
+});
+
+test('refresh prunes deleted selections and leaves new Blueprints unselected', async () => {
+    const h = dataHarness();
+    h.controller.mount({});
+    let pending = h.last().onLoad();
+    h.resolve(0, [{ id: 'one' }, { id: 'two' }]);
+    await pending;
+    h.last().onSelectionChange(['one', 'two']);
+    pending = h.last().onRefresh();
+    h.resolve(1, [{ id: 'two' }, { id: 'new' }]);
+    await pending;
+    assert.deepEqual(Array.from(h.last().selectedBlueprintIds), ['two']);
+    pending = h.last().onRefresh();
+    h.resolve(2, []);
+    await pending;
+    assert.deepEqual(Array.from(h.last().selectedBlueprintIds), []);
+    assert.equal(h.storage.get('bp-agent-support-selection:person-a'), '[]');
+});
+
+test('failed refresh retains choices for retry but removes stale requirements', async () => {
+    const h = dataHarness();
+    h.controller.mount({});
+    let pending = h.last().onLoad();
+    h.resolve(0, [{ id: 'one' }]);
+    await pending;
+    h.last().onSelectionChange(['one']);
+    pending = h.last().onRefresh();
+    h.calls[1].reject(new Error('offline'));
+    await pending;
+    assert.equal(h.last().status, 'error');
+    assert.equal(h.last().blueprints.length, 0);
+    assert.deepEqual(Array.from(h.last().selectedBlueprintIds), ['one']);
+    pending = h.last().onLoad();
+    h.resolve(2, [{ id: 'one' }]);
+    await pending;
+    assert.deepEqual(Array.from(h.last().selectedBlueprintIds), ['one']);
+});
+
+test('unreadable or blocked storage gives an explicit warning without breaking selection', async () => {
+    const h = dataHarness(new Map([['bp-agent-support-selection:person-a', '{"bad":true}']]));
+    h.controller.mount({});
+    assert.match(h.last().selectionWarning, /could not be read/);
+    const pending = h.last().onLoad();
+    h.resolve(0, [{ id: 'one' }]);
+    await pending;
+    h.window.localStorage.setItem = () => { throw new Error('blocked'); };
+    h.last().onSelectionChange(['one']);
+    assert.deepEqual(Array.from(h.last().selectedBlueprintIds), ['one']);
+    assert.match(h.last().selectionWarning, /could not be saved/);
+});
+
+test('old view and restricted-context selection callbacks cannot change preferences', async () => {
+    const h = dataHarness();
+    h.controller.mount({});
+    const pending = h.last().onLoad();
+    h.resolve(0, [{ id: 'one' }]);
+    await pending;
+    const oldChange = h.last().onSelectionChange;
+    h.controller.clear();
+    h.controller.mount({});
+    oldChange(['one']);
+    assert.deepEqual(Array.from(h.last().selectedBlueprintIds), []);
+    const restrictedChange = h.last().onSelectionChange;
+    h.window.isReadOnlyProfile = true;
+    restrictedChange(['one']);
+    assert.equal(h.storage.size, 0);
 });

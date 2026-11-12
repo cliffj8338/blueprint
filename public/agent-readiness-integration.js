@@ -18,6 +18,20 @@
     function refreshMap() {
         var svg = document.getElementById('networkView');
         if (!svg) return;
+        if (root.BPWorkScenarios) {
+            svg.querySelectorAll('.bp-readiness-marker').forEach(function (marker) { marker.remove(); });
+            var oldLegend = document.getElementById('bpAgentReadinessLegend');
+            if (oldLegend) oldLegend.remove();
+            var scenarioLegend = document.getElementById('bpWorkScenariosLegend');
+            if (!scenarioLegend) {
+                scenarioLegend = document.createElement('div');
+                scenarioLegend.id = 'bpWorkScenariosLegend';
+                scenarioLegend.style.cssText = 'padding:8px 14px;font-size:12px;color:var(--text-secondary);background:var(--bg-surface);line-height:1.5';
+                svg.parentElement.insertBefore(scenarioLegend, svg);
+            }
+            scenarioLegend.textContent = 'Work scenarios: open any skill, then Explore work scenarios to compare human-led, agent-augmented and agent-performed tasks. These are conditional estimates, not readiness scores. Node colors still show human proficiency; any Blueprint support overlay shows saved role requirements separately.';
+            return;
+        }
         svg.querySelectorAll('g.node.skill').forEach(function (node) {
             var d = node.__data__;
             var old = node.querySelector('.bp-readiness-marker');

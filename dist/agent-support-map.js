@@ -60,6 +60,13 @@
             '.bp-agent-support-legend button:hover,.bp-agent-support-dialog button:hover{filter:brightness(1.08)}',
             '.bp-agent-support-legend button:focus-visible,.bp-agent-support-marker:focus-visible,.bp-agent-support-dialog button:focus-visible{outline:3px solid var(--accent,#60a5fa);outline-offset:2px}',
             '.bp-agent-support-legend [data-state=loading]{opacity:.75}',
+            '.bp-agent-support-choices{border:0;padding:0;margin:10px 0 0;min-width:0}',
+            '.bp-agent-support-choices legend{font-weight:600;margin-bottom:5px}',
+            '.bp-agent-support-choices [data-part=list]{max-height:140px;overflow:auto;overscroll-behavior:contain}',
+            '.bp-agent-support-choices label{display:flex;align-items:flex-start;gap:7px;padding:5px 1px;overflow-wrap:anywhere;cursor:pointer}',
+            '.bp-agent-support-choices input{flex:none;margin:2px 0;accent-color:#b889ff}',
+            '.bp-agent-support-choices input:focus-visible{outline:3px solid var(--accent,#60a5fa);outline-offset:2px}',
+            '.bp-agent-support-choices [data-part=actions]{display:flex;gap:7px;margin-top:6px}',
             '.bp-agent-support-key{display:flex;align-items:center;gap:7px;margin-top:5px;color:var(--text-secondary)}',
             '.bp-agent-support-key span{flex:none;width:13px;height:13px;border:2px dashed #b889ff;border-radius:50%}',
             '.bp-agent-support-ring{fill:none;stroke:#b889ff;stroke-width:2;stroke-dasharray:3 3;pointer-events:none}',
@@ -139,7 +146,9 @@
         var state = options.status || 'idle';
         if (['idle', 'loading', 'ready', 'error'].indexOf(state) < 0) state = 'idle';
         var blueprints = Array.isArray(options.blueprints) ? options.blueprints : [];
-        var entries = indexSupport(blueprints, getDatum(options.node).map(function (entry) {
+        var selectedIds = new Set(Array.isArray(options.selectedBlueprintIds) ? options.selectedBlueprintIds : []);
+        var selectedBlueprints = blueprints.filter(function (bp) { return bp && selectedIds.has(bp.id); });
+        var entries = indexSupport(selectedBlueprints, getDatum(options.node).map(function (entry) {
             return entry.datum && entry.datum.type === 'skill' ? { name: entry.datum.name } : null;
         }).filter(Boolean));
         var supportedNames = new Set(entries.keys());
@@ -182,13 +191,76 @@
             : state === 'error'
                 ? 'Saved Blueprints could not be loaded. Try again.'
                 : state === 'ready' && supportedNames.size
-                    ? 'Dashed rings mark explicit capability links to your skills.'
+                    ? 'Dashed rings mark explicit capability links from your selected Blueprints.'
                     : state === 'ready'
-                        ? 'No linked support found. Saved Blueprints may not yet have linked capabilities.'
+                        ? !blueprints.length
+                            ? 'No saved Work Blueprints found.'
+                            : !selectedBlueprints.length
+                                ? 'Choose Work Blueprints to show their required support on your map.'
+                                : 'No linked support found in the selected Blueprints for your mapped skills.'
                         : 'Saved Blueprints may not yet have linked capabilities. Load them to check.';
         var copy = el('p', '', message);
         copy.dataset.part = 'status';
+        copy.setAttribute('role', 'status');
         legend.appendChild(copy);
+        if (state === 'ready' && blueprints.length) {
+            var choices = el('fieldset', 'bp-agent-support-choices');
+            choices.appendChild(el('legend', '', 'Work Blueprints (' + selectedBlueprints.length + ' of ' + blueprints.length + ' selected)'));
+            var choiceList = el('div');
+            choiceList.dataset.part = 'list';
+            function updateSelection(ids, focusId, action) {
+                var scrollTop = choiceList.scrollTop;
+                if (typeof options.onSelectionChange === 'function') options.onSelectionChange(ids);
+                // The controller redraws only this overlay, not the personal graph.
+                var nextLegend = document.getElementById(LEGEND_ID);
+                if (!nextLegend) return;
+                var nextList = nextLegend.querySelector('[data-part=list]');
+                if (nextList) nextList.scrollTop = scrollTop;
+                var focusTarget = action
+                    ? nextLegend.querySelector('[data-action="' + action + '"]')
+                    : Array.prototype.find.call(nextLegend.querySelectorAll('input[data-blueprint-id]'), function (input) {
+                        return input.dataset.blueprintId === focusId;
+                    });
+                if (focusTarget) focusTarget.focus({ preventScroll: true });
+            }
+            blueprints.forEach(function (bp) {
+                if (!bp || typeof bp.id !== 'string') return;
+                var label = el('label');
+                var checkbox = el('input');
+                checkbox.type = 'checkbox';
+                checkbox.dataset.blueprintId = bp.id;
+                checkbox.checked = selectedIds.has(bp.id);
+                checkbox.addEventListener('change', function () {
+                    var next = new Set(selectedIds);
+                    if (checkbox.checked) next.add(bp.id);
+                    else next.delete(bp.id);
+                    updateSelection(Array.from(next), bp.id);
+                });
+                label.appendChild(checkbox);
+                label.appendChild(el('span', '', asText(bp.title) || 'Untitled Blueprint'));
+                choiceList.appendChild(label);
+            });
+            choices.appendChild(choiceList);
+            var actions = el('div');
+            actions.dataset.part = 'actions';
+            ['Select all', 'Clear selection'].forEach(function (text, index) {
+                var button = el('button', '', text);
+                button.type = 'button';
+                button.dataset.action = index === 0 ? 'select-all' : 'clear-selection';
+                button.addEventListener('click', function () {
+                    updateSelection(index === 0 ? blueprints.map(function (bp) { return bp.id; }) : [], null, button.dataset.action);
+                });
+                actions.appendChild(button);
+            });
+            choices.appendChild(actions);
+            legend.appendChild(choices);
+            legend.appendChild(el('p', '', 'Choices are saved for your account in this browser. New Blueprints start unselected.'));
+        }
+        if (options.selectionWarning) {
+            var warning = el('p', '', options.selectionWarning);
+            warning.setAttribute('role', 'alert');
+            legend.appendChild(warning);
+        }
         var key = el('div', 'bp-agent-support-key');
         var swatch = el('span');
         swatch.setAttribute('aria-hidden', 'true');
