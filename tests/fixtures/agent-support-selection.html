@@ -1,7 +1,8 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>Work Blueprint selection regression</title>
-<style>body{background:#101827;color:#eee}#map{position:relative;width:900px;height:700px}</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{background:#101827;color:#eee;font-family:system-ui}#map{position:relative;width:100%;max-width:900px;height:700px}#networkView{max-width:100%}</style>
 <div id="map"><svg id="networkView" width="900" height="700">
   <g id="nodes"><g id="writing" transform="translate(200,200)"><circle r="12" fill="blue"></circle></g>
   <g id="analysis" transform="translate(350,200)"><circle r="18" fill="green"></circle></g></g>
@@ -45,8 +46,23 @@
     try {
         bpAgentSupportData.mount(graph);
         check(gets === 0, 'mount must stay opt-in');
+        check(query('[data-part=support-panel]').hidden, 'support panel starts collapsed');
+        check(query('[data-action=toggle-panel]').getAttribute('aria-expanded') === 'false', 'collapsed disclosure announced');
+        if (new URLSearchParams(location.search).has('preview')) {
+            result.textContent = 'Synthetic map preview. No real account or cloud access.';
+            if (new URLSearchParams(location.search).has('open')) query('[data-action=toggle-panel]').click();
+            return;
+        }
+        query('[data-action=toggle-panel]').click();
+        check(!query('[data-part=support-panel]').hidden && gets === 0, 'opening explanation does not load data');
+        query('[data-action=dismiss-panel]').click();
+        check(query('[data-part=support-panel]').hidden, 'close dismisses explanation');
+        check(document.activeElement === query('[data-action=toggle-panel]'), 'dismiss restores launcher focus');
+        query('[data-action=toggle-panel]').click();
+        query('[data-action=load]').focus();
         query('[data-action=load]').click();
         await tick();
+        check(!query('[data-part=support-panel]').hidden, 'load rerender retains expanded state');
         check(count('.bp-agent-support-marker') === 0, 'none selected initially');
         check(count('input[type=checkbox]') === 3, 'all saved roles selectable, including legacy');
         check(!query('.bp-agent-support-choices b'), 'Blueprint titles must be plain text');
@@ -60,6 +76,17 @@
         check(query('[data-part=notice]').textContent.includes('does not change your human skill proficiency'), 'requirements disclaimer');
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
         check(query('#bp-agent-support-map-dialog').hidden, 'Escape closes details');
+        check(!query('[data-part=support-panel]').hidden, 'details Escape does not dismiss support panel');
+        query('[data-action=dismiss-panel]').click();
+        check(query('[data-part=support-panel]').hidden && count('.bp-agent-support-marker') === 1, 'dismiss keeps selected support markers');
+        bpAgentSupportData.mount(graph);
+        check(query('[data-part=support-panel]').hidden && gets === 1, 'rerender does not reopen dismissed panel or refetch');
+        query('[data-action=toggle-panel]').click();
+        query('[data-action=refresh]').focus();
+        query('[data-action=refresh]').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        check(query('[data-part=support-panel]').hidden, 'Escape dismisses support explanation');
+        check(document.activeElement === query('[data-action=toggle-panel]'), 'Escape restores launcher focus');
+        query('[data-action=toggle-panel]').click();
         toggle('historical');
         check(count('.bp-agent-support-marker') === 2, 'both selected roles appear');
         toggle('current');
@@ -88,7 +115,7 @@
         check(count('.bp-agent-support-marker') === 0, 'deleted roles remove support');
         bpAgentSupportData.clear();
         check(count('.bp-agent-support-legend') === 0 && count('.bp-agent-support-dialog') === 0, 'cleanup removes UI');
-        result.textContent = 'PASS: Blueprint selection, persistence, keyboard controls, filtering, cleanup, and unchanged personal proficiency';
+        result.textContent = 'PASS: Collapsed disclosure, dismiss/reopen, focus restoration, no auto-fetch/reopen, Blueprint selection, persistence, details, cleanup, and unchanged proficiency';
     } catch (error) {
         result.textContent = 'FAIL: ' + error.stack;
     } finally {

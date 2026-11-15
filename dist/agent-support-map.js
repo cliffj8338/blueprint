@@ -5,6 +5,7 @@
     var STYLE_ID = 'bp-agent-support-map-style';
     var LEGEND_ID = 'bp-agent-support-map-legend';
     var DIALOG_ID = 'bp-agent-support-map-dialog';
+    var panelExpanded = false;
 
     function normalize(value) {
         return typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').toLocaleLowerCase() : '';
@@ -51,12 +52,17 @@
         var style = document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = [
-            '.bp-agent-support-legend{box-sizing:border-box;position:absolute;z-index:20;top:10px;right:12px;width:min(310px,calc(100% - 24px));padding:11px 13px;border:1px solid var(--border,rgba(148,163,184,.28));border-radius:12px;background:var(--bg-elevated,rgba(20,27,39,.96));color:var(--text-primary,#e8edf5);font:500 12px/1.45 Outfit,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.18)}',
+            '.bp-agent-support-legend{box-sizing:border-box;position:absolute;z-index:20;top:10px;right:12px;width:max-content;max-width:calc(100% - 24px);color:var(--text-primary,#e8edf5);font:500 12px/1.45 Outfit,sans-serif}',
+            '.bp-agent-support-legend [data-part=launcher]{border:1px solid var(--border,rgba(148,163,184,.34));border-radius:9px;padding:8px 11px;background:var(--bg-elevated,rgba(20,27,39,.96));color:var(--text-primary,#e8edf5);box-shadow:0 5px 18px rgba(0,0,0,.16);white-space:nowrap}',
+            '.bp-agent-support-legend [data-part=support-panel]{box-sizing:border-box;position:absolute;top:calc(100% + 7px);right:0;width:min(310px,calc(100vw - 24px));max-height:min(72dvh,560px);overflow:auto;overscroll-behavior:contain;padding:11px 13px;border:1px solid var(--border,rgba(148,163,184,.28));border-radius:12px;background:var(--bg-elevated,rgba(20,27,39,.97));box-shadow:0 8px 28px rgba(0,0,0,.2)}',
+            '.bp-agent-support-legend [data-part=support-panel][hidden]{display:none!important}',
             '.bp-agent-support-legend [data-part=header]{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}',
             '.bp-agent-support-legend strong{font-size:13px;letter-spacing:.01em}',
             '.bp-agent-support-legend p{margin:4px 0 0;color:var(--text-muted,#9aa8ba)}',
             '.bp-agent-support-legend button,.bp-agent-support-dialog button{font:600 12px/1.3 Outfit,sans-serif;cursor:pointer}',
             '.bp-agent-support-legend button{border:1px solid var(--accent,#60a5fa);border-radius:7px;padding:6px 9px;background:transparent;color:var(--accent,#60a5fa);white-space:nowrap}',
+            '.bp-agent-support-legend [data-part=launcher]{font:600 12px/1.3 Outfit,sans-serif;cursor:pointer}',
+            '.bp-agent-support-legend [data-action=dismiss-panel]{border-color:var(--border,rgba(148,163,184,.35));color:var(--text-muted,#9aa8ba);padding:4px 8px}',
             '.bp-agent-support-legend button:hover,.bp-agent-support-dialog button:hover{filter:brightness(1.08)}',
             '.bp-agent-support-legend button:focus-visible,.bp-agent-support-marker:focus-visible,.bp-agent-support-dialog button:focus-visible{outline:3px solid var(--accent,#60a5fa);outline-offset:2px}',
             '.bp-agent-support-legend [data-state=loading]{opacity:.75}',
@@ -86,7 +92,7 @@
             '.bp-agent-support-dialog dt{color:var(--text-muted,#9aa8ba);font-size:12px}',
             '.bp-agent-support-dialog dd{margin:0;font-size:13px;overflow-wrap:anywhere}',
             '.bp-agent-support-dialog [data-part=notice]{margin:18px 0 0;padding:11px 12px;border-left:3px solid #b889ff;background:rgba(184,137,255,.1);font-size:12px;line-height:1.5;color:var(--text-secondary,#c8d2df)}',
-            '@media(max-width:600px){.bp-agent-support-legend{top:6px;right:6px;width:min(270px,calc(100% - 12px));padding:8px 10px;font-size:11px}.bp-agent-support-legend strong{font-size:12px}.bp-agent-support-legend button{padding:5px 7px;font-size:11px}.bp-agent-support-dialog{align-items:flex-end;padding:8px}.bp-agent-support-dialog [data-part=panel]{max-height:86dvh;border-radius:15px;padding:17px}.bp-agent-support-dialog dl{grid-template-columns:92px 1fr;gap:8px 10px}}'
+            '@media(max-width:600px){.bp-agent-support-legend{top:6px;right:6px;max-width:calc(100% - 12px);font-size:11px}.bp-agent-support-legend [data-part=launcher]{padding:6px 8px;font-size:11px}.bp-agent-support-legend [data-part=support-panel]{width:min(270px,calc(100vw - 24px));max-height:min(65dvh,440px);padding:8px 10px}.bp-agent-support-legend strong{font-size:12px}.bp-agent-support-legend button{padding:5px 7px;font-size:11px}.bp-agent-support-dialog{align-items:flex-end;padding:8px}.bp-agent-support-dialog [data-part=panel]{max-height:86dvh;border-radius:15px;padding:17px}.bp-agent-support-dialog dl{grid-template-columns:92px 1fr;gap:8px 10px}}'
         ].join('');
         document.head.appendChild(style);
     }
@@ -128,6 +134,18 @@
 
     function render(options) {
         options = options || {};
+        var focused = document.activeElement;
+        var focusDescriptor = null;
+        var oldLegend = document.getElementById(LEGEND_ID);
+        if (oldLegend && focused && oldLegend.contains(focused)) {
+            if (focused.dataset && focused.dataset.blueprintId) {
+                focusDescriptor = { selector: 'input[data-blueprint-id]', value: focused.dataset.blueprintId };
+            } else if (focused.dataset && focused.dataset.action) {
+                focusDescriptor = { selector: '[data-action]', value: focused.dataset.action };
+            } else if (focused.dataset && focused.dataset.part === 'launcher') {
+                focusDescriptor = { selector: '[data-part=launcher]' };
+            }
+        }
         removePrior();
         if (!global.document) return;
         ensureStyles();
@@ -163,9 +181,48 @@
         legend.dataset.component = 'agent-support-map-legend';
         legend.dataset.state = state;
         legend.setAttribute('aria-label', 'Agent support map legend');
+        var launcher = el('button', '', 'Blueprint agent support');
+        launcher.type = 'button';
+        launcher.dataset.part = 'launcher';
+        launcher.dataset.action = 'toggle-panel';
+        launcher.setAttribute('aria-controls', LEGEND_ID + '-panel');
+        launcher.setAttribute('aria-expanded', panelExpanded ? 'true' : 'false');
+        legend.appendChild(launcher);
+        var panelContent = el('div');
+        panelContent.id = LEGEND_ID + '-panel';
+        panelContent.dataset.part = 'support-panel';
+        panelContent.hidden = !panelExpanded;
+        legend.appendChild(panelContent);
+        function setPanelExpanded(expanded, restoreFocus) {
+            panelExpanded = expanded;
+            panelContent.hidden = !expanded;
+            launcher.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            if (restoreFocus) launcher.focus();
+        }
+        launcher.addEventListener('click', function () {
+            setPanelExpanded(!panelExpanded, false);
+        });
+        panelContent.addEventListener('keydown', function (event) {
+            if (event.key !== 'Escape' || !panelExpanded || openDialog) return;
+            event.preventDefault();
+            event.stopPropagation();
+            setPanelExpanded(false, true);
+        });
         var head = el('div');
         head.dataset.part = 'header';
         head.appendChild(el('strong', '', 'Agent support'));
+        var dismissButton = el('button', '', 'Close');
+        dismissButton.type = 'button';
+        dismissButton.dataset.action = 'dismiss-panel';
+        dismissButton.setAttribute('aria-label', 'Close Blueprint agent support panel');
+        dismissButton.addEventListener('click', function () {
+            setPanelExpanded(false, true);
+        });
+        head.appendChild(dismissButton);
+        var controls = el('div');
+        controls.style.display = 'flex';
+        controls.style.alignItems = 'center';
+        controls.style.gap = '7px';
         if (state === 'idle' || state === 'error') {
             var loadButton = el('button', '', state === 'error' ? 'Retry loading' : 'Load saved Work Blueprints');
             loadButton.type = 'button';
@@ -173,7 +230,7 @@
             loadButton.addEventListener('click', function () {
                 if (typeof options.onLoad === 'function') options.onLoad();
             });
-            head.appendChild(loadButton);
+            controls.appendChild(loadButton);
         } else if (state === 'ready') {
             var refreshButton = el('button', '', 'Refresh');
             refreshButton.type = 'button';
@@ -181,11 +238,12 @@
             refreshButton.addEventListener('click', function () {
                 if (typeof options.onRefresh === 'function') options.onRefresh();
             });
-            head.appendChild(refreshButton);
+            controls.appendChild(refreshButton);
         } else {
-            head.appendChild(el('span', '', 'Loading…'));
+            controls.appendChild(el('span', '', 'Loading…'));
         }
-        legend.appendChild(head);
+        panelContent.appendChild(head);
+        panelContent.appendChild(controls);
         var message = state === 'loading'
             ? 'Checking saved task-level capability links.'
             : state === 'error'
@@ -202,7 +260,7 @@
         var copy = el('p', '', message);
         copy.dataset.part = 'status';
         copy.setAttribute('role', 'status');
-        legend.appendChild(copy);
+        panelContent.appendChild(copy);
         if (state === 'ready' && blueprints.length) {
             var choices = el('fieldset', 'bp-agent-support-choices');
             choices.appendChild(el('legend', '', 'Work Blueprints (' + selectedBlueprints.length + ' of ' + blueprints.length + ' selected)'));
@@ -253,25 +311,33 @@
                 actions.appendChild(button);
             });
             choices.appendChild(actions);
-            legend.appendChild(choices);
-            legend.appendChild(el('p', '', 'Choices are saved for your account in this browser. New Blueprints start unselected.'));
+            panelContent.appendChild(choices);
+            panelContent.appendChild(el('p', '', 'Choices are saved for your account in this browser. New Blueprints start unselected.'));
         }
         if (options.selectionWarning) {
             var warning = el('p', '', options.selectionWarning);
             warning.setAttribute('role', 'alert');
-            legend.appendChild(warning);
+            panelContent.appendChild(warning);
         }
         var key = el('div', 'bp-agent-support-key');
         var swatch = el('span');
         swatch.setAttribute('aria-hidden', 'true');
         key.appendChild(swatch);
         key.appendChild(el('div', '', 'Dashed ring / edge + AI: required support'));
-        legend.appendChild(key);
-        legend.appendChild(el('p', '', 'Skill color and size still describe you. Select AI to inspect tasks.'));
+        panelContent.appendChild(key);
+        panelContent.appendChild(el('p', '', 'Skill color and size still describe you. Select AI to inspect tasks.'));
         var caveat = el('p', '', 'Requirements do not prove an agent is available or verified.');
         caveat.dataset.part = 'caveat';
-        legend.appendChild(caveat);
+        panelContent.appendChild(caveat);
         if (container) container.appendChild(legend);
+        if (focusDescriptor) {
+            var focusTarget = focusDescriptor.value
+                ? Array.prototype.find.call(legend.querySelectorAll(focusDescriptor.selector), function (candidate) {
+                    return candidate.dataset.blueprintId === focusDescriptor.value || candidate.dataset.action === focusDescriptor.value;
+                })
+                : legend.querySelector(focusDescriptor.selector);
+            if (focusTarget) focusTarget.focus({ preventScroll: true });
+        }
 
         var overlayLayer = null;
         var edgeLayer = null;
