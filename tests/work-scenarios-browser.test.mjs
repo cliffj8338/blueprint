@@ -1,9 +1,13 @@
-import test, { before, after } from 'node:test';
+import test, { before, after, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { execFileSync } from 'node:child_process';
-import { chromium } from 'playwright-core';
+import { chromium, firefox, webkit } from 'playwright-core';
+
+const engines = { chromium, firefox, webkit };
+const selected = (process.env.SCENARIO_BROWSERS || 'chromium,firefox,webkit').split(',');
+assert.ok(selected.length && selected.every(name => Object.hasOwn(engines, name)),
+    'SCENARIO_BROWSERS must be a comma-separated list of chromium,firefox,webkit');
 
 // Deliberately serve only the disposable fixture and the three production assets.
 // No application server, Firebase, profile mocks or saved-user writes are involved.
@@ -12,7 +16,7 @@ const files = new Map([
     ...['work-scenarios.js', 'work-scenarios-ui.js', 'work-scenarios.css']
         .map(name => [`/${name}`, [`public/${name}`, name.endsWith('.css') ? 'text/css' : 'text/javascript']])
 ]);
-let server, browser, origin;
+let server, origin;
 before(async () => {
     server = createServer(async (req, res) => {
         const file = files.get(req.url);
@@ -26,30 +30,24 @@ before(async () => {
     });
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     origin = `http://127.0.0.1:${server.address().port}`;
-    browser = await chromium.launch({
-        executablePath: process.env.CHROMIUM_BIN || execFileSync('which', ['chromium'], { encoding: 'utf8' }).trim(),
-        headless: true,
-        args: ['--no-sandbox', '--disable-dev-shm-usage']
-    });
 });
 after(async () => {
-    await browser?.close();
     if (server) await new Promise(resolve => server.close(resolve));
 });
 
-async function fixture(viewport, run) {
-    const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
-    const page = await context.newPage();
-    const errors = [], externalRequests = [];
-    page.on('pageerror', error => errors.push(error.message));
-    await page.route('**/*', route => {
-        if (new URL(route.request().url()).origin !== origin) {
-            externalRequests.push(route.request().url());
-            return route.abort();
-        }
-        return route.continue();
-    });
+async function withFixture(browser, viewport, run) {
+    const context = await browser.newContext({ viewport, reducedMotion: 'reduce', serviceWorkers: 'block' });
     try {
+        const page = await context.newPage();
+        const errors = [], externalRequests = [];
+        page.on('pageerror', error => errors.push(error.message));
+        await page.route('**/*', route => {
+            if (new URL(route.request().url()).origin !== origin) {
+                externalRequests.push(route.request().url());
+                return route.abort();
+            }
+            return route.continue();
+        });
         await page.goto(`${origin}/tests/fixtures/language-work-scenarios.html`);
         await page.locator('[data-bp-scenario-open]').last().waitFor();
         await run(page);
@@ -58,10 +56,44 @@ async function fixture(viewport, run) {
         assert.deepEqual(await page.evaluate(() => ({
             local: localStorage.length, session: sessionStorage.length
         })), { local: 0, session: 0 }, 'no persisted profile or session state');
+        assert.deepEqual(await context.cookies(), [], 'no authentication or session cookies');
     } finally {
         await context.close();
     }
 }
+
+// Native keyboard scroll animation continues after the first movement even
+// with reduced motion. Sample stable frames before reversing direction.
+async function scrollSettled(page) {
+    await page.evaluate(() => new Promise(resolve => {
+        const scroller = document.querySelector('.bp-scenario-scroll');
+        let previous = scroller.scrollTop, stable = 0;
+        function frame() {
+            const top = scroller.scrollTop;
+            stable = Math.abs(top - previous) < .1 ? stable + 1 : 0;
+            previous = top;
+            if (stable >= 8) resolve();
+            else requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+    }));
+}
+
+for (const engine of selected) describe(engine, { concurrency: false }, () => {
+    let browser;
+    // Linux WebKit scrolls a focused region with unmodified Home/End.
+    const endKey = engine === 'webkit' ? 'End' : 'Control+End';
+    const homeKey = engine === 'webkit' ? 'Home' : 'Control+Home';
+    before(async () => {
+        browser = await engines[engine].launch({
+            headless: true,
+            ...(engine === 'chromium' && process.env.CHROMIUM_BIN
+                ? { executablePath: process.env.CHROMIUM_BIN } : {})
+        });
+        console.log(`${engine}: ${browser.version()}`);
+    });
+    after(async () => { await browser?.close(); });
+    const fixture = (viewport, run) => withFixture(browser, viewport, run);
 
 const skills = [
     ['understand written Arabic', 'language-reading'],
@@ -76,6 +108,7 @@ for (const viewport of [
     { width: 320, height: 568 },
     { width: 390, height: 844 },
     { width: 568, height: 320 },
+    { width: 740, height: 240 },
     { width: 1280, height: 800 }
 ]) {
     for (const [skill, profile] of skills) {
@@ -164,11 +197,27 @@ test('real keyboard navigation traps focus, scrolls all content, and every close
             const scroller = page.locator('.bp-scenario-scroll');
             await page.keyboard.press('Tab');
             assert.equal(await scroller.evaluate(el => el === document.activeElement), true, 'text region is keyboard reachable');
-            await page.keyboard.press('Control+End');
+            await page.keyboard.press('ArrowDown');
+            await page.waitForFunction(() => document.querySelector('.bp-scenario-scroll').scrollTop > 0);
+            await scrollSettled(page);
+            const afterArrow = await scroller.evaluate(el => el.scrollTop);
+            await page.keyboard.press('PageDown');
+            await page.waitForFunction(top => document.querySelector('.bp-scenario-scroll').scrollTop > top + 40, afterArrow);
+            await scrollSettled(page);
+            const afterPageDown = await scroller.evaluate(el => el.scrollTop);
+            await page.keyboard.press('PageUp');
+            await page.waitForFunction(top => document.querySelector('.bp-scenario-scroll').scrollTop < top - 40, afterPageDown);
+            await scrollSettled(page);
+            await page.keyboard.press(endKey);
             await page.waitForFunction(() => {
                 const el = document.querySelector('.bp-scenario-scroll');
                 return el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
             });
+            assert.equal(await page.locator('.bp-scenario-footer-note').evaluate(el =>
+                el.getBoundingClientRect().bottom <= el.closest('.bp-scenario-scroll').getBoundingClientRect().bottom + 1), true);
+            assert.equal(await page.evaluate(() => scrollY), 0, 'native scrolling must not move the background page');
+            await page.keyboard.press(homeKey);
+            await page.waitForFunction(() => document.querySelector('.bp-scenario-scroll').scrollTop < 2);
             await page.keyboard.press('Tab');
             assert.equal(await close.evaluate(el => el === document.activeElement), true, 'Tab wraps to first control');
             await page.keyboard.press('Shift+Tab');
@@ -204,4 +253,43 @@ test('200% text size still exposes long language limitations and close button', 
         await page.getByRole('button', { name: 'Close work scenarios', exact: true }).click();
         assert.equal(await page.getByRole('dialog').count(), 0);
     });
+});
+
+test('open dialog follows viewport shrinking, landscape rotation and expansion', async () => {
+    await fixture({ width: 390, height: 844 }, async page => {
+        const trigger = page.getByRole('button', { name: 'Explore work scenarios for perform sworn interpretations', exact: true });
+        await trigger.click();
+        // These are real browser viewport resizes, not a mocked dvh value or
+        // mobile toolbar emulation. Keep the same dialog open throughout.
+        for (const viewport of [
+            { width: 390, height: 420 },
+            { width: 844, height: 390 },
+            { width: 740, height: 240 },
+            { width: 568, height: 320 },
+            { width: 390, height: 844 }
+        ]) {
+            await page.setViewportSize(viewport);
+            await page.waitForFunction(() => {
+                const dialog = document.querySelector('[role="dialog"]').getBoundingClientRect();
+                const scroller = document.querySelector('.bp-scenario-scroll');
+                const close = document.querySelector('.bp-scenario-close').getBoundingClientRect();
+                return dialog.top >= -1 && dialog.left >= -1 && dialog.right <= innerWidth + 1 &&
+                    dialog.bottom <= innerHeight + 1 && scroller.clientHeight >= 40 &&
+                    close.top >= 0 && close.bottom <= innerHeight &&
+                    scroller.scrollWidth <= scroller.clientWidth + 1;
+            }, undefined, { timeout: 5000 });
+            const scroller = page.locator('.bp-scenario-scroll');
+            await scroller.focus();
+            await page.keyboard.press(endKey);
+            await page.waitForFunction(() => {
+                const el = document.querySelector('.bp-scenario-scroll');
+                const footer = el.querySelector('.bp-scenario-footer-note').getBoundingClientRect();
+                return el.scrollTop + el.clientHeight >= el.scrollHeight - 2 &&
+                    footer.bottom <= el.getBoundingClientRect().bottom + 1;
+            });
+        }
+        await page.keyboard.press('Escape');
+        assert.equal(await trigger.evaluate(el => el === document.activeElement), true);
+    });
+});
 });

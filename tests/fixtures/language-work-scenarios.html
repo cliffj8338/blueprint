@@ -9,6 +9,8 @@
         body { margin: 0; font-family: system-ui, sans-serif; }
         main { padding: 16px; }
         main button { margin: 6px; }
+        /* A scrollable background catches keyboard events escaping the modal. */
+        main { min-height: 200vh; }
     </style>
 </head>
 <body>
