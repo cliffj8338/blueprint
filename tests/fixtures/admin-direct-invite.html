@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Direct invitation component preview</title>
+<style>
+:root{--accent:#0071e3;--text-primary:#1d1d1f;--text-secondary:#6e6e73;--text-muted:#6e6e73;--c-surface-2:#f5f6f8;--c-surface-5:#d2d5db;--bg-surface:#fff;--border:#d2d5db;--c-border-mid:#a6adb9;--success:#1e7e34;--danger:#d70015;}
+body{margin:24px;font:15px/1.5 system-ui,sans-serif;color:var(--text-primary);max-width:1050px}
+</style>
+</head>
+<body>
+<h1>Waitlist management</h1>
+<p>Synthetic component preview. This page cannot send email or change account access.</p>
+<div id="preview"></div>
+<script>window.fbIsAdmin=true;window.showcaseMode=false;window.BPDirectInvite={send:async function(){throw new Error('Preview only: no email was sent.');}};</script>
+<script src="/admin-direct-invite-ui.js"></script>
+<script>BPDirectInviteUI.mount(document.getElementById('preview'));</script>
+</body>
+</html>

@@ -1,9 +1,13 @@
 {
   "name": "blueprint",
-  "version": "4.48.39",
+  "version": "4.48.41",
   "private": true,
   "type": "module",
   "scripts": {
+    "test:work-scenarios-browser": "node --test tests/work-scenarios-browser.test.mjs",
+    "test:work-scenarios-browser:nix": "bash scripts/test-work-scenarios-nix.sh",
+    "report:work-scenarios": "node scripts/work-scenario-coverage.mjs",
+    "test:work-scenario-coverage": "node --test tests/work-scenario-coverage.test.mjs",
     "start": "serve . -p 5000 -l 5000",
     "dev": "vite",
     "prebuild": "node scripts/count-lines.js",
@@ -12,6 +16,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "playwright-core": "1.52.0",
     "terser": "^5.46.1",
     "vite": "^5.4.0"
   },

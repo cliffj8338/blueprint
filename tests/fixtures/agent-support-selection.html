@@ -1,0 +1,98 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Work Blueprint selection regression</title>
+<style>body{background:#101827;color:#eee}#map{position:relative;width:900px;height:700px}</style>
+<div id="map"><svg id="networkView" width="900" height="700">
+  <g id="nodes"><g id="writing" transform="translate(200,200)"><circle r="12" fill="blue"></circle></g>
+  <g id="analysis" transform="translate(350,200)"><circle r="18" fill="green"></circle></g></g>
+</svg></div>
+<pre id="result">RUNNING</pre>
+<script src="../../public/agent-support-map.js"></script>
+<script src="../../public/agent-support-data.js"></script>
+<script>
+(async function () {
+    const result = document.getElementById('result');
+    function check(condition, message) {
+        if (!condition) throw new Error(message);
+    }
+    const skills = [{ type: 'skill', name: 'Writing', level: 'Novice' }, { type: 'skill', name: 'Analysis', level: 'Expert' }];
+    const before = JSON.stringify(skills);
+    const originalNodes = () => document.getElementById('writing').outerHTML + document.getElementById('analysis').outerHTML;
+    const nodesBefore = originalNodes();
+    const blueprints = [
+        { id: 'current', title: '<b>Current role</b>', workTasks: [{ task: 'Draft report', agentCapabilities: [{ name: 'Drafting', relatedHumanSkill: 'Writing', proficiency: 'Mastery' }] }] },
+        { id: 'historical', title: 'Historical role', workTasks: [{ task: 'Analyze', agentCapabilities: [{ name: 'Analysis help', relatedHumanSkill: 'Analysis' }] }] },
+        { id: 'legacy', title: 'Legacy role' }
+    ];
+    let gets = 0;
+    window.fbUser = { uid: 'selection-browser-regression' };
+    window.fbDb = { collection() { return { doc() { return { collection() { return { async get() {
+        gets++;
+        return { forEach(fn) { blueprints.forEach(bp => fn({ id: bp.id, data: () => bp })); } };
+    } }; } }; } }; } };
+    const selection = { each(fn) { skills.forEach((skill, i) => fn.call(document.getElementById(i ? 'analysis' : 'writing'), skill)); } };
+    const graph = { svg: document.getElementById('networkView'), node: selection };
+    const key = 'bp-agent-support-selection:' + window.fbUser.uid;
+    localStorage.removeItem(key);
+    const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+    const query = selector => document.querySelector(selector);
+    const count = selector => document.querySelectorAll(selector).length;
+    function toggle(id) {
+        const input = query('input[data-blueprint-id="' + id + '"]');
+        input.focus();
+        input.click();
+    }
+    try {
+        bpAgentSupportData.mount(graph);
+        check(gets === 0, 'mount must stay opt-in');
+        query('[data-action=load]').click();
+        await tick();
+        check(count('.bp-agent-support-marker') === 0, 'none selected initially');
+        check(count('input[type=checkbox]') === 3, 'all saved roles selectable, including legacy');
+        check(!query('.bp-agent-support-choices b'), 'Blueprint titles must be plain text');
+        toggle('current');
+        check(count('.bp-agent-support-marker') === 1, 'one selected role produces one marker');
+        check(document.activeElement.dataset.blueprintId === 'current', 'focus retained after change');
+        query('.bp-agent-support-marker').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        check(!query('#bp-agent-support-map-dialog').hidden, 'keyboard opens details');
+        check(query('[data-part=details]').textContent.includes('Current role'), 'selected role details shown');
+        check(!query('[data-part=details]').textContent.includes('Historical role'), 'excluded role details absent');
+        check(query('[data-part=notice]').textContent.includes('does not change your human skill proficiency'), 'requirements disclaimer');
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        check(query('#bp-agent-support-map-dialog').hidden, 'Escape closes details');
+        toggle('historical');
+        check(count('.bp-agent-support-marker') === 2, 'both selected roles appear');
+        toggle('current');
+        check(count('.bp-agent-support-marker') === 1 && query('.bp-agent-support-marker').dataset.skill === 'Analysis', 'deselection removes only excluded support');
+        query('[data-action=clear-selection]').click();
+        check(count('.bp-agent-support-marker') === 0, 'clear removes all overlays');
+        check(query('[data-part=status]').textContent.includes('Choose Work Blueprints'), 'none selected explained');
+        toggle('legacy');
+        check(count('.bp-agent-support-marker') === 0, 'legacy role cannot invent links');
+        check(query('[data-part=status]').textContent.includes('No linked support'), 'selected roles without explicit links explained');
+        query('[data-action=select-all]').click();
+        check(count('.bp-agent-support-marker') === 2, 'select all includes explicit links only');
+        check(gets === 1, 'selection never fetches');
+        check(JSON.stringify(skills) === before, 'human proficiency unchanged');
+        check(originalNodes() === nodesBefore, 'personal graph unchanged');
+        bpAgentSupportData.reset();
+        bpAgentSupportData.mount(graph);
+        check(gets === 1 && query('[data-action=load]'), 'remembered choices do not auto load');
+        query('[data-action=load]').click();
+        await tick();
+        check(count('.bp-agent-support-marker') === 2, 'saved selection restored after explicit loading');
+        blueprints.splice(0, blueprints.length);
+        query('[data-action=refresh]').click();
+        await tick();
+        check(query('[data-part=status]').textContent.includes('No saved Work Blueprints'), 'empty saved library explained');
+        check(count('.bp-agent-support-marker') === 0, 'deleted roles remove support');
+        bpAgentSupportData.clear();
+        check(count('.bp-agent-support-legend') === 0 && count('.bp-agent-support-dialog') === 0, 'cleanup removes UI');
+        result.textContent = 'PASS: Blueprint selection, persistence, keyboard controls, filtering, cleanup, and unchanged personal proficiency';
+    } catch (error) {
+        result.textContent = 'FAIL: ' + error.stack;
+    } finally {
+        localStorage.removeItem(key);
+    }
+})();
+</script>

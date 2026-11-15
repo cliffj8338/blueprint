@@ -230,6 +230,7 @@ export function toggleNetworkLabels(type) {
     }
 }
 export async function initNetwork() {
+    if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
     if (!window._userData || !window._userData.initialized) {
         await waitForUserData();
     }
@@ -560,6 +561,7 @@ export async function initNetwork() {
     });
 
     window.networkData = { nodes, links, svg, link, node };
+    if (window.bpAgentSupportData) window.bpAgentSupportData.mount({ svg, node, link });
     setTimeout(applyLabelToggles, 100);
     
     // Labels always on (toggle removed in v4.27.3.3)
@@ -725,6 +727,7 @@ export function setNetworkMatchMode(mode) {
 // ===== JOB-ONLY NETWORK =====
 
 export function initJobNetwork(job) {
+    if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
     var jobSkillsArr = getJobSkills(job);
     if (!job || !jobSkillsArr.length) return;
     
@@ -878,6 +881,7 @@ export function initJobNetwork(job) {
 // ===== MATCH OVERLAY NETWORK =====
 
 export function initMatchNetwork(job) {
+    if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
     if (!job || !job.matchData) return;
     
     var width = window.innerWidth;
@@ -1320,6 +1324,7 @@ export function addMatchLegend(match) {
 // ===== VALUES ALIGNMENT NETWORK =====
 
 export function initValuesNetwork(job) {
+    if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
     if (!job) { showToast('Select a job first to compare values.', 'info'); return; }
     
     // Lazy-compute companyValues if missing (jobs loaded before v4.27)
@@ -1814,6 +1819,7 @@ export function findJobIdx() {
     return 0;
 }
 export function initCardView() {
+    if (window.bpAgentSupportData) window.bpAgentSupportData.clear();
     const cardView = document.getElementById('cardView');
     
     // Safety: if no skills data, show empty state

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Invitation resend component preview</title>
+<style>
+:root{--accent:#0071e3;--text-primary:#1d1d1f;--text-secondary:#6e6e73;}
+body{margin:24px;font:15px/1.5 system-ui,sans-serif;color:var(--text-primary);max-width:1050px}
+.row{padding:16px;background:#eff8f1;border:1px solid #93b89e;border-radius:8px}
+</style>
+</head>
+<body>
+<h1>Waitlist management</h1>
+<p>Synthetic component preview. No network calls, signup changes, or emails.</p>
+<h2>Invited (1)</h2>
+<div id="preview"><div class="row" data-bp-invited-id="synthetic-entry"><div><strong>Sample recipient</strong><div>person@example.test · Invited</div></div></div></div>
+<script>
+window.fbIsAdmin=true;window.showcaseMode=false;
+window.fbUser={uid:'synthetic-admin',getIdToken:async function(){return 'fake-token';}};
+window.fetch=async function(){return {ok:true,json:async function(){return {outcome:'unknown'};}};};
+</script>
+<script src="/admin-invite-resend.js"></script>
+<script>BPInviteResend.mount(document.getElementById('preview'),[{_id:'synthetic-entry',email:'person@example.test'}]);</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Anonymous language scenario test fixture</title>
+    <link rel="stylesheet" href="/work-scenarios.css">
+    <style>
+        body { margin: 0; font-family: system-ui, sans-serif; }
+        main { padding: 16px; }
+        main button { margin: 6px; }
+        /* A scrollable background catches keyboard events escaping the modal. */
+        main { min-height: 200vh; }
+    </style>
+</head>
+<body>
+    <!-- No app bootstrap, authentication, profile objects or storage calls. -->
+    <main id="fixture-background">
+        <h1>Language scenario checks</h1>
+        <div id="triggers"></div>
+        <button id="outside">Outside the dialog</button>
+    </main>
+    <aside id="already-hidden" inert aria-hidden="true">Previously hidden content</aside>
+    <script src="/work-scenarios.js"></script>
+    <script src="/work-scenarios-ui.js"></script>
+    <script>
+        const languages = [
+            'understand written Arabic', 'write Chinese',
+            'understand spoken Ukrainian', 'interact verbally in Portuguese',
+            'perform sworn translations', 'perform sworn interpretations'
+        ];
+        document.getElementById('triggers').innerHTML =
+            languages.map(name => BPWorkScenariosUI.badgeHTML(name)).join('');
+        if (new URLSearchParams(location.search).has('preview')) {
+            BPWorkScenariosUI.open('perform sworn interpretations');
+        }
+    </script>
+</body>
+</html>

@@ -59,7 +59,10 @@ export async function loadSkillLibraryIndex() {
             return;
         } catch(e) { /* try next */ }
     }
-    skillLibraryIndex = { totalSkills: 0, index: [] };
+    // Mark failure distinctly from a successfully loaded empty index and
+    // clear the shared promise so a later attempt can retry (task #33).
+    skillLibraryIndex = { totalSkills: 0, index: [], loadFailed: true };
+    _skillLibraryPromise = null;
     console.warn('\u26A0 Skill library not found \u2014 Add Skills search will be empty.');
 }
 
