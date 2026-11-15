@@ -70,7 +70,7 @@
             '<h2 id="' + titleId + '">' + escapeHTML(name) + '</h2>' +
             '<p class="bp-scenario-subtitle">How agent support could change selected tasks in this skill.</p>' +
             '</div><button class="bp-scenario-close" type="button" data-bp-scenario-action="close" aria-label="Close work scenarios"><span aria-hidden="true">×</span></button></header>' +
-            '<div class="bp-scenario-scroll">' +
+            '<div class="bp-scenario-scroll" tabindex="0" role="region" aria-label="Scenario details and conditions">' +
             '<section class="bp-scenario-context" aria-label="Skill context"><div class="bp-scenario-proficiency"><span>Your human proficiency</span><strong>' + escapeHTML(proficiency) + '</strong></div>' +
             '<div class="bp-scenario-match"><span>Scenario match</span><strong>' + escapeHTML(match.label || 'Not specified') + '</strong><p>' + escapeHTML(match.basis || 'Basis not specified.') + '</p><small>Match confidence: ' + escapeHTML(match.confidence == null ? 'Not specified' : match.confidence) + '</small></div></section>' +
             '<div class="bp-scenario-disclosure" role="note"><span class="bp-scenario-disclosure-mark" aria-hidden="true">i</span><p><strong>Estimates, not verification.</strong> These are informed, bounded task scenarios—not observed outcomes, proven capabilities, or a prediction that a whole skill disappears. Human proficiency and salary are unchanged.</p></div>' +
@@ -199,7 +199,7 @@
             if (event.key !== 'Tab') return;
             var focusable = Array.prototype.slice.call(root.querySelectorAll(
                 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-            )).filter(function (element) { return !element.hasAttribute('hidden'); });
+            )).filter(function (element) { return element.tabIndex >= 0 && !element.hasAttribute('hidden'); });
             if (!focusable.length) {
                 event.preventDefault();
                 root.querySelector('[role="dialog"]').focus();

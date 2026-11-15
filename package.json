@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:work-scenarios-browser": "node --test tests/work-scenarios-browser.test.mjs",
+    "report:work-scenarios": "node scripts/work-scenario-coverage.mjs",
+    "test:work-scenario-coverage": "node --test tests/work-scenario-coverage.test.mjs",
     "start": "serve . -p 5000 -l 5000",
     "dev": "vite",
     "prebuild": "node scripts/count-lines.js",
@@ -12,6 +15,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "playwright-core": "^1.65.0",
     "terser": "^5.46.1",
     "vite": "^5.4.0"
   },

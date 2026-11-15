@@ -71,6 +71,7 @@
     line-height: 1.08;
     letter-spacing: -.045em;
 }
+.bp-scenario-heading { min-width: 0; overflow-wrap: anywhere; }
 .bp-scenario-subtitle { margin: 9px 0 0; color: var(--bps-secondary); font-size: .94rem; line-height: 1.5; }
 .bp-scenario-close {
     display: grid;
