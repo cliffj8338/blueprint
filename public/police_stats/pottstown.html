@@ -443,7 +443,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
     <a href="#trending">2026 Trend</a>
     <a href="#what-police-do">What Police Do</a>
     <a href="#cfs">CFS Deep Dive</a>
-    <a href="#cost-per-call">Budget</a>
+    <a href="#police-budget">Budget</a>
     <a href="#budget-detail">Line Items</a>
     <a href="#budget-share">Budget Share</a>
     <a href="#capacity">Capacity</a>
@@ -1070,79 +1070,53 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
     <p>A line-by-line analysis sourced from the Borough of Pottstown 2025 Adopted Budget (12/9/2024) and PPD call records. Every dollar traced. Every calculation shown.</p>
 </section>
 
-<section id="cost-per-call" class="section">
+<section id="police-budget" class="section">
     <div class="content-slide">
         <div class="slide-header">
-            <h2>What Does Each Call for Service Actually Cost?</h2>
-            <div class="sub">There are three honest ways to answer this question &mdash; each measures something different</div>
+            <h2>What Does Policing Cost?</h2>
+            <div class="sub">The borough's public safety investment: what it costs, what it buys, and how officer time is actually spent</div>
         </div>
         <div class="slide-body">
             <div class="front-porch">
                 <div class="front-porch-label">Plain Language</div>
-                When someone asks "what does a police call cost?", the answer depends on what you're measuring. Think of it like asking "what does it cost to drive to the grocery store?"
-                <ul style="margin:0.8rem 0 0; padding-left:1.2rem; list-style:disc;">
-                    <li><strong>The gas for the trip</strong> &mdash; about $3. That's the direct cost of that one trip.</li>
-                    <li><strong>The gas plus wear and tear on the car</strong> &mdash; maybe $8-10. That's the cost of using the car.</li>
-                    <li><strong>Your total car cost (payment, insurance, gas, maintenance) divided by all your trips</strong> &mdash; maybe $30 per trip. That's your full cost of having a car.</li>
-                </ul>
-                <p style="margin-top:0.8rem">None of these are wrong. They answer different questions. The same is true for police calls. Below are three real numbers, each from a verifiable source, each measuring something different.</p>
+                The police budget covers far more than answering phone calls. Responding to dispatched calls for service consumes only about <strong>30.5%</strong> of officer time. The other <strong>~70%</strong> goes to patrol, criminal investigations, court appearances, report writing, training, community policing, and administration. Dividing the entire budget by calls alone is like dividing your total car costs by just your grocery trips &mdash; it ignores all the other driving you do. The more honest question is: <strong>what does the borough invest in public safety, and what does that investment provide?</strong>
             </div>
 
-            <!-- THREE COST CARDS -->
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
-                <div class="kpi-card bg-amber-tint" style="border-color:var(--amber); text-align:center;">
-                    <div class="accent-bar" style="background:var(--amber); margin:0 auto 0.5rem;"></div>
-                    <div class="value text-amber">$85</div>
-                    <div class="label">Direct Response Cost</div>
-                    <div class="detail" style="text-align:left; margin-top:0.5rem;">
-                        <strong>What it measures:</strong> The cost of sending one officer to one call for one hour.<br><br>
-                        <strong>What's included:</strong> Officer's hourly wage ($57.97), fuel ($0.15/mi), vehicle operating cost ($15/hr), healthcare per hour ($12).<br><br>
-                        <strong>What's NOT included:</strong> Workers comp, retiree health, overtime, civilian staff, vehicles, equipment, training, supplies, or capital purchases.<br><br>
-                        <strong>Source:</strong> Chief of Police estimate, June 2026. He described this as "the basics" and noted it excluded workers comp and other expenses.<br><br>
-                        <strong>Like:</strong> The cost of gas for one trip.
-                    </div>
-                </div>
-
+            <!-- WHAT THE INVESTMENT PROVIDES -->
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
                 <div class="kpi-card bg-blue-tint" style="border-color:var(--blue); text-align:center;">
                     <div class="accent-bar" style="background:var(--blue); margin:0 auto 0.5rem;"></div>
-                    <div class="value text-blue">$107</div>
-                    <div class="label">Time-Adjusted Cost</div>
-                    <div class="detail" style="text-align:left; margin-top:0.5rem;">
-                        <strong>What it measures:</strong> The share of the police budget that goes to answering calls, based on how much officer time calls actually consume.<br><br>
-                        <strong>How it's calculated:</strong> The Chief estimates each call takes about 1 hour (varies by type). 29,220 calls &times; ~1 hour = ~29,220 officer-hours. 46 officers &times; 2,080 work hours/year = 95,680 total hours. Calls use an estimated 30.5% of officer time. 30.5% of $10,264,691 = $3,130,731. Divided by 29,220 calls = <strong>$107</strong>.<br><br>
-                        <strong>Note:</strong> This is a derived estimate. The 1-hour-per-call figure is the Chief's approximation; the 2,080-hour year is a standard that does not account for leave, training, or court absences. The actual percentage may be higher.<br><br>
-                        <strong>Like:</strong> Gas plus wear on the car for one trip.
-                    </div>
+                    <div class="value text-blue">$10,264,691</div>
+                    <div class="label">Total Police Budget</div>
+                    <div class="detail">Categories 410 + 411, 2025 Adopted Budget</div>
                 </div>
 
                 <div class="kpi-card bg-green-tint" style="border-color:var(--green); text-align:center;">
                     <div class="accent-bar" style="background:var(--green); margin:0 auto 0.5rem;"></div>
-                    <div class="value text-green">$351</div>
-                    <div class="label">Full Department Cost</div>
-                    <div class="detail" style="text-align:left; margin-top:0.5rem;">
-                        <strong>What it measures:</strong> The borough's total police budget divided by total calls. This is the full cost of <em>having</em> a police department, spread across its call workload.<br><br>
-                        <strong>How it's calculated:</strong> $10,264,691 (Categories 410 + 411 from the 2025 Adopted Budget) &divide; 29,220 calls = <strong>$351</strong>.<br><br>
-                        <strong>What's included:</strong> Everything &mdash; all wages, overtime, benefits, health insurance, retiree costs, vehicles, fuel, equipment, training, supplies, civilian staff. All 60+ budget line items.<br><br>
-                        <strong>What it shows:</strong> What the borough actually spends on policing per call handled.<br><br>
-                        <strong>Like:</strong> Your total car cost divided by all your trips.
-                    </div>
+                    <div class="value text-green">$439</div>
+                    <div class="label">Cost Per Resident</div>
+                    <div class="detail">$10,264,691 / 23,400 population</div>
                 </div>
             </div>
 
-            <!-- WHICH NUMBER TO USE -->
             <div class="front-porch">
-                <div class="front-porch-label">Which Number Should You Use?</div>
-                <strong>It depends on the question:</strong>
+                <div class="front-porch-label">What $439 Per Resident Buys</div>
                 <ul style="margin:0.5rem 0 0; padding-left:1.2rem; list-style:disc;">
-                    <li><strong>"How much does it cost to send an officer?"</strong> &rarr; <strong>$85</strong> (direct response cost)</li>
-                    <li><strong>"How much of the police budget goes to answering calls?"</strong> &rarr; <strong>~$107</strong> (estimated time-adjusted cost &mdash; ~30.5% of the budget, based on Chief's ~1 hr/call estimate)</li>
-                    <li><strong>"What does the borough spend on policing per call?"</strong> &rarr; <strong>$351</strong> (full department cost)</li>
+                    <li><strong>46 sworn officers + 14 civilian staff</strong> &mdash; a full-service police department</li>
+                    <li><strong>24/7/365 coverage</strong> across 7 wards</li>
+                    <li><strong>29,220+ calls for service answered annually</strong> &mdash; about 30.5% of officer time</li>
+                    <li><strong>Proactive patrol and deterrence</strong> &mdash; visible presence in neighborhoods</li>
+                    <li><strong>Criminal investigations and follow-up</strong> &mdash; detective work after the initial response</li>
+                    <li><strong>Court appearances and prosecution support</strong> &mdash; required for every arrest</li>
+                    <li><strong>Traffic enforcement</strong> &mdash; officer-initiated, not dispatched</li>
+                    <li><strong>Community policing and engagement</strong> &mdash; school visits, business contacts, beat patrols</li>
+                    <li><strong>Training and professional development</strong> &mdash; state-mandated and departmental</li>
+                    <li><strong>Administrative support</strong> &mdash; records, evidence processing, reporting</li>
                 </ul>
-                <p style="margin-top:0.5rem">All three are calculated from verifiable data: the Chief's hourly cost estimate (June 2026), PPD's call count (29,220), and the 2025 Adopted Budget ($10,264,691). No number in this section is estimated, assumed, or taken from a national average.</p>
             </div>
 
             <!-- SOURCE DATA -->
-            <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">The Numbers Behind Each Figure</h4>
+            <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">Source Data</h4>
             <table class="data-table">
                 <thead><tr><th>Data Point</th><th>Value</th><th>Source</th></tr></thead>
                 <tbody>
@@ -1150,6 +1124,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                     <tr><td>Sworn Officer Budget (410 only)</td><td class="right">$9,072,117</td><td>2025 Adopted Budget (12/9/2024)</td></tr>
                     <tr><td>Total Calls for Service (2025)</td><td class="right">29,220</td><td>PPD 2025 UCR annual report</td></tr>
                     <tr><td>Sworn Officers</td><td class="right">46</td><td>PPD staffing records</td></tr>
+                    <tr><td>Civilian Staff</td><td class="right">14</td><td>PPD staffing records</td></tr>
                     <tr><td>Average Time Per Call</td><td class="right">~1 hour</td><td>Chief of Police estimate (June 2026)</td></tr>
                     <tr><td>Standard Work Hours Per Officer/Year</td><td class="right">2,080</td><td>Standard (40 hrs &times; 52 weeks)</td></tr>
                     <tr><td>Total Officer-Hours Available</td><td class="right">95,680</td><td>46 officers &times; 2,080 hours</td></tr>
@@ -1168,7 +1143,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                     The remaining <span class="result">~69.5%</span> covers all other police duties.
                 </div>
                 <p style="text-align:center; font-size:0.88rem; margin-top:0.5rem; color:var(--med-gray);"><strong>Important:</strong> This is a derived estimate, not a measured figure. It is based on the Chief's approximation of ~1 hour per call (which he noted varies by call type) and a standard 2,080-hour work year (which does not account for vacation, sick leave, FMLA, or training absences). If actual available hours are lower than 2,080, the percentage of time on calls would be higher. Precise time allocation would require CAD dispatch data.</p>
-                <p style="text-align:center; font-size:0.92rem; margin-top:0.5rem;">The other duties include: patrols, follow-up investigations, court appearances, report writing, training, community policing, and administration. These activities do not generate a "call" in the dispatch system.</p>
+                <p style="text-align:center; font-size:0.92rem; margin-top:0.5rem;">The other duties include: patrols, follow-up investigations, court appearances, report writing, training, community policing, and administration. These activities do not generate a "call" in the dispatch system but consume the majority of officer time.</p>
             </div>
 
             <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">Budget Exclusions (Conservative)</h4>
@@ -1177,10 +1152,10 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                 <strong>Police Pension MMO</strong> (Category 483): $2,051,787 &mdash; obligation to retired officers, not active policing<br>
                 <strong>Law Enforcement Insurance</strong> (Category 486): $113,337<br>
                 <strong>Crossing Guard Expenses</strong> (Category 480): $218,925 &mdash; school safety, not call response<br><br>
-                Including all three would raise the full department cost to <strong>$433 per call</strong>.
+                Including all three would raise the total to <strong>$12,648,740</strong> ($540 per resident).
             </div>
 
-            <div class="bottom-bar">Three ways to measure cost per call: $85 (direct response), ~$107 (estimated time-adjusted), $351 (full department). $85 and $351 are from verifiable Pottstown data. $107 is derived from the Chief's ~1 hr/call estimate.</div>
+            <div class="bottom-bar">$10,264,691 total police budget = $439 per resident. 46 sworn officers + 14 civilian staff providing 24/7/365 coverage, answering 29,220+ calls, plus patrol, investigations, court, training, and community policing.</div>
         </div>
     </div>
 </section>
@@ -1200,14 +1175,14 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
 
             <!-- SUMMARY TABLE -->
             <table class="data-table">
-                <thead><tr><th>Category</th><th style="text-align:right">Amount</th><th style="text-align:right">% of Total</th><th style="text-align:right">Cost Per Call</th></tr></thead>
+                <thead><tr><th>Category</th><th style="text-align:right">Amount</th><th style="text-align:right">% of Total</th></tr></thead>
                 <tbody>
-                    <tr><td>Compensation (Wages, OT, Longevity, Differentials)</td><td class="right">$7,219,417</td><td class="right">70.3%</td><td class="right">$247.07</td></tr>
-                    <tr><td>Benefits &amp; Payroll Taxes (Medical, FICA, Workers Comp, Retiree)</td><td class="right">$2,099,374</td><td class="right">20.5%</td><td class="right">$71.85</td></tr>
-                    <tr><td>Fleet, Maintenance &amp; Capital (Vehicles, Fuel, Equipment)</td><td class="right">$564,500</td><td class="right">5.5%</td><td class="right">$19.32</td></tr>
-                    <tr><td>Operations, Training &amp; Services</td><td class="right">$225,200</td><td class="right">2.2%</td><td class="right">$7.71</td></tr>
-                    <tr><td>Supplies &amp; Equipment (Uniforms, Lab, Range, Office)</td><td class="right">$156,200</td><td class="right">1.5%</td><td class="right">$5.35</td></tr>
-                    <tr class="grand-total-row"><td>TOTAL POLICE DEPARTMENT BUDGET</td><td class="right">$10,264,691</td><td class="right">100.0%</td><td class="right">$351.29</td></tr>
+                    <tr><td>Compensation (Wages, OT, Longevity, Differentials)</td><td class="right">$7,219,417</td><td class="right">70.3%</td></tr>
+                    <tr><td>Benefits &amp; Payroll Taxes (Medical, FICA, Workers Comp, Retiree)</td><td class="right">$2,099,374</td><td class="right">20.5%</td></tr>
+                    <tr><td>Fleet, Maintenance &amp; Capital (Vehicles, Fuel, Equipment)</td><td class="right">$564,500</td><td class="right">5.5%</td></tr>
+                    <tr><td>Operations, Training &amp; Services</td><td class="right">$225,200</td><td class="right">2.2%</td></tr>
+                    <tr><td>Supplies &amp; Equipment (Uniforms, Lab, Range, Office)</td><td class="right">$156,200</td><td class="right">1.5%</td></tr>
+                    <tr class="grand-total-row"><td>TOTAL POLICE DEPARTMENT BUDGET</td><td class="right">$10,264,691</td><td class="right">100.0%</td></tr>
                 </tbody>
             </table>
 
@@ -1348,19 +1323,17 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                     <p>01.483.197 Police Pension MMO: <strong>$2,051,787</strong><br>
                     01.486.355 Law Enforcement Insurance: <strong>$113,337</strong><br>
                     01.480.600 Crossing Guard Exp.: <strong>$218,925</strong><br><br>
-                    Including these would raise the total to <strong>$12,648,740</strong> and cost per call to <strong>$433</strong>. We excluded them to keep the methodology clean and conservative.</p>
+                    Including these would raise the total to <strong>$12,648,740</strong> ($540 per resident). We excluded them to keep the methodology clean and conservative.</p>
                 </div>
             </div>
 
             <div class="callout" style="border: 1px solid var(--med-gray); margin-top:1rem; background: var(--light-gray);">
                 <h4 style="color:var(--navy)">Transparency Note: Category 411 Staffing Composition</h4>
                 <p>Category 411 Police-Civilian ($1,192,574) includes <strong>14 positions</strong>: 8 Civilian Processing Officers (1-2 assigned per shift) who handle calls, complaints, dispatch, and prison transports; 1 Department Administrative Manager; 3 Records Office Specialists; 1 Detective Secretary; and 1 part-time Parking Enforcement Officer. The 8 processing officers rotate across shifts and are part of the call response chain. The remaining 5 full-time and 1 part-time positions are administrative — they handle records requests, department administration, and parking enforcement and do not respond to calls for service.<br><br>
-                If only sworn officer costs (Category 410) are used: <strong>$9,072,117 &divide; 29,220 = $310 per call</strong>.<br>
-                If the full department budget (410 + 411) is used: <strong>$10,264,691 &divide; 29,220 = $351 per call</strong>.<br><br>
-                This report uses the full department figure ($351) because the civilian processing officers are integral to call handling. The $310 figure represents the sworn-officer-only cost.</p>
+                This report uses the full department figure ($10,264,691) because the civilian processing officers are integral to department operations. Category 410 alone (sworn officers) totals $9,072,117.</p>
             </div>
 
-            <div class="bottom-bar" style="margin-top:1rem;">Category 410 + Category 411 = $10,264,691 &divide; 29,220 CFS = $351 per call. Sworn officers only (410): $310 per call. Verified against adopted budget.</div>
+            <div class="bottom-bar" style="margin-top:1rem;">Category 410 + Category 411 = $10,264,691 total police budget = $439 per resident. Verified against adopted budget.</div>
         </div>
         <div class="slide-footer">Source: Borough of Pottstown 2025 Adopted Budget (adopted 12/9/2024), Fund 01 General Fund, Categories 410 &amp; 411</div>
     </div>
@@ -1432,7 +1405,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                     <tr><td>411: Police - Civilian</td><td>$846,171</td><td>$1,122,879</td><td>$1,199,408</td><td style="font-weight:700;background:#EFF6FF">$1,192,574</td></tr>
                     <tr style="font-weight:700;background:#E8F0FE"><td>Total Police Budget</td><td>$7,014,625</td><td>$9,220,501</td><td>$9,852,063</td><td style="background:#DBEAFE">$10,264,691</td></tr>
                     <tr><td>Total CFS</td><td>27,185</td><td>27,832</td><td>28,511</td><td style="background:#EFF6FF">29,220</td></tr>
-                    <tr><td>Cost Per Call</td><td>$258</td><td>$331</td><td>$346</td><td style="font-weight:700;background:#EFF6FF">$351</td></tr>
+                    <tr><td>Cost Per Resident</td><td>$300</td><td>$394</td><td>$421</td><td style="font-weight:700;background:#EFF6FF">$439</td></tr>
                     <tr><td>Sworn Officers</td><td>46</td><td>46</td><td>47</td><td style="background:#EFF6FF">46</td></tr>
                     <tr><td>Part I Crimes</td><td>1,101</td><td>1,281</td><td>1,089</td><td style="background:#EFF6FF">1,072</td></tr>
                     <tr><td>Budget Growth (from 2022)</td><td>—</td><td>+31.4%</td><td>+40.4%</td><td style="font-weight:700;background:#EFF6FF">+46.3%</td></tr>
@@ -1451,8 +1424,8 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                     Staffing remained at 46 throughout. The budget grew because the cost of employing 46 officers increased, not because the department expanded.</p>
                 </div>
                 <div class="callout bg-blue-tint" style="border-color: var(--blue);">
-                    <h4 class="text-blue">Cost Per Call Trend</h4>
-                    <p>The cost per call rose from $258 (2022) to $351 (2025), a 36% increase. Over the same period, calls rose 7.5% while the budget rose 46.3%. The budget growth is concentrated in benefits and contractual obligations: Medical/RX rose 19.7%, Workers Comp rose 90.7%, and uniformed wages rose 45.3% (reflecting contractual step increases at the same headcount of 46). Staffing did not increase. Any peer borough comparison should account for whether the same benefit categories are included.</p>
+                    <h4 class="text-blue">Cost Per Resident Trend</h4>
+                    <p>The cost per resident rose from $300 (2022) to $439 (2025), a 46.3% increase that mirrors overall budget growth. Over the same period, calls rose 7.5% while the budget rose 46.3%. The budget growth is concentrated in benefits and contractual obligations: Medical/RX rose 19.7%, Workers Comp rose 90.7%, and uniformed wages rose 45.3% (reflecting contractual step increases at the same headcount of 46). Staffing did not increase. Any peer borough comparison should account for whether the same benefit categories are included.</p>
                 </div>
             </div>
         </div>
@@ -2404,7 +2377,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                 </div>
                 <div class="critique-rebuttal">
                     <h4>What the Data Shows</h4>
-                    <p>Crime is down 30.5% while calls for service are up 21.2% (24,118 to 29,220). The increase includes welfare checks, noise concerns, and situations classified as non-crime after response. Pottstown handles 1,241 calls per 1,000 residents. The cost per call ($351) is the department's full adopted budget divided by its actual workload. Both numbers are public record.</p>
+                    <p>Crime is down 30.5% while calls for service are up 21.2% (24,118 to 29,220). The increase includes welfare checks, noise concerns, and situations classified as non-crime after response. Pottstown handles 1,241 calls per 1,000 residents. The full police budget ($10,264,691, or $439 per resident) covers all police functions &mdash; not just call response. Dispatched calls consume only about 30.5% of officer time; the rest goes to patrol, investigations, court, training, and community policing. The budget cannot be cut proportionally to crime reduction because call volume (the actual workload driver) has increased.</p>
                 </div>
             </div>
 
@@ -2586,7 +2559,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                 <li>Non-crime CFS = Total CFS minus Total Crimes (Part I + Part II).</li>
                 <li>2026 annualized projections use Jan-Oct (10 months) x 12/10. These are projections, not forecasts.</li>
                 <li>Tilde (~) prefix indicates estimated values. No estimated values are presented as verified.</li>
-                <li>Cost per call: $10,264,691 (410+411) / 29,220 CFS = $351.29. Excludes pension (483), insurance (486), and crossing guards (480).</li>
+                <li>Cost per resident: $10,264,691 (410+411) / 23,400 population = $439. Excludes pension (483), insurance (486), and crossing guards (480).</li>
             </ul>
         </div>
         <div class="slide-footer">Prepared October 2026 | All data verified against source spreadsheet and adopted budget</div>
@@ -2616,11 +2589,9 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                     <tr><td>CFS per Officer</td><td style="font-weight:700;color:var(--amber)">635</td><td>569</td><td>Calculated</td></tr>
                     <tr class="category-row"><td colspan="4">WITHOUT PENSION (Pottstown's standard methodology)</td></tr>
                     <tr><td>Police Budget (excl. pension)</td><td>$10,264,691</td><td>$13,692,345</td><td>Adopted budgets *</td></tr>
-                    <tr><td>Cost per Call</td><td>$351</td><td>$334</td><td>Calculated</td></tr>
                     <tr><td>Cost per Resident</td><td>$439</td><td>$384</td><td>Calculated</td></tr>
                     <tr class="category-row"><td colspan="4">WITH PENSION (Norristown's standard methodology)</td></tr>
                     <tr><td>Police Budget (incl. pension)</td><td>$12,316,478</td><td>$16,360,684</td><td>Adopted budgets</td></tr>
-                    <tr><td>Cost per Call</td><td>$422</td><td>$399</td><td>Calculated</td></tr>
                     <tr><td>Cost per Resident</td><td>$526</td><td>$458</td><td>Calculated</td></tr>
                     <tr class="category-row"><td colspan="4">KEY STRUCTURAL DIFFERENCES</td></tr>
                     <tr><td>Poverty Rate</td><td>17.5%</td><td>18.2%</td><td>ACS 5-Year</td></tr>
@@ -2636,8 +2607,8 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                     <p>Each Pottstown officer handles <strong>635 calls per year</strong> vs. Norristown's 569 — <strong>11.6% more per officer</strong>. Pottstown also generates more calls per capita (1,249 vs. 1,147 per 1,000 residents). With fewer officers handling more calls per capita, Pottstown's per-officer workload is materially higher than its closest verified peer.</p>
                 </div>
                 <div class="callout bg-blue-tint" style="border-color: var(--blue);">
-                    <h4 class="text-blue">Cost Per Call Is Comparable</h4>
-                    <p>Using the same methodology (excluding pension): Pottstown is $351/call, Norristown is $334/call — a <strong>$17 difference (5%)</strong>. Including pension: Pottstown is $422, Norristown is $399 — a <strong>$23 difference (5.7%)</strong>. Neither borough is dramatically more or less expensive than the other. The cost per call is within normal variation for Montgomery County boroughs with similar demographics.</p>
+                    <h4 class="text-blue">Cost Per Resident Is Comparable</h4>
+                    <p>Using the same methodology (excluding pension): Pottstown is $439/resident, Norristown is $384/resident &mdash; a <strong>$55 difference (14%)</strong>. Including pension: Pottstown is $526, Norristown is $458 &mdash; a <strong>$68 difference (15%)</strong>. Pottstown's higher per-resident cost reflects its higher per-capita call volume (1,249 vs. 1,147 per 1,000) and higher per-officer workload (635 vs. 569 calls per officer). Both boroughs are within normal variation for Montgomery County boroughs with similar demographics and poverty rates.</p>
                 </div>
             </div>
 
@@ -2653,25 +2624,25 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
 <section id="methodology-comparison" class="section">
     <div class="content-slide">
         <div class="slide-header">
-            <h2>A Note on Alternative Cost-Per-Call Calculations</h2>
+            <h2>A Note on Alternative Cost Calculations</h2>
             <div class="sub">When different analyses produce different numbers, the methodology determines which one is verifiable</div>
         </div>
         <div class="slide-body">
             <div class="front-porch">
                 <div class="front-porch-label">Plain Language</div>
-                A separate analysis of Pottstown police calls was presented using a cost of <strong>$85.15 per call</strong>. This report uses <strong>$351.29 per call</strong>. These are not competing answers to the same question &mdash; they are answers to <strong>two different questions</strong>. The $85.15 figure is a <strong>direct response cost</strong> estimate provided by the Chief of Police: the hourly cost of one officer responding to one call. The $351.29 figure is the <strong>full department cost</strong>: the entire adopted police budget divided by total calls. Both are legitimate metrics. They measure different things. The distinction matters for how they are applied.
+                A separate analysis of Pottstown police calls was presented using a direct response cost of <strong>$85.15</strong> per call-hour. This figure is a <strong>direct response cost</strong> estimate provided by the Chief of Police: the hourly cost of one officer responding to one call. It covers only 4 of the department's 11 cost categories and captures approximately <strong>24%</strong> of the total department cost. The full police budget is <strong>$10,264,691</strong> ($439 per resident), and it covers all police functions &mdash; not just call response. Dispatched calls consume only about 30.5% of officer time. The distinction matters for how cost figures are applied.
             </div>
 
             <h4 style="margin-bottom:0.8rem;color:var(--navy)">Two Metrics, Two Questions</h4>
             <table class="data-table">
-                <thead><tr><th>Element</th><th>Direct Response Cost ($85.15)</th><th>Full Department Cost ($351.29)</th></tr></thead>
+                <thead><tr><th>Element</th><th>Direct Response Cost ($85.15/hr)</th><th>Full Department Budget ($10,264,691)</th></tr></thead>
                 <tbody>
-                    <tr><td><strong>What it measures</strong></td><td>The hourly cost of sending one officer to one call</td><td>The total cost of operating the police department per call</td></tr>
+                    <tr><td><strong>What it measures</strong></td><td>The hourly cost of sending one officer to one call</td><td>The total annual cost of operating the police department</td></tr>
                     <tr><td><strong>Source</strong></td><td>Chief of Police estimate (June 2026)</td><td>2025 Adopted Budget, Categories 410 + 411</td></tr>
                     <tr><td><strong>Components included</strong></td><td>Officer hourly wage ($57.97), fuel ($0.15/mi), vehicle operating cost ($15/hr), healthcare per hour ($12)</td><td>All 60+ line items: wages, overtime, longevity, FICA, workers comp, medical/dental/vision, retiree health, supplies, vehicles, equipment, training, capital purchases, civilian staff</td></tr>
                     <tr><td><strong>Components excluded</strong></td><td>Workers comp, retiree health, FICA, overtime, civilian staff, equipment, training, capital purchases, all operational costs</td><td>Pension (cat. 483), law enforcement insurance (cat. 486), crossing guards (cat. 480)</td></tr>
-                    <tr><td><strong>What question it answers</strong></td><td>"What does it cost to send a car to a call?"</td><td>"What does the borough spend on policing per call?"</td></tr>
-                    <tr><td><strong>Appropriate use</strong></td><td>Estimating the marginal cost of an additional call</td><td>Municipal budget analysis, total cost of service</td></tr>
+                    <tr><td><strong>What question it answers</strong></td><td>"What does it cost to send a car to a call?"</td><td>"What does the borough invest in public safety?"</td></tr>
+                    <tr><td><strong>Appropriate use</strong></td><td>Estimating the marginal cost of an additional call</td><td>Municipal budget analysis, total cost of public safety per resident ($439)</td></tr>
                 </tbody>
             </table>
 
@@ -2695,7 +2666,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
 
             <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">What the Direct Response Cost Excludes</h4>
             <div class="front-porch">
-                The Chief's $85.15 covers four components. The adopted budget contains the full cost of operating the department. The difference &mdash; <strong>$266.14 per call</strong> &mdash; represents department costs that exist whether or not any individual call occurs:
+                The Chief's $85.15 covers four components. The adopted budget contains the full cost of operating the department. The remaining costs represent department expenses that exist whether or not any individual call occurs &mdash; and that support all police functions, not just call response:
             </div>
             <table class="data-table" style="margin-top:0.8rem;">
                 <thead><tr><th>Cost Category</th><th style="text-align:right">2025 Budget Amount</th><th>In Chief's $85.15?</th></tr></thead>
@@ -2717,10 +2688,10 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
 
             <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">How the Alternative Analysis Applied This Number</h4>
             <div class="front-porch">
-                The separately presented ward-level analysis multiplied the Chief's direct response cost ($85.15) by total annual call volumes to calculate "economic impact" per ward and per year. This application treats the direct response cost as if it were the full cost of policing. The Chief's estimate covers four cost components. The adopted budget contains eleven. The resulting dollar figures capture approximately <strong>24%</strong> of the actual department cost:
+                The separately presented ward-level analysis multiplied the Chief's direct response cost ($85.15) by total annual call volumes to calculate "economic impact" per ward and per year. This application treats the direct response cost as if it were the full cost of policing. The Chief's estimate covers four cost components. The adopted budget contains eleven. The resulting dollar figures capture approximately <strong>24%</strong> of the actual department cost. Moreover, dividing the full budget by calls alone overstates the cost attributable to calls, since calls consume only about 30.5% of officer time:
             </div>
             <table class="data-table" style="margin-top:0.8rem;">
-                <thead><tr><th>Metric</th><th>At $85.15/call (direct response)</th><th>At $351.29/call (full department)</th></tr></thead>
+                <thead><tr><th>Metric</th><th>At $85.15/call-hr (direct response)</th><th>Full department budget share</th></tr></thead>
                 <tbody>
                     <tr><td>2025 total (26,931 calls)</td><td>$2,293,174</td><td><strong>$9,457,422</strong></td></tr>
                     <tr><td>Ward 2 (8,032 calls, 2025)</td><td>$683,924</td><td><strong>$2,820,958</strong></td></tr>
@@ -2732,7 +2703,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
 
             <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">Fixed Cost vs. Marginal Cost</h4>
             <div class="front-porch">
-                The police budget is a <strong>fixed annual cost</strong> approved by Borough Council each December. It does not increase or decrease based on call volume. The same 46 officers, vehicles, equipment, and benefits cost $10,264,691 whether the department responds to 25,000 calls or 30,000 calls. The cost per call ($351.29) is a <strong>unit average</strong> &mdash; it describes how the fixed budget is distributed across actual workload. It is not a price per unit. The Chief's $85.15 is closer to a <strong>marginal cost</strong> &mdash; the approximate incremental cost of one additional response. Both are valid for their intended purpose. Neither should be used for the other's purpose.
+                The police budget is a <strong>fixed annual cost</strong> approved by Borough Council each December. It does not increase or decrease based on call volume. The same 46 officers, vehicles, equipment, and benefits cost $10,264,691 whether the department responds to 25,000 calls or 30,000 calls. This budget funds all police functions &mdash; call response (~30.5% of officer time), patrol, investigations, court, training, community policing, and administration. The Chief's $85.15 is closer to a <strong>marginal cost</strong> &mdash; the approximate incremental cost of one additional response. The full budget should not be divided by calls alone, because calls are only one part of what the department does.
             </div>
 
             <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">What the Alternative Analysis Gets Right</h4>
@@ -2741,7 +2712,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                 <p>The ward-by-ward breakdown of call volume is a useful contribution. This report does not include ward-level data. Understanding which areas of the borough generate more calls &mdash; and what types of calls &mdash; is valuable for resource planning. The observation that Ward 6 is the fastest-growing ward by percentage (+45%) and that Ward 2 experienced a localized spike in summer 2025 are both data points worth investigating. These observations support the recommendation for a Community Communications Task Force that can study call patterns at the ward level and develop targeted response strategies.</p>
             </div>
 
-            <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">Why No "Standard" Cost Per Call Exists</h4>
+            <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">Why No "Standard" Per-Call Cost Exists</h4>
             <div class="front-porch">
                 No standard national average is tracked by any central government agency or private body for the exact cost to answer, investigate, and close an individual 911 or non-emergency call. A uniform unit cost does not exist because tracking a single call from ring to resolution requires merging two entirely different public ledger systems that rarely connect financially:
             </div>
@@ -2756,12 +2727,12 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
                 </div>
             </div>
             <div class="front-porch" style="margin-top:1rem;">
-                <strong>What published research shows:</strong> National criminal justice research groups like the Vera Institute of Justice track macro-level metrics such as total police spending per resident &mdash; not event-level unit costs. When regional governments or independent consulting firms conduct specialized baseline audits, findings reveal massive local volatility: dispatch-only processing costs range from <strong>$12 to $90</strong> per event. Full field response costs (including officer wages, vehicle wear, scene time, and report filing) range from <strong>$90 to $500+</strong> per dispatched call. The Chief's $85.15 estimate falls within the dispatch-only range. The full department cost of $351.29 falls within the full field response range. Both are consistent with published audit findings.
+                <strong>What published research shows:</strong> National criminal justice research groups like the Vera Institute of Justice track macro-level metrics such as total police spending per resident &mdash; not event-level unit costs. When regional governments or independent consulting firms conduct specialized baseline audits, findings reveal massive local volatility: dispatch-only processing costs range from <strong>$12 to $90</strong> per event. Full field response costs (including officer wages, vehicle wear, scene time, and report filing) range from <strong>$90 to $500+</strong> per dispatched call. The Chief's $85.15 estimate falls within the dispatch-only range. Pottstown's full department budget ($10,264,691 for 29,220 calls) falls within the full field response range, though it is important to note that calls represent only about 30.5% of what that budget funds.
             </div>
 
-            <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">What Cost Per Call Does Not Measure</h4>
+            <h4 style="margin:1.5rem 0 0.8rem;color:var(--navy)">What Calls for Service Do Not Capture</h4>
             <div class="front-porch">
-                Cost per call divides the police budget by <strong>dispatched calls for service only</strong>. It does not capture the significant portion of police work that is never initiated by a call:
+                Calls for service are only one part of police work. Dispatched calls consume an estimated <strong>30.5%</strong> of officer time. The remaining ~70% goes to activities that are never initiated by a call:
             </div>
             <table class="data-table" style="margin-top:0.8rem;">
                 <thead><tr><th>Activity</th><th>Counted in CFS?</th><th>Note</th></tr></thead>
@@ -2781,10 +2752,10 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
 
             <div class="callout bg-amber-tint" style="border-color: var(--amber); margin-top:1.5rem;">
                 <h4 class="text-amber">A Note on AI-Generated Analysis</h4>
-                <p>The alternative report contains LaTeX formatting artifacts (\times, \mathbf) visible in the printed document. These indicate the text was generated by an AI language model and printed without formatting review. The ward-level call data is useful regardless of how it was formatted. However, the financial calculations built on that data used the Chief's direct response cost ($85.15) as if it were the full department cost ($351.29). The Chief's email explicitly noted his estimate was incomplete. That caveat did not carry through to the final analysis.</p>
+                <p>The alternative report contains LaTeX formatting artifacts (\times, \mathbf) visible in the printed document. These indicate the text was generated by an AI language model and printed without formatting review. The ward-level call data is useful regardless of how it was formatted. However, the financial calculations built on that data used the Chief's direct response cost ($85.15) as if it were the full cost of policing, when the full department budget is $10,264,691. The Chief's email explicitly noted his estimate was incomplete. That caveat did not carry through to the final analysis.</p>
             </div>
 
-            <div class="bottom-bar" style="margin-top:1rem;">$85.15 = direct response cost (Chief's estimate, 4 components). $351.29 = full department cost (adopted budget, 60+ line items). Both are real. They measure different things.</div>
+            <div class="bottom-bar" style="margin-top:1rem;">$85.15/hr = direct response cost (Chief's estimate, 4 components). $10,264,691 = full department budget (60+ line items, $439/resident). Calls consume ~30.5% of officer time.</div>
         </div>
         <div class="slide-footer">Source: Borough of Pottstown 2025 Adopted Budget (12/9/2024), PPD UCR 10-Year Dataset, Alternative ward-level analysis (2017-2026)</div>
     </div>
@@ -2796,7 +2767,7 @@ body { font-family: Calibri, 'Segoe UI', Arial, sans-serif; color: #1F2A37; back
     <div style="width:150px;height:3px;background:linear-gradient(90deg,transparent,var(--blue),transparent);margin:0 auto 2rem"></div>
     <div class="message"><span class="msg-bar" style="background:var(--green)"></span><span style="color:var(--green)">Crime is down 30.5%. Pottstown is safer than it has been in 30 years.</span></div>
     <div class="message"><span class="msg-bar" style="background:var(--amber)"></span><span style="color:var(--amber)">Demand is up 21.2%. 29,220 calls responded to in 2025.</span></div>
-    <div class="message"><span class="msg-bar" style="background:var(--blue)"></span><span style="color:var(--blue)">Full transparency: $351 per call, every dollar traced.</span></div>
+    <div class="message"><span class="msg-bar" style="background:var(--blue)"></span><span style="color:var(--blue)">Full transparency: $10,264,691 budget, $439 per resident, every dollar traced.</span></div>
     <div class="message"><span class="msg-bar" style="background:var(--green)"></span><span style="color:var(--green)">46 officers. 635 calls per officer. Budget and data are public record.</span></div>
     <div class="source" style="margin-top:3rem">
         <p>Source: Pottstown Police Department UCR 10-Year Dataset (2015-2025)</p>
